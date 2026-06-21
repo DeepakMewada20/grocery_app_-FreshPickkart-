@@ -74,8 +74,8 @@ class PaymentLinkEndpoint extends Endpoint {
         idempotencyKey: idempotencyKey,
       );
 
-      // 2. Get server-calculated final amount
-      final serverFinalAmount = await _orders.getOrderFinalAmount(
+      // 2. Get server-calculated final amount (actual payment to collect)
+      final serverFinalAmount = await _orders.getOrderActualPaymentAmount(
         session,
         orderNumber,
       );

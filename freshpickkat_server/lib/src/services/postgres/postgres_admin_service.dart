@@ -225,6 +225,9 @@ class PostgresAdminService {
             role: row.role,
             fcmToken: row.fcmToken,
             completedOrdersCount: completedCounts[row.id!.toString()] ?? 0,
+            currentFreshPoints: row.currentFreshPoints,
+            totalEarned: row.totalEarned,
+            totalRedeemed: row.totalRedeemed,
           ),
         )
         .toList();

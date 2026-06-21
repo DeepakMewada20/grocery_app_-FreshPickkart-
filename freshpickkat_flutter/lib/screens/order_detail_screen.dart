@@ -1301,13 +1301,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             cs,
             valueColor: order.deliveryFee == 0 ? Colors.green : null,
           ),
+          if (order.freshPointsUsed > 0) ...[
+            _buildRow(
+              Icons.monetization_on_outlined,
+              'FreshPoints Used (${order.freshPointsUsed})',
+              '-INR ${order.freshPointsValue.formatPrice}',
+              cs,
+              valueColor: Colors.green,
+            ),
+          ],
           SizedBox(height: 12.h),
           Divider(color: cs.outlineVariant),
           SizedBox(height: 4.h),
           _buildRow(
             Icons.payments_outlined,
-            'Paid',
-            'INR ${order.finalAmount.formatPrice}',
+            order.freshPointsUsed > 0 ? 'Paid via UPI/Card' : 'Paid',
+            'INR ${
+              order.freshPointsUsed > 0
+                  ? order.actualPaymentAmount.formatPrice
+                  : order.finalAmount.formatPrice
+            }',
             cs,
             isTotal: true,
           ),

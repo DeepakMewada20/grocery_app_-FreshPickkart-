@@ -6,6 +6,7 @@ import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart';
 import '../background/order_outbox_service.dart';
 import '../payments/payment_gateway_service.dart';
+import 'postgres_fresh_points_service.dart';
 import 'postgres_support.dart';
 
 class PostgresRefundService {
@@ -235,6 +236,26 @@ class PostgresRefundService {
         ),
         transaction: transaction,
       );
+
+      // ── FreshPoints restoration on webhook refund ──
+      if (order.freshPointsUsed > 0 && normalizedStatus == 'processed') {
+        final fpService = PostgresFreshPointsService();
+        final totalRefundAmount = refund?.amount ?? payment.amount;
+        final ratio = totalRefundAmount / order.finalAmount;
+        final pointsToRestore = (order.freshPointsUsed * ratio).floor();
+        if (pointsToRestore > 0) {
+          await fpService.restorePoints(
+            session,
+            order.userId,
+            pointsToRestore,
+            referenceType: 'refund',
+            referenceId: order.id!,
+            description:
+                'Restored $pointsToRestore points via webhook refund on order ${order.orderNumber}',
+            transaction: transaction,
+          );
+        }
+      }
     });
 
     if (normalizedStatus == 'processed') {
@@ -391,6 +412,26 @@ class PostgresRefundService {
         ),
         transaction: transaction,
       );
+
+      // ── FreshPoints restoration on refund ──
+      if (order.freshPointsUsed > 0 &&
+          (refundStatus == 'processed' || refundStatus == 'pending')) {
+        final fpService = PostgresFreshPointsService();
+        final ratio = cappedAmount / order.finalAmount;
+        final pointsToRestore = (order.freshPointsUsed * ratio).floor();
+        if (pointsToRestore > 0) {
+          await fpService.restorePoints(
+            session,
+            order.userId,
+            pointsToRestore,
+            referenceType: 'refund',
+            referenceId: order.id!,
+            description:
+                'Restored $pointsToRestore points for refund of ₹${cappedAmount.toStringAsFixed(2)} on order ${order.orderNumber}',
+            transaction: transaction,
+          );
+        }
+      }
 
       return row;
     });

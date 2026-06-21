@@ -7,6 +7,7 @@ import '../../generated/protocol.dart';
 import '../analytics/redis_analytics_service.dart';
 import '../background/order_outbox_service.dart';
 import '../pricing/pricing_engine.dart';
+import 'postgres_fresh_points_service.dart';
 import 'postgres_payment_link_service.dart';
 import 'postgres_refund_service.dart';
 import 'postgres_support.dart';
@@ -25,6 +26,7 @@ class PostgresOrderService {
     required Order order,
     required String idempotencyKey,
     String gatewayName = 'razorpay',
+    int freshPointsToRedeem = 0,
   }) async {
     final normalizedKey = idempotencyKey.trim();
     if (normalizedKey.isEmpty) {
@@ -48,6 +50,7 @@ class PostgresOrderService {
       userId: order.userId,
       appliedCouponCode: coupon?.code,
       autoApplyCoupons: false,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
 
     final bogoOfferIdsByFreeItem = <String, String>{};
@@ -117,7 +120,11 @@ class PostgresOrderService {
         final orderNumber = _generateOrderNumber();
         final requestHash = jsonEncode(order.toJsonForProtocol());
 
-        final pricingSnapshotJson = _buildPricingSnapshot(pricing);
+        final pricingSnapshotJson = _buildPricingSnapshot(
+          pricing,
+          couponCode: coupon?.code,
+          paymentMethod: order.paymentMode,
+        );
         final deliverySnapshotJson = _buildDeliverySnapshot(pricing);
         final couponSnapshotJson = SnapshotBuilder.instance.buildCouponSnapshot(
           coupon,
@@ -161,6 +168,9 @@ class PostgresOrderService {
             freeDeliveryReason: pricing.freeDeliveryApplied
                 ? (pricing.deliveryPricing?.appliedRuleName ?? 'Free Delivery')
                 : null,
+            freshPointsUsed: pricing.freshPointsRedeemed,
+            freshPointsValue: pricing.freshPointsDiscount,
+            actualPaymentAmount: pricing.totalAmount,
             // --- END SERVER-CALCULATED ---
             couponSnapshot: couponSnapshotJson,
             pricingSnapshot: pricingSnapshotJson,
@@ -261,6 +271,20 @@ class PostgresOrderService {
           throw Exception('Failed to allocate payment transaction id.');
         }
         final paymentTransactionId = paymentTransaction.id!;
+
+        // ── FreshPoints: atomically redeem points if used ──
+        if (pricing.freshPointsRedeemed > 0) {
+          final fpService = PostgresFreshPointsService();
+          await fpService.redeemPoints(
+            session,
+            userId,
+            pricing.freshPointsRedeemed,
+            referenceType: 'order',
+            referenceId: createdOrderId,
+            description: 'Redeemed ${pricing.freshPointsRedeemed} points for order $orderNumber',
+            transaction: transaction,
+          );
+        }
 
         await IdempotencyRecordRow.db.insertRow(
           session,
@@ -684,6 +708,9 @@ class PostgresOrderService {
           addressSnapshot: order.addressSnapshot,
           pricingSnapshot: order.pricingSnapshot,
           deliverySnapshot: order.deliverySnapshot,
+          freshPointsUsed: order.freshPointsUsed,
+          freshPointsValue: order.freshPointsValue,
+          actualPaymentAmount: order.actualPaymentAmount,
           finalAmount: order.finalAmount,
           status: order.orderStatus,
           paymentStatus: order.paymentStatus,
@@ -1666,7 +1693,28 @@ class PostgresOrderService {
     return total;
   }
 
-  String _buildPricingSnapshot(CartPricingResult pricing) {
+  String _buildPricingSnapshot(
+    CartPricingResult pricing, {
+    String? couponCode,
+    String? paymentMethod,
+  }) {
+    if (pricing.freshPointsRedeemed > 0) {
+      return jsonEncode({
+        'snapshotVersion': 2,
+        'subtotal': pricing.subtotal,
+        'deliveryCharge': pricing.deliveryFee,
+        'couponCode': couponCode,
+        'couponDiscount': pricing.couponDiscount,
+        'freshPointsUsed': pricing.freshPointsRedeemed,
+        'freshPointsValue': pricing.freshPointsDiscount,
+        'actualPaymentAmount': pricing.totalAmount,
+        'paymentMethod': paymentMethod,
+        'redemptionLimitPercent': 50,
+        'finalPayableAmount': pricing.totalAmount,
+        'grandTotal': pricing.totalAmount,
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
     return jsonEncode({
       'subtotal': pricing.subtotal,
       'offerDiscount':
@@ -1701,6 +1749,20 @@ class PostgresOrderService {
       throw Exception('Order not found: $orderNumber');
     }
     return row.finalAmount;
+  }
+
+  Future<double> getOrderActualPaymentAmount(
+    Session session,
+    String orderNumber,
+  ) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) {
+      throw Exception('Order not found: $orderNumber');
+    }
+    return row.actualPaymentAmount > 0 ? row.actualPaymentAmount : row.finalAmount;
   }
 
   /// Find an active pending order for this user.

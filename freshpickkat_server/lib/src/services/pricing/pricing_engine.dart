@@ -5,8 +5,10 @@ import '../../generated/protocol.dart';
 import '../delivery/delivery_charge_calculator.dart';
 import '../bogo/bogo_eligibility.dart';
 import '../postgres/postgres_coupon_service.dart';
+import '../postgres/postgres_fresh_points_service.dart';
 import '../postgres/postgres_offer_service.dart';
 import '../postgres/postgres_product_compat_service.dart';
+import '../postgres/postgres_support.dart';
 
 class PricingEngine {
   static final PostgresCouponService _couponService = PostgresCouponService();
@@ -42,6 +44,7 @@ class PricingEngine {
     String? userId,
     String? appliedCouponCode,
     bool autoApplyCoupons = true,
+    int freshPointsToRedeem = 0,
   }) async {
     final result = CartPricingResult(
       subtotal: 0,
@@ -57,6 +60,8 @@ class PricingEngine {
       deliveryPricing: null,
       totalSavings: 0,
       totalAmount: 0,
+      freshPointsDiscount: 0,
+      freshPointsRedeemed: 0,
       appliedOffers: [],
       freeItems: [],
       pricingBreakdown: [],
@@ -428,6 +433,47 @@ class PricingEngine {
     double totalAmount = effectiveSubtotal + result.deliveryFee;
     if (totalAmount < 0) totalAmount = 0;
 
+    // ── FreshPoints discount (applied after coupon, before final total) ──
+    if (freshPointsToRedeem > 0 && userId != null && userId.isNotEmpty) {
+      try {
+        final fpService = PostgresFreshPointsService();
+        final settings = await fpService.getOrCreateSettings(session);
+        if (settings.isEnabled &&
+            totalAmount >= settings.minimumOrderForRedemption) {
+          AppUserRow? user;
+          final uid = userId;
+          if (uid != null) {
+            final parsedUuid = tryParseUuid(uid);
+            if (parsedUuid != null) {
+              user = await AppUserRow.db.findById(session, parsedUuid);
+            } else {
+              user = await AppUserRow.db.findFirstRow(
+                session,
+                where: (t) => t.firebaseUid.equals(uid),
+              );
+            }
+          }
+          if (user != null && user.currentFreshPoints > 0) {
+            final maxByLimit =
+                (totalAmount * settings.redemptionPercentageLimit / 100)
+                    .floor();
+            final actualRedeem = freshPointsToRedeem
+                .clamp(0, maxByLimit < user.currentFreshPoints
+                    ? maxByLimit
+                    : user.currentFreshPoints);
+            if (actualRedeem > 0) {
+              final fpDiscount = actualRedeem.toDouble();
+              result.freshPointsDiscount = fpDiscount;
+              result.freshPointsRedeemed = actualRedeem;
+              totalAmount = (totalAmount - fpDiscount).clamp(0, totalAmount);
+            }
+          }
+        }
+      } catch (_) {
+        // If FreshPoints calculation fails, silently skip
+      }
+    }
+
     result.totalAmount = totalAmount;
     result.appliedOffers = appliedOffersList;
     result.freeItems = freeItemsList;
@@ -478,6 +524,16 @@ class PricingEngine {
           label: 'Coupon (${result.appliedCoupon?.couponCode ?? ""})',
           amount: -result.couponDiscount,
           type: 'coupon',
+        ),
+      );
+    }
+
+    if (result.freshPointsDiscount > 0) {
+      result.pricingBreakdown.add(
+        PricingLineItem(
+          label: 'FreshPoints Used',
+          amount: -result.freshPointsDiscount,
+          type: 'freshPoints',
         ),
       );
     }

@@ -1,0 +1,10 @@
+class: FreshPointsSettings
+fields:
+  isEnabled: bool
+  redemptionPercentageLimit: double
+  allowRedemptionOnCOD: bool
+  minimumOrderForRedemption: double
+  enablePointExpiry: bool
+  pointExpiryDays: int
+  enableAdminAdjustments: bool
+  updatedAt: DateTime

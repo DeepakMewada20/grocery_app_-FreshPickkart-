@@ -24,64 +24,69 @@ import '../endpoints/combo_offer_endpoint.dart' as _i11;
 import '../endpoints/complaint_endpoint.dart' as _i12;
 import '../endpoints/coupon_endpoint.dart' as _i13;
 import '../endpoints/free_delivery_endpoint.dart' as _i14;
-import '../endpoints/home_endpoint.dart' as _i15;
-import '../endpoints/notification_endpoint.dart' as _i16;
-import '../endpoints/order_detail_endpoint.dart' as _i17;
-import '../endpoints/order_endpoint.dart' as _i18;
-import '../endpoints/order_pg_endpoint.dart' as _i19;
-import '../endpoints/order_realtime_endpoint.dart' as _i20;
-import '../endpoints/order_tracking_endpoint.dart' as _i21;
-import '../endpoints/payment_endpoint.dart' as _i22;
-import '../endpoints/payment_link_endpoint.dart' as _i23;
-import '../endpoints/payment_stream_endpoint.dart' as _i24;
-import '../endpoints/pricing_endpoint.dart' as _i25;
-import '../endpoints/product_endpoint.dart' as _i26;
-import '../endpoints/product_form_endpoint.dart' as _i27;
-import '../endpoints/product_pg_endpoint.dart' as _i28;
-import '../endpoints/product_ranking_endpoint.dart' as _i29;
-import '../endpoints/refund_endpoint.dart' as _i30;
-import '../endpoints/sub_category_endpoint.dart' as _i31;
-import '../endpoints/support_endpoint.dart' as _i32;
-import '../endpoints/user_endpoint.dart' as _i33;
+import '../endpoints/fresh_points_endpoint.dart' as _i15;
+import '../endpoints/home_endpoint.dart' as _i16;
+import '../endpoints/notification_endpoint.dart' as _i17;
+import '../endpoints/order_detail_endpoint.dart' as _i18;
+import '../endpoints/order_endpoint.dart' as _i19;
+import '../endpoints/order_pg_endpoint.dart' as _i20;
+import '../endpoints/order_realtime_endpoint.dart' as _i21;
+import '../endpoints/order_tracking_endpoint.dart' as _i22;
+import '../endpoints/payment_endpoint.dart' as _i23;
+import '../endpoints/payment_link_endpoint.dart' as _i24;
+import '../endpoints/payment_stream_endpoint.dart' as _i25;
+import '../endpoints/pricing_endpoint.dart' as _i26;
+import '../endpoints/product_endpoint.dart' as _i27;
+import '../endpoints/product_form_endpoint.dart' as _i28;
+import '../endpoints/product_pg_endpoint.dart' as _i29;
+import '../endpoints/product_ranking_endpoint.dart' as _i30;
+import '../endpoints/refund_endpoint.dart' as _i31;
+import '../endpoints/sub_category_endpoint.dart' as _i32;
+import '../endpoints/support_endpoint.dart' as _i33;
+import '../endpoints/user_endpoint.dart' as _i34;
 import 'package:freshpickkat_server/src/generated/data_flow/banner.dart'
-    as _i34;
-import 'package:freshpickkat_server/src/generated/data_flow/bogo_offer.dart'
     as _i35;
-import 'package:freshpickkat_server/src/generated/data_flow/notification_draft.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/bogo_offer.dart'
     as _i36;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item_input.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/notification_draft.dart'
     as _i37;
-import 'package:freshpickkat_server/src/generated/data_flow/category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item_input.dart'
     as _i38;
-import 'package:freshpickkat_server/src/generated/data_flow/category_offer.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/category.dart'
     as _i39;
-import 'package:freshpickkat_server/src/generated/data_flow/order.dart' as _i40;
+import 'package:freshpickkat_server/src/generated/data_flow/category_offer.dart'
+    as _i40;
+import 'package:freshpickkat_server/src/generated/data_flow/order.dart' as _i41;
 import 'package:freshpickkat_server/src/generated/data_flow/combo_offer.dart'
-    as _i41;
-import 'package:freshpickkat_server/src/generated/data_flow/address.dart'
     as _i42;
-import 'package:freshpickkat_server/src/generated/data_flow/coupon.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/address.dart'
     as _i43;
-import 'package:freshpickkat_server/src/generated/data_flow/delivery_config.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/coupon.dart'
     as _i44;
-import 'package:freshpickkat_server/src/generated/data_flow/delivery_rule.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/delivery_config.dart'
     as _i45;
-import 'package:freshpickkat_server/src/generated/data_flow/notification_preference.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/delivery_rule.dart'
     as _i46;
-import 'package:freshpickkat_server/src/generated/data_flow/broadcast_request.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/fresh_points_settings.dart'
     as _i47;
-import 'package:freshpickkat_server/src/generated/data_flow/product.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/fresh_points_adjust_request.dart'
     as _i48;
-import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/notification_preference.dart'
     as _i49;
-import 'package:freshpickkat_server/src/generated/data_flow/app_user.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/broadcast_request.dart'
     as _i50;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/product.dart'
     as _i51;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
     as _i52;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/app_user.dart'
     as _i53;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i54;
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+    as _i55;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i56;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -165,115 +170,121 @@ class Endpoints extends _i1.EndpointDispatch {
           'freeDelivery',
           null,
         ),
-      'home': _i15.HomeEndpoint()
+      'freshPoints': _i15.FreshPointsEndpoint()
+        ..initialize(
+          server,
+          'freshPoints',
+          null,
+        ),
+      'home': _i16.HomeEndpoint()
         ..initialize(
           server,
           'home',
           null,
         ),
-      'notification': _i16.NotificationEndpoint()
+      'notification': _i17.NotificationEndpoint()
         ..initialize(
           server,
           'notification',
           null,
         ),
-      'orderDetail': _i17.OrderDetailEndpoint()
+      'orderDetail': _i18.OrderDetailEndpoint()
         ..initialize(
           server,
           'orderDetail',
           null,
         ),
-      'order': _i18.OrderEndpoint()
+      'order': _i19.OrderEndpoint()
         ..initialize(
           server,
           'order',
           null,
         ),
-      'orderPg': _i19.OrderPgEndpoint()
+      'orderPg': _i20.OrderPgEndpoint()
         ..initialize(
           server,
           'orderPg',
           null,
         ),
-      'orderRealtime': _i20.OrderRealtimeEndpoint()
+      'orderRealtime': _i21.OrderRealtimeEndpoint()
         ..initialize(
           server,
           'orderRealtime',
           null,
         ),
-      'orderTracking': _i21.OrderTrackingEndpoint()
+      'orderTracking': _i22.OrderTrackingEndpoint()
         ..initialize(
           server,
           'orderTracking',
           null,
         ),
-      'payment': _i22.PaymentEndpoint()
+      'payment': _i23.PaymentEndpoint()
         ..initialize(
           server,
           'payment',
           null,
         ),
-      'paymentLink': _i23.PaymentLinkEndpoint()
+      'paymentLink': _i24.PaymentLinkEndpoint()
         ..initialize(
           server,
           'paymentLink',
           null,
         ),
-      'paymentStream': _i24.PaymentStreamEndpoint()
+      'paymentStream': _i25.PaymentStreamEndpoint()
         ..initialize(
           server,
           'paymentStream',
           null,
         ),
-      'pricing': _i25.PricingEndpoint()
+      'pricing': _i26.PricingEndpoint()
         ..initialize(
           server,
           'pricing',
           null,
         ),
-      'product': _i26.ProductEndpoint()
+      'product': _i27.ProductEndpoint()
         ..initialize(
           server,
           'product',
           null,
         ),
-      'productForm': _i27.ProductFormEndpoint()
+      'productForm': _i28.ProductFormEndpoint()
         ..initialize(
           server,
           'productForm',
           null,
         ),
-      'productPg': _i28.ProductPgEndpoint()
+      'productPg': _i29.ProductPgEndpoint()
         ..initialize(
           server,
           'productPg',
           null,
         ),
-      'productRanking': _i29.ProductRankingEndpoint()
+      'productRanking': _i30.ProductRankingEndpoint()
         ..initialize(
           server,
           'productRanking',
           null,
         ),
-      'refund': _i30.RefundEndpoint()
+      'refund': _i31.RefundEndpoint()
         ..initialize(
           server,
           'refund',
           null,
         ),
-      'subCategory': _i31.SubCategoryEndpoint()
+      'subCategory': _i32.SubCategoryEndpoint()
         ..initialize(
           server,
           'subCategory',
           null,
         ),
-      'support': _i32.SupportEndpoint()
+      'support': _i33.SupportEndpoint()
         ..initialize(
           server,
           'support',
           null,
         ),
-      'user': _i33.UserEndpoint()
+      'user': _i34.UserEndpoint()
         ..initialize(
           server,
           'user',
@@ -827,7 +838,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'banner': _i1.ParameterDescription(
               name: 'banner',
-              type: _i1.getType<_i34.Banner>(),
+              type: _i1.getType<_i35.Banner>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -858,7 +869,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'banner': _i1.ParameterDescription(
               name: 'banner',
-              type: _i1.getType<_i34.Banner>(),
+              type: _i1.getType<_i35.Banner>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1062,7 +1073,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'offer': _i1.ParameterDescription(
               name: 'offer',
-              type: _i1.getType<_i35.BogoOffer>(),
+              type: _i1.getType<_i36.BogoOffer>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1077,7 +1088,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
             'confirmDisableConflictingCombo': _i1.ParameterDescription(
@@ -1113,7 +1124,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'offer': _i1.ParameterDescription(
               name: 'offer',
-              type: _i1.getType<_i35.BogoOffer>(),
+              type: _i1.getType<_i36.BogoOffer>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1128,7 +1139,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
           },
@@ -1433,7 +1444,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
             'userId': _i1.ParameterDescription(
@@ -1602,7 +1613,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'category': _i1.ParameterDescription(
               name: 'category',
-              type: _i1.getType<_i38.Category>(),
+              type: _i1.getType<_i39.Category>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1638,7 +1649,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'category': _i1.ParameterDescription(
               name: 'category',
-              type: _i1.getType<_i38.Category>(),
+              type: _i1.getType<_i39.Category>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1744,7 +1755,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'offer': _i1.ParameterDescription(
               name: 'offer',
-              type: _i1.getType<_i39.CategoryOffer>(),
+              type: _i1.getType<_i40.CategoryOffer>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -1759,7 +1770,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
           },
@@ -2008,7 +2019,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
             'userId': _i1.ParameterDescription(
@@ -2031,6 +2042,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2044,6 +2060,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     appliedCouponCode: params['appliedCouponCode'],
                     autoApplyCoupons: params['autoApplyCoupons'],
                     basketMode: params['basketMode'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
         'createOrderAndPayment': _i1.MethodConnector(
@@ -2051,7 +2068,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i40.Order>(),
+              type: _i1.getType<_i41.Order>(),
               nullable: false,
             ),
             'idempotencyKey': _i1.ParameterDescription(
@@ -2074,6 +2091,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -2087,6 +2109,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['amount'],
                     params['customerPhone'],
                     pendingOrderAction: params['pendingOrderAction'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
       },
@@ -2100,7 +2123,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'offer': _i1.ParameterDescription(
               name: 'offer',
-              type: _i1.getType<_i41.ComboOffer>(),
+              type: _i1.getType<_i42.ComboOffer>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2115,7 +2138,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
             'force': _i1.ParameterDescription(
@@ -2143,7 +2166,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'offer': _i1.ParameterDescription(
               name: 'offer',
-              type: _i1.getType<_i41.ComboOffer>(),
+              type: _i1.getType<_i42.ComboOffer>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -2158,7 +2181,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
           },
@@ -2411,7 +2434,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'cartItems': _i1.ParameterDescription(
               name: 'cartItems',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
           },
@@ -2592,7 +2615,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'requestedAddress': _i1.ParameterDescription(
               name: 'requestedAddress',
-              type: _i1.getType<_i42.Address?>(),
+              type: _i1.getType<_i43.Address?>(),
               nullable: true,
             ),
             'requestedNote': _i1.ParameterDescription(
@@ -3398,7 +3421,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'coupon': _i1.ParameterDescription(
               name: 'coupon',
-              type: _i1.getType<_i43.Coupon>(),
+              type: _i1.getType<_i44.Coupon>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3413,7 +3436,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
           },
@@ -3472,7 +3495,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'coupon': _i1.ParameterDescription(
               name: 'coupon',
-              type: _i1.getType<_i43.Coupon>(),
+              type: _i1.getType<_i44.Coupon>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3655,7 +3678,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cartItems': _i1.ParameterDescription(
               name: 'cartItems',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
           },
@@ -3687,7 +3710,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cartItems': _i1.ParameterDescription(
               name: 'cartItems',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
           },
@@ -3718,7 +3741,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cartItems': _i1.ParameterDescription(
               name: 'cartItems',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
           },
@@ -3827,7 +3850,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'config': _i1.ParameterDescription(
               name: 'config',
-              type: _i1.getType<_i44.DeliveryConfig>(),
+              type: _i1.getType<_i45.DeliveryConfig>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3960,7 +3983,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'rule': _i1.ParameterDescription(
               name: 'rule',
-              type: _i1.getType<_i45.DeliveryRule>(),
+              type: _i1.getType<_i46.DeliveryRule>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -3975,7 +3998,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'notificationDraft': _i1.ParameterDescription(
               name: 'notificationDraft',
-              type: _i1.getType<_i36.NotificationDraft?>(),
+              type: _i1.getType<_i37.NotificationDraft?>(),
               nullable: true,
             ),
           },
@@ -4083,7 +4106,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cartItems': _i1.ParameterDescription(
               name: 'cartItems',
-              type: _i1.getType<List<_i37.CartItemInput>?>(),
+              type: _i1.getType<List<_i38.CartItemInput>?>(),
               nullable: true,
             ),
           },
@@ -4100,6 +4123,233 @@ class Endpoints extends _i1.EndpointDispatch {
                         location: params['location'],
                         cartItems: params['cartItems'],
                       ),
+        ),
+      },
+    );
+    connectors['freshPoints'] = _i1.EndpointConnector(
+      name: 'freshPoints',
+      endpoint: endpoints['freshPoints']!,
+      methodConnectors: {
+        'getSettings': _i1.MethodConnector(
+          name: 'getSettings',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getSettings(session),
+        ),
+        'getMyBalance': _i1.MethodConnector(
+          name: 'getMyBalance',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getMyBalance(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'getMyTransactions': _i1.MethodConnector(
+          name: 'getMyTransactions',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getMyTransactions(
+                    session,
+                    params['userId'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'getMaxRedeemable': _i1.MethodConnector(
+          name: 'getMaxRedeemable',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'payableAmountAfterCoupon': _i1.ParameterDescription(
+              name: 'payableAmountAfterCoupon',
+              type: _i1.getType<double>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getMaxRedeemable(
+                    session,
+                    params['userId'],
+                    params['payableAmountAfterCoupon'],
+                  ),
+        ),
+        'updateSettings': _i1.MethodConnector(
+          name: 'updateSettings',
+          params: {
+            'settings': _i1.ParameterDescription(
+              name: 'settings',
+              type: _i1.getType<_i47.FreshPointsSettings>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .updateSettings(
+                    session,
+                    params['settings'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'getUserBalance': _i1.MethodConnector(
+          name: 'getUserBalance',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getUserBalance(
+                    session,
+                    params['userId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
+        ),
+        'getUserTransactions': _i1.MethodConnector(
+          name: 'getUserTransactions',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'limit': _i1.ParameterDescription(
+              name: 'limit',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'pageToken': _i1.ParameterDescription(
+              name: 'pageToken',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .getUserTransactions(
+                    session,
+                    params['userId'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                    limit: params['limit'],
+                    pageToken: params['pageToken'],
+                  ),
+        ),
+        'adjustPoints': _i1.MethodConnector(
+          name: 'adjustPoints',
+          params: {
+            'request': _i1.ParameterDescription(
+              name: 'request',
+              type: _i1.getType<_i48.FreshPointsAdjustRequest>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['freshPoints'] as _i15.FreshPointsEndpoint)
+                  .adjustPoints(
+                    session,
+                    params['request'],
+                    params['firebaseUid'],
+                    params['idToken'],
+                  ),
         ),
       },
     );
@@ -4131,7 +4381,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['home'] as _i15.HomeEndpoint).getHomePageHydrated(
+                  (endpoints['home'] as _i16.HomeEndpoint).getHomePageHydrated(
                     session,
                     userId: params['userId'],
                     productLimit: params['productLimit'],
@@ -4173,7 +4423,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .registerFcmToken(
                         session,
                         params['firebaseUid'],
@@ -4206,7 +4456,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .unregisterFcmToken(
                         session,
                         params['firebaseUid'],
@@ -4228,7 +4478,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .getPreferences(
                         session,
                         params['firebaseUid'],
@@ -4244,7 +4494,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'preferences': _i1.ParameterDescription(
               name: 'preferences',
-              type: _i1.getType<_i46.NotificationPreference>(),
+              type: _i1.getType<_i49.NotificationPreference>(),
               nullable: false,
             ),
           },
@@ -4253,7 +4503,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .updatePreferences(
                         session,
                         params['firebaseUid'],
@@ -4284,7 +4534,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .listNotifications(
                         session,
                         params['firebaseUid'],
@@ -4311,7 +4561,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .markNotificationRead(
                         session,
                         params['firebaseUid'],
@@ -4337,7 +4587,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .deleteNotification(
                         session,
                         params['firebaseUid'],
@@ -4349,7 +4599,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'draft': _i1.ParameterDescription(
               name: 'draft',
-              type: _i1.getType<_i36.NotificationDraft>(),
+              type: _i1.getType<_i37.NotificationDraft>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4368,7 +4618,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .createAnnouncement(
                         session,
                         params['draft'],
@@ -4395,7 +4645,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .getAdminNotificationPreferences(
                         session,
                         params['firebaseUid'],
@@ -4436,7 +4686,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .updateAdminNotificationPreference(
                         session,
                         params['firebaseUid'],
@@ -4480,7 +4730,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .registerAdminFcmToken(
                         session,
                         params['firebaseUid'],
@@ -4519,7 +4769,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .unregisterAdminFcmToken(
                         session,
                         params['firebaseUid'],
@@ -4533,7 +4783,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'request': _i1.ParameterDescription(
               name: 'request',
-              type: _i1.getType<_i47.BroadcastRequest>(),
+              type: _i1.getType<_i50.BroadcastRequest>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4552,7 +4802,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .createBroadcast(
                         session,
                         params['request'],
@@ -4565,7 +4815,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'request': _i1.ParameterDescription(
               name: 'request',
-              type: _i1.getType<_i47.BroadcastRequest>(),
+              type: _i1.getType<_i50.BroadcastRequest>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -4584,7 +4834,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .saveBroadcastDraft(
                         session,
                         params['request'],
@@ -4616,7 +4866,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .sendBroadcastDraft(
                         session,
                         params['firebaseUid'],
@@ -4663,7 +4913,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .listBroadcasts(
                         session,
                         params['firebaseUid'],
@@ -4698,7 +4948,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['notification'] as _i16.NotificationEndpoint)
+                  (endpoints['notification'] as _i17.NotificationEndpoint)
                       .deleteBroadcastDraft(
                         session,
                         params['firebaseUid'],
@@ -4735,7 +4985,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['orderDetail'] as _i17.OrderDetailEndpoint)
+              ) async => (endpoints['orderDetail'] as _i18.OrderDetailEndpoint)
                   .getOrderDetailHydrated(
                     session,
                     params['orderId'],
@@ -4754,7 +5004,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i40.Order>(),
+              type: _i1.getType<_i41.Order>(),
               nullable: false,
             ),
           },
@@ -4762,7 +5012,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint).createOrder(
+              ) async => (endpoints['order'] as _i19.OrderEndpoint).createOrder(
                 session,
                 params['order'],
               ),
@@ -4772,12 +5022,17 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i40.Order>(),
+              type: _i1.getType<_i41.Order>(),
               nullable: false,
             ),
             'idempotencyKey': _i1.ParameterDescription(
               name: 'idempotencyKey',
               type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
               nullable: false,
             ),
           },
@@ -4786,10 +5041,11 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).createPendingOrder(
+                  (endpoints['order'] as _i19.OrderEndpoint).createPendingOrder(
                     session,
                     params['order'],
                     params['idempotencyKey'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
         'getOrders': _i1.MethodConnector(
@@ -4815,7 +5071,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint).getOrders(
+              ) async => (endpoints['order'] as _i19.OrderEndpoint).getOrders(
                 session,
                 status: params['status'],
                 firebaseUid: params['firebaseUid'],
@@ -4856,7 +5112,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getOrdersPage(
+                  (endpoints['order'] as _i19.OrderEndpoint).getOrdersPage(
                     session,
                     status: params['status'],
                     firebaseUid: params['firebaseUid'],
@@ -4889,7 +5145,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getOrdersCount(
+                  (endpoints['order'] as _i19.OrderEndpoint).getOrdersCount(
                     session,
                     status: params['status'],
                     firebaseUid: params['firebaseUid'],
@@ -4915,7 +5171,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getTodayOrders(
+                  (endpoints['order'] as _i19.OrderEndpoint).getTodayOrders(
                     session,
                     params['firebaseUid'],
                     params['idToken'],
@@ -4940,7 +5196,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getUserOrders(
+                  (endpoints['order'] as _i19.OrderEndpoint).getUserOrders(
                     session,
                     params['userId'],
                     params['idToken'],
@@ -4970,7 +5226,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getOrderById(
+                  (endpoints['order'] as _i19.OrderEndpoint).getOrderById(
                     session,
                     params['orderId'],
                     params['firebaseUid'],
@@ -5011,7 +5267,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).updateOrderStatus(
+                  (endpoints['order'] as _i19.OrderEndpoint).updateOrderStatus(
                     session,
                     params['orderId'],
                     params['newStatus'],
@@ -5053,7 +5309,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .updatePaymentStatus(
                     session,
                     params['orderId'],
@@ -5073,7 +5329,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'deliveryAddress': _i1.ParameterDescription(
               name: 'deliveryAddress',
-              type: _i1.getType<_i42.Address>(),
+              type: _i1.getType<_i43.Address>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -5096,7 +5352,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .updateDeliveryAddress(
                     session,
                     params['orderId'],
@@ -5130,7 +5386,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).confirmOrder(
+                  (endpoints['order'] as _i19.OrderEndpoint).confirmOrder(
                     session,
                     params['orderId'],
                     params['firebaseUid'],
@@ -5165,7 +5421,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint).cancelOrder(
+              ) async => (endpoints['order'] as _i19.OrderEndpoint).cancelOrder(
                 session,
                 params['orderId'],
                 params['userId'],
@@ -5201,7 +5457,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .requestCancellation(
                     session,
                     params['orderId'],
@@ -5238,7 +5494,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .listCancellationRequests(
                     session,
                     firebaseUid: params['firebaseUid'],
@@ -5280,7 +5536,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .approveCancellationRequest(
                     session,
                     params['orderId'],
@@ -5318,7 +5574,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .rejectCancellationRequest(
                     session,
                     params['orderId'],
@@ -5360,7 +5616,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .assignDeliveryPerson(
                     session,
                     params['orderId'],
@@ -5393,7 +5649,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .generateDeliveryOtp(
                     session,
                     params['orderId'],
@@ -5430,7 +5686,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).verifyDeliveryOtp(
+                  (endpoints['order'] as _i19.OrderEndpoint).verifyDeliveryOtp(
                     session,
                     params['orderId'],
                     params['otp'],
@@ -5462,7 +5718,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).resendDeliveryOtp(
+                  (endpoints['order'] as _i19.OrderEndpoint).resendDeliveryOtp(
                     session,
                     params['orderId'],
                     firebaseUid: params['firebaseUid'],
@@ -5492,7 +5748,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['order'] as _i18.OrderEndpoint)
+              ) async => (endpoints['order'] as _i19.OrderEndpoint)
                   .getActiveDeliveryOtp(
                     session,
                     params['orderId'],
@@ -5519,7 +5775,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['order'] as _i18.OrderEndpoint).getDashboardStats(
+                  (endpoints['order'] as _i19.OrderEndpoint).getDashboardStats(
                     session,
                     params['firebaseUid'],
                     params['idToken'],
@@ -5536,7 +5792,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i40.Order>(),
+              type: _i1.getType<_i41.Order>(),
               nullable: false,
             ),
             'idempotencyKey': _i1.ParameterDescription(
@@ -5544,16 +5800,22 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
           },
           call:
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['orderPg'] as _i19.OrderPgEndpoint)
+              ) async => (endpoints['orderPg'] as _i20.OrderPgEndpoint)
                   .createPendingOrder(
                     session,
                     params['order'],
                     params['idempotencyKey'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
         'getOrdersForUser': _i1.MethodConnector(
@@ -5579,7 +5841,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['orderPg'] as _i19.OrderPgEndpoint)
+              ) async => (endpoints['orderPg'] as _i20.OrderPgEndpoint)
                   .getOrdersForUser(
                     session,
                     userReference: params['userReference'],
@@ -5614,7 +5876,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['orderRealtime'] as _i20.OrderRealtimeEndpoint)
+              ) => (endpoints['orderRealtime'] as _i21.OrderRealtimeEndpoint)
                   .watchAdminOrders(
                     session,
                     params['firebaseUid'],
@@ -5642,7 +5904,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['orderRealtime'] as _i20.OrderRealtimeEndpoint)
+              ) => (endpoints['orderRealtime'] as _i21.OrderRealtimeEndpoint)
                   .watchDashboardUpdates(
                     session,
                     params['firebaseUid'],
@@ -5670,7 +5932,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['orderRealtime'] as _i20.OrderRealtimeEndpoint)
+              ) => (endpoints['orderRealtime'] as _i21.OrderRealtimeEndpoint)
                   .watchUserOrders(
                     session,
                     params['firebaseUid'],
@@ -5707,7 +5969,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .getTrackingForUser(
                         session,
                         params['orderId'],
@@ -5739,7 +6001,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .getTrackingForAdmin(
                         session,
                         params['orderId'],
@@ -5791,7 +6053,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .seedUserLocation(
                         session,
                         params['orderId'],
@@ -5832,7 +6094,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .updateTrackingEnabled(
                         session,
                         params['orderId'],
@@ -5875,7 +6137,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .updateRiderLocation(
                         session,
                         params['orderId'],
@@ -5929,7 +6191,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+                  (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                       .getDeliveryRoute(
                         session,
                         params['orderId'],
@@ -5967,7 +6229,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+              ) => (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                   .streamTrackingForUser(
                     session,
                     params['orderId'],
@@ -6001,7 +6263,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['orderTracking'] as _i21.OrderTrackingEndpoint)
+              ) => (endpoints['orderTracking'] as _i22.OrderTrackingEndpoint)
                   .streamTrackingForAdmin(
                     session,
                     params['orderId'],
@@ -6038,7 +6300,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .createPaymentOrder(
                     session,
                     params['orderId'],
@@ -6075,7 +6337,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['payment'] as _i22.PaymentEndpoint).verifyPayment(
+                  (endpoints['payment'] as _i23.PaymentEndpoint).verifyPayment(
                     session,
                     params['orderId'],
                     params['razorpayOrderId'],
@@ -6106,7 +6368,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .markPaymentFailed(
                     session,
                     params['orderId'],
@@ -6143,7 +6405,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['payment'] as _i22.PaymentEndpoint).initiateRefund(
+                  (endpoints['payment'] as _i23.PaymentEndpoint).initiateRefund(
                     session,
                     params['razorpayPaymentId'],
                     params['amount'],
@@ -6179,7 +6441,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .getPaymentStatus(
                     session,
                     params['razorpayPaymentId'],
@@ -6211,7 +6473,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .completePaymentVerification(
                     session,
                     params['orderId'],
@@ -6242,7 +6504,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .getPaymentStatusWithMessage(
                     session,
                     params['orderId'],
@@ -6268,7 +6530,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminReconcileAllPendingPayments(
                     session,
                     firebaseUid: params['firebaseUid'],
@@ -6298,7 +6560,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminGetPaymentDetail(
                     session,
                     params['orderId'],
@@ -6349,7 +6611,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminSearchOrders(
                     session,
                     query: params['query'],
@@ -6384,7 +6646,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminGetLivePaymentStatus(
                     session,
                     params['razorpayPaymentId'],
@@ -6415,7 +6677,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminGetPaymentOrderDetailHydrated(
                     session,
                     params['orderId'],
@@ -6446,7 +6708,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .adminGetRefundDetail(
                     session,
                     params['orderId'],
@@ -6477,7 +6739,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['payment'] as _i22.PaymentEndpoint)
+              ) async => (endpoints['payment'] as _i23.PaymentEndpoint)
                   .recoverPendingPayments(
                     session,
                     params['userId'],
@@ -6496,7 +6758,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'order': _i1.ParameterDescription(
               name: 'order',
-              type: _i1.getType<_i40.Order>(),
+              type: _i1.getType<_i41.Order>(),
               nullable: false,
             ),
             'idempotencyKey': _i1.ParameterDescription(
@@ -6534,7 +6796,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paymentLink'] as _i23.PaymentLinkEndpoint)
+              ) async => (endpoints['paymentLink'] as _i24.PaymentLinkEndpoint)
                   .createShareablePaymentLink(
                     session,
                     params['order'],
@@ -6559,7 +6821,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paymentLink'] as _i23.PaymentLinkEndpoint)
+              ) async => (endpoints['paymentLink'] as _i24.PaymentLinkEndpoint)
                   .getPaymentPageData(
                     session,
                     params['token'],
@@ -6608,7 +6870,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paymentLink'] as _i23.PaymentLinkEndpoint)
+              ) async => (endpoints['paymentLink'] as _i24.PaymentLinkEndpoint)
                   .confirmPayment(
                     session,
                     params['token'],
@@ -6633,7 +6895,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paymentLink'] as _i23.PaymentLinkEndpoint)
+              ) async => (endpoints['paymentLink'] as _i24.PaymentLinkEndpoint)
                   .getPaymentSessionStatus(
                     session,
                     params['orderNumber'],
@@ -6662,7 +6924,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['paymentLink'] as _i23.PaymentLinkEndpoint)
+              ) async => (endpoints['paymentLink'] as _i24.PaymentLinkEndpoint)
                   .getOrCreatePaymentLink(
                     session,
                     params['orderNumber'],
@@ -6702,7 +6964,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['paymentStream'] as _i24.PaymentStreamEndpoint)
+              ) => (endpoints['paymentStream'] as _i25.PaymentStreamEndpoint)
                   .watchPaymentStatus(
                     session,
                     params['orderId'],
@@ -6721,7 +6983,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
             'userId': _i1.ParameterDescription(
@@ -6744,7 +7006,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['pricing'] as _i25.PricingEndpoint)
+              ) async => (endpoints['pricing'] as _i26.PricingEndpoint)
                   .calculateCartPricing(
                     session,
                     params['items'],
@@ -6758,7 +7020,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i37.CartItemInput>>(),
+              type: _i1.getType<List<_i38.CartItemInput>>(),
               nullable: false,
             ),
           },
@@ -6766,7 +7028,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['pricing'] as _i25.PricingEndpoint)
+              ) async => (endpoints['pricing'] as _i26.PricingEndpoint)
                   .getApplicableOffers(
                     session,
                     params['items'],
@@ -6777,7 +7039,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'items': _i1.ParameterDescription(
               name: 'items',
-              type: _i1.getType<List<_i37.CartItemInput>?>(),
+              type: _i1.getType<List<_i38.CartItemInput>?>(),
               nullable: true,
             ),
             'cartTotal': _i1.ParameterDescription(
@@ -6805,7 +7067,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['pricing'] as _i25.PricingEndpoint)
+              ) async => (endpoints['pricing'] as _i26.PricingEndpoint)
                   .basketSuggestions(
                     session,
                     params['items'],
@@ -6843,7 +7105,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['pricing'] as _i25.PricingEndpoint)
+              ) async => (endpoints['pricing'] as _i26.PricingEndpoint)
                   .calculateDeliveryFee(
                     session,
                     params['orderAmount'],
@@ -6871,7 +7133,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getProductsByIds(
                     session,
                     params['productIds'],
@@ -6921,7 +7183,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i26.ProductEndpoint).getProducts(
+                  (endpoints['product'] as _i27.ProductEndpoint).getProducts(
                     session,
                     limit: params['limit'],
                     lastProductName: params['lastProductName'],
@@ -6975,7 +7237,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getProductsPage(
                     session,
                     firebaseUid: params['firebaseUid'],
@@ -7020,7 +7282,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getInactiveProductsPage(
                     session,
                     limit: params['limit'],
@@ -7058,7 +7320,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getProductsCount(
                     session,
                     firebaseUid: params['firebaseUid'],
@@ -7072,7 +7334,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i48.Product>(),
+              type: _i1.getType<_i51.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -7091,7 +7353,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i26.ProductEndpoint).uploadProduct(
+                  (endpoints['product'] as _i27.ProductEndpoint).uploadProduct(
                     session,
                     params['product'],
                     params['firebaseUid'],
@@ -7103,7 +7365,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i48.Product>(),
+              type: _i1.getType<_i51.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -7122,7 +7384,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i26.ProductEndpoint).updateProduct(
+                  (endpoints['product'] as _i27.ProductEndpoint).updateProduct(
                     session,
                     params['product'],
                     params['firebaseUid'],
@@ -7134,7 +7396,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'product': _i1.ParameterDescription(
               name: 'product',
-              type: _i1.getType<_i48.Product>(),
+              type: _i1.getType<_i51.Product>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -7152,7 +7414,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .checkProductUpdateConflicts(
                     session,
                     params['product'],
@@ -7184,7 +7446,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i26.ProductEndpoint).deleteProduct(
+                  (endpoints['product'] as _i27.ProductEndpoint).deleteProduct(
                     session,
                     params['productId'],
                     params['firebaseUid'],
@@ -7214,7 +7476,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .checkProductDeleteImpact(
                     session,
                     params['productId'],
@@ -7245,7 +7507,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .hardDeleteProduct(
                     session,
                     params['productId'],
@@ -7281,7 +7543,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .deactivateProduct(
                     session,
                     params['productId'],
@@ -7303,7 +7565,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getProductSuggestions(
                     session,
                     params['query'],
@@ -7333,7 +7595,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['product'] as _i26.ProductEndpoint).searchProducts(
+                  (endpoints['product'] as _i27.ProductEndpoint).searchProducts(
                     session,
                     params['query'],
                     limit: params['limit'],
@@ -7368,7 +7630,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getProductsByOffer(
                     session,
                     offerType: params['offerType'],
@@ -7400,7 +7662,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getComboProducts(
                     session,
                     query: params['query'],
@@ -7431,7 +7693,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .getBogoProducts(
                     session,
                     query: params['query'],
@@ -7467,7 +7729,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .searchProductsWithOfferFilters(
                     session,
                     query: params['query'],
@@ -7494,7 +7756,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .migrateProducts(
                     session,
                     params['firebaseUid'],
@@ -7519,7 +7781,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .initializeProductMetrics(
                     session,
                     params['firebaseUid'],
@@ -7539,7 +7801,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .incrementProductSearch(
                     session,
                     params['productId'],
@@ -7558,7 +7820,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .incrementProductPurchase(
                     session,
                     params['productId'],
@@ -7582,7 +7844,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['product'] as _i26.ProductEndpoint)
+              ) async => (endpoints['product'] as _i27.ProductEndpoint)
                   .seedProductMetricsForTesting(
                     session,
                     params['firebaseUid'],
@@ -7613,7 +7875,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['productForm'] as _i27.ProductFormEndpoint)
+              ) async => (endpoints['productForm'] as _i28.ProductFormEndpoint)
                   .getProductFormReferenceData(
                     session,
                     params['firebaseUid'],
@@ -7654,7 +7916,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['productPg'] as _i28.ProductPgEndpoint)
+              ) async => (endpoints['productPg'] as _i29.ProductPgEndpoint)
                   .getActiveProductsPage(
                     session,
                     limit: params['limit'],
@@ -7701,7 +7963,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['productPg'] as _i28.ProductPgEndpoint)
+              ) async => (endpoints['productPg'] as _i29.ProductPgEndpoint)
                   .searchActiveProducts(
                     session,
                     query: params['query'],
@@ -7740,7 +8002,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['productPg'] as _i28.ProductPgEndpoint)
+              ) async => (endpoints['productPg'] as _i29.ProductPgEndpoint)
                   .enqueueSearchRebuild(
                     session,
                     productId: params['productId'],
@@ -7772,7 +8034,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['productPg'] as _i28.ProductPgEndpoint)
+              ) async => (endpoints['productPg'] as _i29.ProductPgEndpoint)
                   .processPendingSearchRebuildJobs(
                     session,
                     firebaseUid: params['firebaseUid'],
@@ -7800,7 +8062,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['productRanking'] as _i29.ProductRankingEndpoint)
+                  (endpoints['productRanking'] as _i30.ProductRankingEndpoint)
                       .recordProductView(
                         session,
                         params['productId'],
@@ -7820,7 +8082,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['productRanking'] as _i29.ProductRankingEndpoint)
+                  (endpoints['productRanking'] as _i30.ProductRankingEndpoint)
                       .getTrendingProducts(
                         session,
                         limit: params['limit'],
@@ -7840,7 +8102,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['productRanking'] as _i29.ProductRankingEndpoint)
+                  (endpoints['productRanking'] as _i30.ProductRankingEndpoint)
                       .getMostSellingProducts(
                         session,
                         limit: params['limit'],
@@ -7860,7 +8122,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['productRanking'] as _i29.ProductRankingEndpoint)
+                  (endpoints['productRanking'] as _i30.ProductRankingEndpoint)
                       .getMostViewedProducts(
                         session,
                         limit: params['limit'],
@@ -7880,7 +8142,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['productRanking'] as _i29.ProductRankingEndpoint)
+                  (endpoints['productRanking'] as _i30.ProductRankingEndpoint)
                       .getFrequentlyReorderedProducts(
                         session,
                         limit: params['limit'],
@@ -7916,7 +8178,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['refund'] as _i30.RefundEndpoint).initiateRefund(
+                  (endpoints['refund'] as _i31.RefundEndpoint).initiateRefund(
                     session,
                     params['orderId'],
                     params['firebaseUid'],
@@ -7947,7 +8209,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['refund'] as _i30.RefundEndpoint).getRefundStatus(
+                  (endpoints['refund'] as _i31.RefundEndpoint).getRefundStatus(
                     session,
                     params['orderId'],
                     params['firebaseUid'],
@@ -7977,7 +8239,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['refund'] as _i30.RefundEndpoint)
+              ) async => (endpoints['refund'] as _i31.RefundEndpoint)
                   .adminGetRefundStatus(
                     session,
                     params['orderId'],
@@ -7998,7 +8260,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['subCategory'] as _i31.SubCategoryEndpoint)
+              ) async => (endpoints['subCategory'] as _i32.SubCategoryEndpoint)
                   .getSubCategories(session),
         ),
         'uploadSubCategory': _i1.MethodConnector(
@@ -8006,7 +8268,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i49.SubCategory>(),
+              type: _i1.getType<_i52.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -8024,7 +8286,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['subCategory'] as _i31.SubCategoryEndpoint)
+              ) async => (endpoints['subCategory'] as _i32.SubCategoryEndpoint)
                   .uploadSubCategory(
                     session,
                     params['subCategory'],
@@ -8047,7 +8309,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'subCategory': _i1.ParameterDescription(
               name: 'subCategory',
-              type: _i1.getType<_i49.SubCategory>(),
+              type: _i1.getType<_i52.SubCategory>(),
               nullable: false,
             ),
             'firebaseUid': _i1.ParameterDescription(
@@ -8065,7 +8327,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['subCategory'] as _i31.SubCategoryEndpoint)
+              ) async => (endpoints['subCategory'] as _i32.SubCategoryEndpoint)
                   .updateSubCategory(
                     session,
                     params['categoryName'],
@@ -8103,7 +8365,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['subCategory'] as _i31.SubCategoryEndpoint)
+              ) async => (endpoints['subCategory'] as _i32.SubCategoryEndpoint)
                   .deleteSubCategory(
                     session,
                     params['categoryName'],
@@ -8172,7 +8434,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['support'] as _i32.SupportEndpoint).submitIssue(
+                  (endpoints['support'] as _i33.SupportEndpoint).submitIssue(
                     session,
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
@@ -8218,7 +8480,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['support'] as _i32.SupportEndpoint)
+              ) async => (endpoints['support'] as _i33.SupportEndpoint)
                   .listSupportIssues(
                     session,
                     params['firebaseUid'],
@@ -8251,7 +8513,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['support'] as _i32.SupportEndpoint)
+              ) async => (endpoints['support'] as _i33.SupportEndpoint)
                   .getSupportIssueDetail(
                     session,
                     params['firebaseUid'],
@@ -8287,7 +8549,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['support'] as _i32.SupportEndpoint)
+              ) async => (endpoints['support'] as _i33.SupportEndpoint)
                   .updateSupportIssueStatus(
                     session,
                     params['firebaseUid'],
@@ -8316,7 +8578,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['user'] as _i33.UserEndpoint).getUserByFirebaseUid(
+                  (endpoints['user'] as _i34.UserEndpoint).getUserByFirebaseUid(
                     session,
                     params['uid'],
                   ),
@@ -8326,7 +8588,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'user': _i1.ParameterDescription(
               name: 'user',
-              type: _i1.getType<_i50.AppUser>(),
+              type: _i1.getType<_i53.AppUser>(),
               nullable: false,
             ),
           },
@@ -8335,7 +8597,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['user'] as _i33.UserEndpoint).createOrUpdateUser(
+                  (endpoints['user'] as _i34.UserEndpoint).createOrUpdateUser(
                     session,
                     params['user'],
                   ),
@@ -8350,7 +8612,7 @@ class Endpoints extends _i1.EndpointDispatch {
             ),
             'cart': _i1.ParameterDescription(
               name: 'cart',
-              type: _i1.getType<List<_i51.CartItem>>(),
+              type: _i1.getType<List<_i54.CartItem>>(),
               nullable: false,
             ),
           },
@@ -8358,7 +8620,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['user'] as _i33.UserEndpoint).updateCart(
+              ) async => (endpoints['user'] as _i34.UserEndpoint).updateCart(
                 session,
                 params['uid'],
                 params['cart'],
@@ -8383,7 +8645,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['user'] as _i33.UserEndpoint).updateFcmToken(
+                  (endpoints['user'] as _i34.UserEndpoint).updateFcmToken(
                     session,
                     params['uid'],
                     params['token'],
@@ -8391,9 +8653,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i52.Endpoints()
+    modules['serverpod_auth_idp'] = _i55.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i53.Endpoints()
+    modules['serverpod_auth_core'] = _i56.Endpoints()
       ..initializeEndpoints(server);
   }
 }

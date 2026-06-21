@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
+import 'package:freshpickkat_admin/screens/fresh_points_settings_screen.dart';
 import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -132,6 +133,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const NotificationPreferencesScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildSettingsItem(
+              context,
+              Icons.monetization_on_outlined,
+              'FreshPoints',
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const FreshPointsSettingsScreen(),
                   ),
                 );
               },

@@ -28,6 +28,7 @@ class CheckoutService {
     required String customerPhone,
     String? idempotencyKey,
     String? pendingOrderAction,
+    int freshPointsToRedeem = 0,
   }) async {
     final key = idempotencyKey ?? generateIdempotencyKey(draftOrder.userId);
     return _orderService.createOrderAndPayment(
@@ -36,6 +37,7 @@ class CheckoutService {
       amount: amount,
       customerPhone: customerPhone,
       pendingOrderAction: pendingOrderAction,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
   }
 }

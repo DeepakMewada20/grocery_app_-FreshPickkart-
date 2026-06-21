@@ -132,6 +132,15 @@ freeDelivery:
   - deleteDeliveryRule:
   - setDeliveryRuleActive:
   - calculateDeliveryPricing:
+freshPoints:
+  - getSettings:
+  - getMyBalance:
+  - getMyTransactions:
+  - getMaxRedeemable:
+  - updateSettings:
+  - getUserBalance:
+  - getUserTransactions:
+  - adjustPoints:
 home:
   - getHomePageHydrated:
 notification:

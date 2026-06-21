@@ -11,6 +11,9 @@ fields:
   fcmToken: String?
   status: String, default='active'
   deactivatedAt: DateTime?
+  currentFreshPoints: int, default=0
+  totalEarned: int, default=0
+  totalRedeemed: int, default=0
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

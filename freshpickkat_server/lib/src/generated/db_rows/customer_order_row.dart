@@ -49,6 +49,9 @@ abstract class CustomerOrderRow
     this.addressSnapshot,
     this.pricingSnapshot,
     this.deliverySnapshot,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required this.finalAmount,
     this.placedAt,
     this.confirmedAt,
@@ -78,6 +81,9 @@ abstract class CustomerOrderRow
        originalDeliveryFee = originalDeliveryFee ?? 0.0,
        deliveryDiscountAmount = deliveryDiscountAmount ?? 0.0,
        freeDeliveryApplied = freeDeliveryApplied ?? false,
+       freshPointsUsed = freshPointsUsed ?? 0,
+       freshPointsValue = freshPointsValue ?? 0.0,
+       actualPaymentAmount = actualPaymentAmount ?? 0.0,
        orderType = orderType ?? 'regular',
        orderedAt = orderedAt ?? DateTime.now(),
        createdAt = createdAt ?? DateTime.now(),
@@ -118,6 +124,9 @@ abstract class CustomerOrderRow
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -204,6 +213,11 @@ abstract class CustomerOrderRow
       addressSnapshot: jsonSerialization['addressSnapshot'] as String?,
       pricingSnapshot: jsonSerialization['pricingSnapshot'] as String?,
       deliverySnapshot: jsonSerialization['deliverySnapshot'] as String?,
+      freshPointsUsed: jsonSerialization['freshPointsUsed'] as int?,
+      freshPointsValue: (jsonSerialization['freshPointsValue'] as num?)
+          ?.toDouble(),
+      actualPaymentAmount: (jsonSerialization['actualPaymentAmount'] as num?)
+          ?.toDouble(),
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       placedAt: jsonSerialization['placedAt'] == null
           ? null
@@ -333,6 +347,12 @@ abstract class CustomerOrderRow
 
   String? deliverySnapshot;
 
+  int freshPointsUsed;
+
+  double freshPointsValue;
+
+  double actualPaymentAmount;
+
   double finalAmount;
 
   DateTime? placedAt;
@@ -412,6 +432,9 @@ abstract class CustomerOrderRow
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     double? finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -473,6 +496,9 @@ abstract class CustomerOrderRow
       if (addressSnapshot != null) 'addressSnapshot': addressSnapshot,
       if (pricingSnapshot != null) 'pricingSnapshot': pricingSnapshot,
       if (deliverySnapshot != null) 'deliverySnapshot': deliverySnapshot,
+      'freshPointsUsed': freshPointsUsed,
+      'freshPointsValue': freshPointsValue,
+      'actualPaymentAmount': actualPaymentAmount,
       'finalAmount': finalAmount,
       if (placedAt != null) 'placedAt': placedAt?.toJson(),
       if (confirmedAt != null) 'confirmedAt': confirmedAt?.toJson(),
@@ -572,6 +598,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required double finalAmount,
     DateTime? placedAt,
     DateTime? confirmedAt,
@@ -626,6 +655,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          addressSnapshot: addressSnapshot,
          pricingSnapshot: pricingSnapshot,
          deliverySnapshot: deliverySnapshot,
+         freshPointsUsed: freshPointsUsed,
+         freshPointsValue: freshPointsValue,
+         actualPaymentAmount: actualPaymentAmount,
          finalAmount: finalAmount,
          placedAt: placedAt,
          confirmedAt: confirmedAt,
@@ -686,6 +718,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? addressSnapshot = _Undefined,
     Object? pricingSnapshot = _Undefined,
     Object? deliverySnapshot = _Undefined,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     double? finalAmount,
     Object? placedAt = _Undefined,
     Object? confirmedAt = _Undefined,
@@ -765,6 +800,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       deliverySnapshot: deliverySnapshot is String?
           ? deliverySnapshot
           : this.deliverySnapshot,
+      freshPointsUsed: freshPointsUsed ?? this.freshPointsUsed,
+      freshPointsValue: freshPointsValue ?? this.freshPointsValue,
+      actualPaymentAmount: actualPaymentAmount ?? this.actualPaymentAmount,
       finalAmount: finalAmount ?? this.finalAmount,
       placedAt: placedAt is DateTime? ? placedAt : this.placedAt,
       confirmedAt: confirmedAt is DateTime? ? confirmedAt : this.confirmedAt,
@@ -992,6 +1030,23 @@ class CustomerOrderRowUpdateTable
   _i1.ColumnValue<String, String> deliverySnapshot(String? value) =>
       _i1.ColumnValue(
         table.deliverySnapshot,
+        value,
+      );
+
+  _i1.ColumnValue<int, int> freshPointsUsed(int value) => _i1.ColumnValue(
+    table.freshPointsUsed,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> freshPointsValue(double value) =>
+      _i1.ColumnValue(
+        table.freshPointsValue,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> actualPaymentAmount(double value) =>
+      _i1.ColumnValue(
+        table.actualPaymentAmount,
         value,
       );
 
@@ -1252,6 +1307,21 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'deliverySnapshot',
       this,
     );
+    freshPointsUsed = _i1.ColumnInt(
+      'freshPointsUsed',
+      this,
+      hasDefault: true,
+    );
+    freshPointsValue = _i1.ColumnDouble(
+      'freshPointsValue',
+      this,
+      hasDefault: true,
+    );
+    actualPaymentAmount = _i1.ColumnDouble(
+      'actualPaymentAmount',
+      this,
+      hasDefault: true,
+    );
     finalAmount = _i1.ColumnDouble(
       'finalAmount',
       this,
@@ -1402,6 +1472,12 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString deliverySnapshot;
 
+  late final _i1.ColumnInt freshPointsUsed;
+
+  late final _i1.ColumnDouble freshPointsValue;
+
+  late final _i1.ColumnDouble actualPaymentAmount;
+
   late final _i1.ColumnDouble finalAmount;
 
   late final _i1.ColumnDateTime placedAt;
@@ -1476,6 +1552,9 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     addressSnapshot,
     pricingSnapshot,
     deliverySnapshot,
+    freshPointsUsed,
+    freshPointsValue,
+    actualPaymentAmount,
     finalAmount,
     placedAt,
     confirmedAt,

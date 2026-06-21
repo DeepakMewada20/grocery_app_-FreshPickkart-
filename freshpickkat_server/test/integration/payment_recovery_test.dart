@@ -124,6 +124,9 @@ Future<String> _createPendingOrder(
       country: 'Testland',
     ),
     orderedAt: DateTime.now(),
+    freshPointsUsed: 0,
+    freshPointsValue: 0.0,
+    actualPaymentAmount: 100.0,
   );
 
   final idempotencyKey = 'itest-${DateTime.now().millisecondsSinceEpoch}';
@@ -131,6 +134,7 @@ Future<String> _createPendingOrder(
     sessionBuilder,
     order,
     idempotencyKey,
+    freshPointsToRedeem: 0,
   );
   return orderId;
 }

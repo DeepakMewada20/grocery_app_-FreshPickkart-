@@ -1,0 +1,13 @@
+class: FreshPointsTransaction
+fields:
+  id: String
+  userId: String
+  transactionType: String
+  points: int
+  balanceBefore: int
+  balanceAfter: int
+  referenceType: String?
+  referenceId: String?
+  description: String?
+  createdBy: String?
+  createdAt: DateTime

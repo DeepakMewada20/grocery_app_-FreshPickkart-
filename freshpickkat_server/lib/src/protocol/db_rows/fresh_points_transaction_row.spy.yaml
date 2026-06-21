@@ -1,0 +1,22 @@
+class: FreshPointsTransactionRow
+serverOnly: true
+table: fresh_points_transaction
+fields:
+  id: UuidValue?, defaultPersist=random
+  userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  transactionType: String
+  points: int
+  balanceBefore: int, default=0
+  balanceAfter: int, default=0
+  referenceType: String?
+  referenceId: UuidValue?
+  description: String?
+  createdBy: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  fresh_points_transaction_user_idx:
+    fields: userId, createdAt, id
+  fresh_points_transaction_type_idx:
+    fields: transactionType
+  fresh_points_transaction_ref_idx:
+    fields: referenceType, referenceId

@@ -9,3 +9,6 @@ fields:
   role: String
   fcmToken: String?
   completedOrdersCount: int?
+  currentFreshPoints: int
+  totalEarned: int
+  totalRedeemed: int

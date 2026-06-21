@@ -27,6 +27,9 @@ abstract class AppUser
     required this.role,
     this.fcmToken,
     this.completedOrdersCount,
+    required this.currentFreshPoints,
+    required this.totalEarned,
+    required this.totalRedeemed,
   });
 
   factory AppUser({
@@ -39,6 +42,9 @@ abstract class AppUser
     required String role,
     String? fcmToken,
     int? completedOrdersCount,
+    required int currentFreshPoints,
+    required int totalEarned,
+    required int totalRedeemed,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -60,6 +66,9 @@ abstract class AppUser
       role: jsonSerialization['role'] as String,
       fcmToken: jsonSerialization['fcmToken'] as String?,
       completedOrdersCount: jsonSerialization['completedOrdersCount'] as int?,
+      currentFreshPoints: jsonSerialization['currentFreshPoints'] as int,
+      totalEarned: jsonSerialization['totalEarned'] as int,
+      totalRedeemed: jsonSerialization['totalRedeemed'] as int,
     );
   }
 
@@ -81,6 +90,12 @@ abstract class AppUser
 
   int? completedOrdersCount;
 
+  int currentFreshPoints;
+
+  int totalEarned;
+
+  int totalRedeemed;
+
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -94,6 +109,9 @@ abstract class AppUser
     String? role,
     String? fcmToken,
     int? completedOrdersCount,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -109,6 +127,9 @@ abstract class AppUser
       if (fcmToken != null) 'fcmToken': fcmToken,
       if (completedOrdersCount != null)
         'completedOrdersCount': completedOrdersCount,
+      'currentFreshPoints': currentFreshPoints,
+      'totalEarned': totalEarned,
+      'totalRedeemed': totalRedeemed,
     };
   }
 
@@ -128,6 +149,9 @@ abstract class AppUser
       if (fcmToken != null) 'fcmToken': fcmToken,
       if (completedOrdersCount != null)
         'completedOrdersCount': completedOrdersCount,
+      'currentFreshPoints': currentFreshPoints,
+      'totalEarned': totalEarned,
+      'totalRedeemed': totalRedeemed,
     };
   }
 
@@ -150,6 +174,9 @@ class _AppUserImpl extends AppUser {
     required String role,
     String? fcmToken,
     int? completedOrdersCount,
+    required int currentFreshPoints,
+    required int totalEarned,
+    required int totalRedeemed,
   }) : super._(
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
@@ -160,6 +187,9 @@ class _AppUserImpl extends AppUser {
          role: role,
          fcmToken: fcmToken,
          completedOrdersCount: completedOrdersCount,
+         currentFreshPoints: currentFreshPoints,
+         totalEarned: totalEarned,
+         totalRedeemed: totalRedeemed,
        );
 
   /// Returns a shallow copy of this [AppUser]
@@ -176,6 +206,9 @@ class _AppUserImpl extends AppUser {
     String? role,
     Object? fcmToken = _Undefined,
     Object? completedOrdersCount = _Undefined,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
   }) {
     return AppUser(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -193,6 +226,9 @@ class _AppUserImpl extends AppUser {
       completedOrdersCount: completedOrdersCount is int?
           ? completedOrdersCount
           : this.completedOrdersCount,
+      currentFreshPoints: currentFreshPoints ?? this.currentFreshPoints,
+      totalEarned: totalEarned ?? this.totalEarned,
+      totalRedeemed: totalRedeemed ?? this.totalRedeemed,
     );
   }
 }

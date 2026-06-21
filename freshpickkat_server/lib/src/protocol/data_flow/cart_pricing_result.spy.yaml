@@ -13,6 +13,8 @@ fields:
   deliveryPricing: DeliveryPricingResult?
   totalSavings: double
   totalAmount: double
+  freshPointsDiscount: double, default=0
+  freshPointsRedeemed: int, default=0
   appliedOffers: List<AppliedOfferInfo>
   appliedCoupon: AppliedCouponInfo?
   freeItems: List<FreeItemInfo>

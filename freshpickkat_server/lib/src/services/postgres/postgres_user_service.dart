@@ -257,6 +257,9 @@ class PostgresUserService {
       role: cleanNullableString(user.role) ?? 'user',
       fcmToken: user.fcmToken,
       completedOrdersCount: completedOrdersCount,
+      currentFreshPoints: user.currentFreshPoints,
+      totalEarned: user.totalEarned,
+      totalRedeemed: user.totalRedeemed,
     );
   }
 

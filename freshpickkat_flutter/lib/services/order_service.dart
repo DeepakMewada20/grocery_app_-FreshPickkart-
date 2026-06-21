@@ -19,6 +19,7 @@ class OrderService {
     required double amount,
     required String customerPhone,
     String? pendingOrderAction,
+    int freshPointsToRedeem = 0,
   }) {
     return _client.checkout.createOrderAndPayment(
       order,
@@ -26,6 +27,7 @@ class OrderService {
       amount,
       customerPhone,
       pendingOrderAction: pendingOrderAction,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
   }
 

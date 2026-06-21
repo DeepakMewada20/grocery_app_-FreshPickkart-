@@ -1,0 +1,6 @@
+class: FreshPointsAdjustRequest
+fields:
+  userId: String
+  points: int
+  transactionType: String
+  description: String

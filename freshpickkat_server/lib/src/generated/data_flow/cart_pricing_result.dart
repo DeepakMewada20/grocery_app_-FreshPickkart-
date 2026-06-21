@@ -34,11 +34,14 @@ abstract class CartPricingResult
     this.deliveryPricing,
     required this.totalSavings,
     required this.totalAmount,
+    double? freshPointsDiscount,
+    int? freshPointsRedeemed,
     required this.appliedOffers,
     this.appliedCoupon,
     required this.freeItems,
     required this.pricingBreakdown,
-  });
+  }) : freshPointsDiscount = freshPointsDiscount ?? 0.0,
+       freshPointsRedeemed = freshPointsRedeemed ?? 0;
 
   factory CartPricingResult({
     required double subtotal,
@@ -54,6 +57,8 @@ abstract class CartPricingResult
     _i2.DeliveryPricingResult? deliveryPricing,
     required double totalSavings,
     required double totalAmount,
+    double? freshPointsDiscount,
+    int? freshPointsRedeemed,
     required List<_i3.AppliedOfferInfo> appliedOffers,
     _i4.AppliedCouponInfo? appliedCoupon,
     required List<_i5.FreeItemInfo> freeItems,
@@ -84,6 +89,9 @@ abstract class CartPricingResult
             ),
       totalSavings: (jsonSerialization['totalSavings'] as num).toDouble(),
       totalAmount: (jsonSerialization['totalAmount'] as num).toDouble(),
+      freshPointsDiscount: (jsonSerialization['freshPointsDiscount'] as num?)
+          ?.toDouble(),
+      freshPointsRedeemed: jsonSerialization['freshPointsRedeemed'] as int?,
       appliedOffers: _i7.Protocol().deserialize<List<_i3.AppliedOfferInfo>>(
         jsonSerialization['appliedOffers'],
       ),
@@ -127,6 +135,10 @@ abstract class CartPricingResult
 
   double totalAmount;
 
+  double freshPointsDiscount;
+
+  int freshPointsRedeemed;
+
   List<_i3.AppliedOfferInfo> appliedOffers;
 
   _i4.AppliedCouponInfo? appliedCoupon;
@@ -152,6 +164,8 @@ abstract class CartPricingResult
     _i2.DeliveryPricingResult? deliveryPricing,
     double? totalSavings,
     double? totalAmount,
+    double? freshPointsDiscount,
+    int? freshPointsRedeemed,
     List<_i3.AppliedOfferInfo>? appliedOffers,
     _i4.AppliedCouponInfo? appliedCoupon,
     List<_i5.FreeItemInfo>? freeItems,
@@ -174,6 +188,8 @@ abstract class CartPricingResult
       if (deliveryPricing != null) 'deliveryPricing': deliveryPricing?.toJson(),
       'totalSavings': totalSavings,
       'totalAmount': totalAmount,
+      'freshPointsDiscount': freshPointsDiscount,
+      'freshPointsRedeemed': freshPointsRedeemed,
       'appliedOffers': appliedOffers.toJson(valueToJson: (v) => v.toJson()),
       if (appliedCoupon != null) 'appliedCoupon': appliedCoupon?.toJson(),
       'freeItems': freeItems.toJson(valueToJson: (v) => v.toJson()),
@@ -201,6 +217,8 @@ abstract class CartPricingResult
         'deliveryPricing': deliveryPricing?.toJsonForProtocol(),
       'totalSavings': totalSavings,
       'totalAmount': totalAmount,
+      'freshPointsDiscount': freshPointsDiscount,
+      'freshPointsRedeemed': freshPointsRedeemed,
       'appliedOffers': appliedOffers.toJson(
         valueToJson: (v) => v.toJsonForProtocol(),
       ),
@@ -236,6 +254,8 @@ class _CartPricingResultImpl extends CartPricingResult {
     _i2.DeliveryPricingResult? deliveryPricing,
     required double totalSavings,
     required double totalAmount,
+    double? freshPointsDiscount,
+    int? freshPointsRedeemed,
     required List<_i3.AppliedOfferInfo> appliedOffers,
     _i4.AppliedCouponInfo? appliedCoupon,
     required List<_i5.FreeItemInfo> freeItems,
@@ -254,6 +274,8 @@ class _CartPricingResultImpl extends CartPricingResult {
          deliveryPricing: deliveryPricing,
          totalSavings: totalSavings,
          totalAmount: totalAmount,
+         freshPointsDiscount: freshPointsDiscount,
+         freshPointsRedeemed: freshPointsRedeemed,
          appliedOffers: appliedOffers,
          appliedCoupon: appliedCoupon,
          freeItems: freeItems,
@@ -278,6 +300,8 @@ class _CartPricingResultImpl extends CartPricingResult {
     Object? deliveryPricing = _Undefined,
     double? totalSavings,
     double? totalAmount,
+    double? freshPointsDiscount,
+    int? freshPointsRedeemed,
     List<_i3.AppliedOfferInfo>? appliedOffers,
     Object? appliedCoupon = _Undefined,
     List<_i5.FreeItemInfo>? freeItems,
@@ -300,6 +324,8 @@ class _CartPricingResultImpl extends CartPricingResult {
           : this.deliveryPricing?.copyWith(),
       totalSavings: totalSavings ?? this.totalSavings,
       totalAmount: totalAmount ?? this.totalAmount,
+      freshPointsDiscount: freshPointsDiscount ?? this.freshPointsDiscount,
+      freshPointsRedeemed: freshPointsRedeemed ?? this.freshPointsRedeemed,
       appliedOffers:
           appliedOffers ??
           this.appliedOffers.map((e0) => e0.copyWith()).toList(),

@@ -15,6 +15,9 @@ class UserController extends GetxController {
   final RxString userEmail = ''.obs;
   final RxString profileImageUrl = ''.obs;
   final Rx<Address?> shippingAddress = Rx<Address?>(null);
+  final RxInt currentFreshPoints = 0.obs;
+  final RxInt totalFreshPointsEarned = 0.obs;
+  final RxInt totalFreshPointsRedeemed = 0.obs;
   final RxBool isLoading = false.obs;
 
   final client = ServerpodClient().client;
@@ -46,6 +49,9 @@ class UserController extends GetxController {
     userEmail.value = '';
     profileImageUrl.value = '';
     shippingAddress.value = null;
+    currentFreshPoints.value = 0;
+    totalFreshPointsEarned.value = 0;
+    totalFreshPointsRedeemed.value = 0;
   }
 
   void _updateFromAppUser(AppUser user) {
@@ -53,7 +59,9 @@ class UserController extends GetxController {
     userPhone.value = user.phoneNumber;
     userEmail.value = user.email ?? '';
     shippingAddress.value = user.shippingAddress;
-    // profileImageUrl.value = user.profileImage ?? '';
+    currentFreshPoints.value = user.currentFreshPoints;
+    totalFreshPointsEarned.value = user.totalEarned;
+    totalFreshPointsRedeemed.value = user.totalRedeemed;
   }
 
   Future<void> updateProfile({
@@ -75,12 +83,18 @@ class UserController extends GetxController {
         cart: appUser.cart,
         role: appUser.role,
         fcmToken: appUser.fcmToken,
+        currentFreshPoints: appUser.currentFreshPoints,
+        totalEarned: appUser.totalEarned,
+        totalRedeemed: appUser.totalRedeemed,
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
       await _cacheService.saveUser(result);
       userName.value = result.name ?? '';
       userEmail.value = result.email ?? '';
+      currentFreshPoints.value = result.currentFreshPoints;
+      totalFreshPointsEarned.value = result.totalEarned;
+      totalFreshPointsRedeemed.value = result.totalRedeemed;
     } catch (e) {
       AppLogger.error('User', 'UpdateProfile: $e');
       rethrow;
@@ -103,11 +117,17 @@ class UserController extends GetxController {
         cart: appUser.cart,
         role: appUser.role,
         fcmToken: appUser.fcmToken,
+        currentFreshPoints: appUser.currentFreshPoints,
+        totalEarned: appUser.totalEarned,
+        totalRedeemed: appUser.totalRedeemed,
       );
       final result = await client.user.createOrUpdateUser(updatedUser);
       auth.appUserRx.value = result;
       await _cacheService.saveUser(result);
       shippingAddress.value = result.shippingAddress;
+      currentFreshPoints.value = result.currentFreshPoints;
+      totalFreshPointsEarned.value = result.totalEarned;
+      totalFreshPointsRedeemed.value = result.totalRedeemed;
     } catch (e) {
       AppLogger.error('User', 'UpdateAddress: $e');
       rethrow;

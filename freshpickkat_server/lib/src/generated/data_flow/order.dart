@@ -40,6 +40,9 @@ abstract class Order
     this.addressSnapshot,
     this.pricingSnapshot,
     this.deliverySnapshot,
+    required this.freshPointsUsed,
+    required this.freshPointsValue,
+    required this.actualPaymentAmount,
     required this.finalAmount,
     required this.status,
     required this.paymentStatus,
@@ -93,6 +96,9 @@ abstract class Order
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    required int freshPointsUsed,
+    required double freshPointsValue,
+    required double actualPaymentAmount,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -152,6 +158,11 @@ abstract class Order
       addressSnapshot: jsonSerialization['addressSnapshot'] as String?,
       pricingSnapshot: jsonSerialization['pricingSnapshot'] as String?,
       deliverySnapshot: jsonSerialization['deliverySnapshot'] as String?,
+      freshPointsUsed: jsonSerialization['freshPointsUsed'] as int,
+      freshPointsValue: (jsonSerialization['freshPointsValue'] as num)
+          .toDouble(),
+      actualPaymentAmount: (jsonSerialization['actualPaymentAmount'] as num)
+          .toDouble(),
       finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
       status: jsonSerialization['status'] as String,
       paymentStatus: jsonSerialization['paymentStatus'] as String,
@@ -245,6 +256,12 @@ abstract class Order
 
   String? deliverySnapshot;
 
+  int freshPointsUsed;
+
+  double freshPointsValue;
+
+  double actualPaymentAmount;
+
   double finalAmount;
 
   String status;
@@ -315,6 +332,9 @@ abstract class Order
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -364,6 +384,9 @@ abstract class Order
       if (addressSnapshot != null) 'addressSnapshot': addressSnapshot,
       if (pricingSnapshot != null) 'pricingSnapshot': pricingSnapshot,
       if (deliverySnapshot != null) 'deliverySnapshot': deliverySnapshot,
+      'freshPointsUsed': freshPointsUsed,
+      'freshPointsValue': freshPointsValue,
+      'actualPaymentAmount': actualPaymentAmount,
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -418,6 +441,9 @@ abstract class Order
       if (addressSnapshot != null) 'addressSnapshot': addressSnapshot,
       if (pricingSnapshot != null) 'pricingSnapshot': pricingSnapshot,
       if (deliverySnapshot != null) 'deliverySnapshot': deliverySnapshot,
+      'freshPointsUsed': freshPointsUsed,
+      'freshPointsValue': freshPointsValue,
+      'actualPaymentAmount': actualPaymentAmount,
       'finalAmount': finalAmount,
       'status': status,
       'paymentStatus': paymentStatus,
@@ -478,6 +504,9 @@ class _OrderImpl extends Order {
     String? addressSnapshot,
     String? pricingSnapshot,
     String? deliverySnapshot,
+    required int freshPointsUsed,
+    required double freshPointsValue,
+    required double actualPaymentAmount,
     required double finalAmount,
     required String status,
     required String paymentStatus,
@@ -523,6 +552,9 @@ class _OrderImpl extends Order {
          addressSnapshot: addressSnapshot,
          pricingSnapshot: pricingSnapshot,
          deliverySnapshot: deliverySnapshot,
+         freshPointsUsed: freshPointsUsed,
+         freshPointsValue: freshPointsValue,
+         actualPaymentAmount: actualPaymentAmount,
          finalAmount: finalAmount,
          status: status,
          paymentStatus: paymentStatus,
@@ -574,6 +606,9 @@ class _OrderImpl extends Order {
     Object? addressSnapshot = _Undefined,
     Object? pricingSnapshot = _Undefined,
     Object? deliverySnapshot = _Undefined,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     double? finalAmount,
     String? status,
     String? paymentStatus,
@@ -634,6 +669,9 @@ class _OrderImpl extends Order {
       deliverySnapshot: deliverySnapshot is String?
           ? deliverySnapshot
           : this.deliverySnapshot,
+      freshPointsUsed: freshPointsUsed ?? this.freshPointsUsed,
+      freshPointsValue: freshPointsValue ?? this.freshPointsValue,
+      actualPaymentAmount: actualPaymentAmount ?? this.actualPaymentAmount,
       finalAmount: finalAmount ?? this.finalAmount,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,

@@ -24,10 +24,16 @@ abstract class AppUserRow
     this.fcmToken,
     String? status,
     this.deactivatedAt,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : role = role ?? 'customer',
        status = status ?? 'active',
+       currentFreshPoints = currentFreshPoints ?? 0,
+       totalEarned = totalEarned ?? 0,
+       totalRedeemed = totalRedeemed ?? 0,
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -41,6 +47,9 @@ abstract class AppUserRow
     String? fcmToken,
     String? status,
     DateTime? deactivatedAt,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _AppUserRowImpl;
@@ -62,6 +71,9 @@ abstract class AppUserRow
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deactivatedAt'],
             ),
+      currentFreshPoints: jsonSerialization['currentFreshPoints'] as int?,
+      totalEarned: jsonSerialization['totalEarned'] as int?,
+      totalRedeemed: jsonSerialization['totalRedeemed'] as int?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -94,6 +106,12 @@ abstract class AppUserRow
 
   DateTime? deactivatedAt;
 
+  int currentFreshPoints;
+
+  int totalEarned;
+
+  int totalRedeemed;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -114,6 +132,9 @@ abstract class AppUserRow
     String? fcmToken,
     String? status,
     DateTime? deactivatedAt,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -130,6 +151,9 @@ abstract class AppUserRow
       if (fcmToken != null) 'fcmToken': fcmToken,
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
+      'currentFreshPoints': currentFreshPoints,
+      'totalEarned': totalEarned,
+      'totalRedeemed': totalRedeemed,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -183,6 +207,9 @@ class _AppUserRowImpl extends AppUserRow {
     String? fcmToken,
     String? status,
     DateTime? deactivatedAt,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -195,6 +222,9 @@ class _AppUserRowImpl extends AppUserRow {
          fcmToken: fcmToken,
          status: status,
          deactivatedAt: deactivatedAt,
+         currentFreshPoints: currentFreshPoints,
+         totalEarned: totalEarned,
+         totalRedeemed: totalRedeemed,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -213,6 +243,9 @@ class _AppUserRowImpl extends AppUserRow {
     Object? fcmToken = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
+    int? currentFreshPoints,
+    int? totalEarned,
+    int? totalRedeemed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -228,6 +261,9 @@ class _AppUserRowImpl extends AppUserRow {
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
           : this.deactivatedAt,
+      currentFreshPoints: currentFreshPoints ?? this.currentFreshPoints,
+      totalEarned: totalEarned ?? this.totalEarned,
+      totalRedeemed: totalRedeemed ?? this.totalRedeemed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -277,6 +313,21 @@ class AppUserRowUpdateTable extends _i1.UpdateTable<AppUserRowTable> {
         table.deactivatedAt,
         value,
       );
+
+  _i1.ColumnValue<int, int> currentFreshPoints(int value) => _i1.ColumnValue(
+    table.currentFreshPoints,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> totalEarned(int value) => _i1.ColumnValue(
+    table.totalEarned,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> totalRedeemed(int value) => _i1.ColumnValue(
+    table.totalRedeemed,
+    value,
+  );
 
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
@@ -328,6 +379,21 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
       'deactivatedAt',
       this,
     );
+    currentFreshPoints = _i1.ColumnInt(
+      'currentFreshPoints',
+      this,
+      hasDefault: true,
+    );
+    totalEarned = _i1.ColumnInt(
+      'totalEarned',
+      this,
+      hasDefault: true,
+    );
+    totalRedeemed = _i1.ColumnInt(
+      'totalRedeemed',
+      this,
+      hasDefault: true,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -358,6 +424,12 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime deactivatedAt;
 
+  late final _i1.ColumnInt currentFreshPoints;
+
+  late final _i1.ColumnInt totalEarned;
+
+  late final _i1.ColumnInt totalRedeemed;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -373,6 +445,9 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
     fcmToken,
     status,
     deactivatedAt,
+    currentFreshPoints,
+    totalEarned,
+    totalRedeemed,
     createdAt,
     updatedAt,
   ];

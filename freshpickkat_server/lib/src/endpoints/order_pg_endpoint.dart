@@ -9,12 +9,14 @@ class OrderPgEndpoint extends Endpoint {
   Future<String> createPendingOrder(
     Session session,
     Order order,
-    String idempotencyKey,
-  ) {
+    String idempotencyKey, {
+    int freshPointsToRedeem = 0,
+  }) {
     return _orderService.createPendingOrder(
       session,
       order: order,
       idempotencyKey: idempotencyKey,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
   }
 

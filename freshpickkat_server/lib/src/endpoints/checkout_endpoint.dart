@@ -25,6 +25,7 @@ class CheckoutEndpoint extends Endpoint {
     String? appliedCouponCode,
     bool autoApplyCoupons = false,
     String basketMode = 'cart',
+    int freshPointsToRedeem = 0,
   }) async {
     final pricing = await PricingEngine.calculateCartPricing(
       session: session,
@@ -32,6 +33,7 @@ class CheckoutEndpoint extends Endpoint {
       userId: userId,
       appliedCouponCode: appliedCouponCode,
       autoApplyCoupons: autoApplyCoupons,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
 
     final subtotal = pricing.subtotal;
@@ -92,6 +94,7 @@ class CheckoutEndpoint extends Endpoint {
     double amount,
     String customerPhone, {
     String? pendingOrderAction,
+    int freshPointsToRedeem = 0,
   }) async {
     try {
       if (pendingOrderAction == 'continue') {
@@ -124,19 +127,20 @@ class CheckoutEndpoint extends Endpoint {
         session,
         order,
         idempotencyKey,
+        freshPointsToRedeem: freshPointsToRedeem,
       );
 
-      // 2. Get server-calculated final amount
-      final serverFinalAmount = await _orders.getOrderFinalAmount(
+      // 2. Get server-calculated payment amount (reduced by FreshPoints)
+      final actualPaymentAmount = await _orders.getOrderActualPaymentAmount(
         session,
         orderId,
       );
 
-      // 3. Create payment order with server-calculated amount
+      // 3. Create payment order with actual amount to collect
       final paymentResult = await _paymentEndpoint.createPaymentOrder(
         session,
         orderId,
-        serverFinalAmount,
+        actualPaymentAmount,
         customerPhone,
       );
 
@@ -184,11 +188,13 @@ class CheckoutEndpoint extends Endpoint {
     }
 
     // Create a fresh payment session for the existing pending order
-    final serverFinalAmount = existing.finalAmount;
+    final amountToCollect = existing.actualPaymentAmount > 0
+        ? existing.actualPaymentAmount
+        : existing.finalAmount;
     final paymentResult = await _paymentEndpoint.createPaymentOrder(
       session,
       existing.orderNumber,
-      serverFinalAmount,
+      amountToCollect,
       customerPhone,
     );
 

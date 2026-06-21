@@ -36,6 +36,9 @@ fields:
   addressSnapshot: String?
   pricingSnapshot: String?
   deliverySnapshot: String?
+  freshPointsUsed: int, default=0
+  freshPointsValue: double, default=0
+  actualPaymentAmount: double, default=0
   finalAmount: double
   placedAt: DateTime?
   confirmedAt: DateTime?

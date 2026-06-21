@@ -80,6 +80,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Order? _currentOrderSnapshot;
   DateTime? _lastRefreshTime;
   Future<void>? _refreshFuture;
+  Timer? _refreshDebounceTimer;
+  int _freshPointsToRedeem = 0;
+  int _maxRedeemablePoints = 0;
+  bool _freshPointsExpanded = false;
 
   @override
   void initState() {
@@ -89,6 +93,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _refreshFuture = Future.microtask(() async {
       await _refreshCheckoutHydrated();
+      await _fetchMaxRedeemable();
     });
 
     ever(networkController.connectionRestoredTrigger, (_) {
@@ -114,6 +119,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           appliedCouponCode: cartController.appliedCoupon.value?.code,
           autoApplyCoupons: false,
           basketMode: 'cart',
+          freshPointsToRedeem: _freshPointsToRedeem,
         );
         cartController.applyCartHydratedData(hydrated.cartData);
         BannerController.instance.checkoutPageBanners.assignAll(
@@ -144,6 +150,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
     }
     _lastRefreshTime = DateTime.now();
+    await _fetchMaxRedeemable();
+  }
+
+  void _debouncedRefresh() {
+    _refreshDebounceTimer?.cancel();
+    _refreshDebounceTimer = Timer(const Duration(milliseconds: 600), () {
+      _refreshCheckoutHydrated();
+    });
+  }
+
+  Future<void> _fetchMaxRedeemable() async {
+    final userId = authController.currentUser?.uid;
+    if (userId == null) return;
+    final payable = cartController.totalAmount;
+    try {
+      _maxRedeemablePoints = await client.freshPoints.getMaxRedeemable(
+        userId,
+        payable,
+      );
+    } catch (_) {}
   }
 
   // ── Decision Matrix for Pending Order on Place Order ──
@@ -438,6 +464,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         amount: cartController.totalAmount,
         customerPhone: customerPhone,
         pendingOrderAction: pendingOrderAction,
+        freshPointsToRedeem: _freshPointsToRedeem,
       );
 
       if (checkoutResult.success != true || checkoutResult.orderId == null) {
@@ -714,6 +741,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         draftOrder: order,
         amount: cartController.totalAmount,
         customerPhone: customerPhone,
+        freshPointsToRedeem: _freshPointsToRedeem,
       );
 
       if (checkoutResult.success != true || checkoutResult.orderId == null) {
@@ -1589,6 +1617,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       sourceOrderNumber: null,
       complaintId: null,
       couponApplied: cartController.appliedCoupon.value?.code,
+      freshPointsUsed: _freshPointsToRedeem,
+      freshPointsValue: cartController.cartPricing.value?.freshPointsDiscount ?? 0.0,
+      actualPaymentAmount: cartController.totalAmount,
     );
   }
 
@@ -2014,6 +2045,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 _buildItemsSection(cs),
                                 SizedBox(height: 16.h),
                                 _buildBillDetails(cs),
+                                SizedBox(height: 16.h),
+                                _buildFreshPointsSection(cs),
                                 SizedBox(height: 16.h),
                                 _buildPaymentSection(cs),
                                 if (_errorMessage != null) ...[
@@ -2733,6 +2766,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _buildFreshPointsSection(ColorScheme cs) {
+    final balance = authController.appUser?.currentFreshPoints ?? 0;
+    if (balance <= 0 && _freshPointsToRedeem == 0) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _freshPointsExpanded = !_freshPointsExpanded),
+            child: Row(
+              children: [
+                Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 20),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Text(
+                    'FreshPoints Balance: $balance pts',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _freshPointsExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: cs.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+          if (_freshPointsExpanded) ...[
+            SizedBox(height: 12.h),
+            Text(
+              'Redeem up to $_maxRedeemablePoints points',
+              style: TextStyle(
+                color: cs.onSurfaceVariant,
+                fontSize: 13.sp,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Row(
+              children: [
+                Text('0', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+                Expanded(
+                  child: Slider(
+                    value: _freshPointsToRedeem.toDouble(),
+                    min: 0,
+                    max: _maxRedeemablePoints.toDouble().clamp(1, double.infinity),
+                    divisions: _maxRedeemablePoints.clamp(1, 100),
+                    activeColor: Colors.amber.shade700,
+                    onChanged: (v) {
+                      setState(() => _freshPointsToRedeem = v.round());
+                      _debouncedRefresh();
+                    },
+                  ),
+                ),
+                Text('$_maxRedeemablePoints', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+              ],
+            ),
+            if (_freshPointsToRedeem > 0)
+              Padding(
+                padding: EdgeInsets.only(top: 4.h),
+                child: Text(
+                  'Saving ₹${(_freshPointsToRedeem).toStringAsFixed(0)}',
+                  style: TextStyle(color: Colors.green, fontSize: 12.sp),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildBillDetails(ColorScheme cs) {
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -2805,6 +2918,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _buildBillRow(
               'Coupon Discount',
               '-₹${cartController.couponDiscount.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if ((cartController.cartPricing.value?.freshPointsDiscount ?? 0) > 0) ...[
+            SizedBox(height: 8.h),
+            _buildBillRow(
+              'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
+              '-₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),

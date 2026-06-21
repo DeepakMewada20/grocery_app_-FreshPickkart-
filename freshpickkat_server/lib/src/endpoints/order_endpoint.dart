@@ -50,12 +50,14 @@ class OrderEndpoint extends Endpoint {
   Future<String> createPendingOrder(
     Session session,
     protocol.Order order,
-    String idempotencyKey,
-  ) {
+    String idempotencyKey, {
+    int freshPointsToRedeem = 0,
+  }) {
     return _orders.createPendingOrder(
       session,
       order: order,
       idempotencyKey: idempotencyKey,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
   }
 

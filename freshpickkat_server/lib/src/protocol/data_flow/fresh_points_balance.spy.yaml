@@ -1,0 +1,6 @@
+class: FreshPointsBalance
+fields:
+  balance: int
+  totalEarned: int
+  totalRedeemed: int
+  transactions: List<FreshPointsTransaction>

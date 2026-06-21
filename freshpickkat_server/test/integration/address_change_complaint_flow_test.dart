@@ -531,12 +531,16 @@ Future<String> _createPendingOrder(
     complaintId: null,
     deliveryAddress: address,
     orderedAt: DateTime.now(),
+    freshPointsUsed: 0,
+    freshPointsValue: 0.0,
+    actualPaymentAmount: 100.0,
   );
 
   return endpoints.order.createPendingOrder(
     sessionBuilder,
     order,
     'address-change-itest-$suffix',
+    freshPointsToRedeem: 0,
   );
 }
 

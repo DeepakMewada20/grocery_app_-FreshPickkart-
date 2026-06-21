@@ -109,6 +109,9 @@ class AuthController extends GetxController {
           firebaseUid: _user.value!.uid,
           phoneNumber: _user.value!.phoneNumber ?? '',
           role: 'user',
+          currentFreshPoints: 0,
+          totalEarned: 0,
+          totalRedeemed: 0,
         );
         user = await client.user.createOrUpdateUser(user);
       }

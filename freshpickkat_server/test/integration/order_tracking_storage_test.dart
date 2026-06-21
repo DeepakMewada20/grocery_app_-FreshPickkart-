@@ -110,12 +110,16 @@ Future<String> _createPendingOrder(
       longitude: 77.2090,
     ),
     orderedAt: DateTime.now(),
+    freshPointsUsed: 0,
+    freshPointsValue: 0.0,
+    actualPaymentAmount: 100.0,
   );
 
   return endpoints.order.createPendingOrder(
     sessionBuilder,
     order,
     'tracking-itest-$suffix',
+    freshPointsToRedeem: 0,
   );
 }
 
