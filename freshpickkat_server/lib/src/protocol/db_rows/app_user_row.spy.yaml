@@ -15,6 +15,11 @@ fields:
   totalEarned: int, default=0
   totalRedeemed: int, default=0
   referralCode: String?
+  referralCodeApplied: String?
+  referralSource: String?
+  referralAppliedAt: DateTime?
+  referralWindowExpiresAt: DateTime?
+  referralOnboardingDismissedAt: DateTime?
   termsAcceptedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

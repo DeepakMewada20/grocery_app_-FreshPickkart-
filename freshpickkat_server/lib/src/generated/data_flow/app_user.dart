@@ -31,6 +31,11 @@ abstract class AppUser
     required this.totalEarned,
     required this.totalRedeemed,
     this.referralCode,
+    this.referralCodeApplied,
+    this.referralSource,
+    this.referralAppliedAt,
+    this.referralWindowExpiresAt,
+    this.referralOnboardingDismissedAt,
   });
 
   factory AppUser({
@@ -47,6 +52,11 @@ abstract class AppUser
     required int totalEarned,
     required int totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
   }) = _AppUserImpl;
 
   factory AppUser.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -72,6 +82,25 @@ abstract class AppUser
       totalEarned: jsonSerialization['totalEarned'] as int,
       totalRedeemed: jsonSerialization['totalRedeemed'] as int,
       referralCode: jsonSerialization['referralCode'] as String?,
+      referralCodeApplied: jsonSerialization['referralCodeApplied'] as String?,
+      referralSource: jsonSerialization['referralSource'] as String?,
+      referralAppliedAt: jsonSerialization['referralAppliedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralAppliedAt'],
+            ),
+      referralWindowExpiresAt:
+          jsonSerialization['referralWindowExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralWindowExpiresAt'],
+            ),
+      referralOnboardingDismissedAt:
+          jsonSerialization['referralOnboardingDismissedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralOnboardingDismissedAt'],
+            ),
     );
   }
 
@@ -101,6 +130,16 @@ abstract class AppUser
 
   String? referralCode;
 
+  String? referralCodeApplied;
+
+  String? referralSource;
+
+  DateTime? referralAppliedAt;
+
+  DateTime? referralWindowExpiresAt;
+
+  DateTime? referralOnboardingDismissedAt;
+
   /// Returns a shallow copy of this [AppUser]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -118,6 +157,11 @@ abstract class AppUser
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -137,6 +181,16 @@ abstract class AppUser
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
       if (referralCode != null) 'referralCode': referralCode,
+      if (referralCodeApplied != null)
+        'referralCodeApplied': referralCodeApplied,
+      if (referralSource != null) 'referralSource': referralSource,
+      if (referralAppliedAt != null)
+        'referralAppliedAt': referralAppliedAt?.toJson(),
+      if (referralWindowExpiresAt != null)
+        'referralWindowExpiresAt': referralWindowExpiresAt?.toJson(),
+      if (referralOnboardingDismissedAt != null)
+        'referralOnboardingDismissedAt': referralOnboardingDismissedAt
+            ?.toJson(),
     };
   }
 
@@ -160,6 +214,16 @@ abstract class AppUser
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
       if (referralCode != null) 'referralCode': referralCode,
+      if (referralCodeApplied != null)
+        'referralCodeApplied': referralCodeApplied,
+      if (referralSource != null) 'referralSource': referralSource,
+      if (referralAppliedAt != null)
+        'referralAppliedAt': referralAppliedAt?.toJson(),
+      if (referralWindowExpiresAt != null)
+        'referralWindowExpiresAt': referralWindowExpiresAt?.toJson(),
+      if (referralOnboardingDismissedAt != null)
+        'referralOnboardingDismissedAt': referralOnboardingDismissedAt
+            ?.toJson(),
     };
   }
 
@@ -186,6 +250,11 @@ class _AppUserImpl extends AppUser {
     required int totalEarned,
     required int totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
   }) : super._(
          firebaseUid: firebaseUid,
          phoneNumber: phoneNumber,
@@ -200,6 +269,11 @@ class _AppUserImpl extends AppUser {
          totalEarned: totalEarned,
          totalRedeemed: totalRedeemed,
          referralCode: referralCode,
+         referralCodeApplied: referralCodeApplied,
+         referralSource: referralSource,
+         referralAppliedAt: referralAppliedAt,
+         referralWindowExpiresAt: referralWindowExpiresAt,
+         referralOnboardingDismissedAt: referralOnboardingDismissedAt,
        );
 
   /// Returns a shallow copy of this [AppUser]
@@ -220,6 +294,11 @@ class _AppUserImpl extends AppUser {
     int? totalEarned,
     int? totalRedeemed,
     Object? referralCode = _Undefined,
+    Object? referralCodeApplied = _Undefined,
+    Object? referralSource = _Undefined,
+    Object? referralAppliedAt = _Undefined,
+    Object? referralWindowExpiresAt = _Undefined,
+    Object? referralOnboardingDismissedAt = _Undefined,
   }) {
     return AppUser(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -241,6 +320,21 @@ class _AppUserImpl extends AppUser {
       totalEarned: totalEarned ?? this.totalEarned,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
       referralCode: referralCode is String? ? referralCode : this.referralCode,
+      referralCodeApplied: referralCodeApplied is String?
+          ? referralCodeApplied
+          : this.referralCodeApplied,
+      referralSource: referralSource is String?
+          ? referralSource
+          : this.referralSource,
+      referralAppliedAt: referralAppliedAt is DateTime?
+          ? referralAppliedAt
+          : this.referralAppliedAt,
+      referralWindowExpiresAt: referralWindowExpiresAt is DateTime?
+          ? referralWindowExpiresAt
+          : this.referralWindowExpiresAt,
+      referralOnboardingDismissedAt: referralOnboardingDismissedAt is DateTime?
+          ? referralOnboardingDismissedAt
+          : this.referralOnboardingDismissedAt,
     );
   }
 }

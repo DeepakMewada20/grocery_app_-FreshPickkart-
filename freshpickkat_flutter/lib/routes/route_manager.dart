@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-enum DeepLinkType { product, category, offer }
+enum DeepLinkType { product, category, offer, invite }
 
 class DeepLinkTarget {
   const DeepLinkTarget({
@@ -66,6 +66,7 @@ class RouteManager {
       DeepLinkType.product => productPath(target.value),
       DeepLinkType.category => categoryPath(target.value),
       DeepLinkType.offer => offerPath(target.value),
+      DeepLinkType.invite => home,
     };
   }
 
@@ -99,6 +100,11 @@ class RouteManager {
         value: value,
         uri: uri,
       ),
+      'invite' => DeepLinkTarget(
+        type: DeepLinkType.invite,
+        value: value,
+        uri: uri,
+      ),
       _ => null,
     };
   }
@@ -113,6 +119,7 @@ class RouteManager {
       DeepLinkType.product => Get.parameters['productId'],
       DeepLinkType.category => Get.parameters['categoryId'],
       DeepLinkType.offer => Get.parameters['offerCode'],
+      DeepLinkType.invite => Get.parameters['ref'],
     };
 
     final trimmed = value?.trim();

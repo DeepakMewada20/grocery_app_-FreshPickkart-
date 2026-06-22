@@ -17,6 +17,7 @@ class DeepLinkService extends GetxService {
   static DeepLinkService get instance => Get.find<DeepLinkService>();
 
   static const _installReferrerCheckedKey = 'install_referrer_checked_v1';
+  static const _pendingReferralCodeKey = 'pending_referral_code';
   static const _duplicateWindow = Duration(seconds: 2);
 
   final _appLinks = AppLinks();
@@ -48,6 +49,21 @@ class DeepLinkService extends GetxService {
     super.onClose();
   }
 
+  /// Stores a pending referral code from invite deep links.
+  /// Call [consumePendingReferralCode] to retrieve and clear it.
+  void storePendingReferralCode(String code) {
+    _storage.write(_pendingReferralCodeKey, code.trim().toUpperCase());
+  }
+
+  /// Returns the pending referral code and clears it from storage.
+  String? consumePendingReferralCode() {
+    final code = _storage.read<String>(_pendingReferralCodeKey);
+    if (code != null) {
+      _storage.remove(_pendingReferralCodeKey);
+    }
+    return code;
+  }
+
   Future<void> handleUri(Uri uri) async {
     final target = RouteManager.fromUri(uri);
     if (target == null) {
@@ -63,6 +79,11 @@ class DeepLinkService extends GetxService {
   }) async {
     if (_isDuplicate(target)) return;
     _remember(target);
+
+    if (target.type == DeepLinkType.invite) {
+      storePendingReferralCode(target.value);
+    }
+
     await _waitForNavigator();
     await RouteManager.navigate(target, mode: mode);
   }

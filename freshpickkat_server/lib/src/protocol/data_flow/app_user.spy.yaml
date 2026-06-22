@@ -13,3 +13,8 @@ fields:
   totalEarned: int
   totalRedeemed: int
   referralCode: String?
+  referralCodeApplied: String?
+  referralSource: String?
+  referralAppliedAt: DateTime?
+  referralWindowExpiresAt: DateTime?
+  referralOnboardingDismissedAt: DateTime?

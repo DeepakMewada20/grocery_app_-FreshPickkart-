@@ -8305,6 +8305,118 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['userId'],
                   ),
         ),
+        'getReferralOnboardingStatus': _i1.MethodConnector(
+          name: 'getReferralOnboardingStatus',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .getReferralOnboardingStatus(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'applyReferralOnboarding': _i1.MethodConnector(
+          name: 'applyReferralOnboarding',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'referralCode': _i1.ParameterDescription(
+              name: 'referralCode',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'source': _i1.ParameterDescription(
+              name: 'source',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .applyReferralOnboarding(
+                    session,
+                    params['userId'],
+                    params['referralCode'],
+                    source: params['source'],
+                  ),
+        ),
+        'dismissReferralOnboarding': _i1.MethodConnector(
+          name: 'dismissReferralOnboarding',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .dismissReferralOnboarding(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'adminApplyReferralCode': _i1.MethodConnector(
+          name: 'adminApplyReferralCode',
+          params: {
+            'adminFirebaseUid': _i1.ParameterDescription(
+              name: 'adminFirebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'inviteeUserId': _i1.ParameterDescription(
+              name: 'inviteeUserId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'referralCode': _i1.ParameterDescription(
+              name: 'referralCode',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'reason': _i1.ParameterDescription(
+              name: 'reason',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['referral'] as _i31.ReferralEndpoint)
+                  .adminApplyReferralCode(
+                    session,
+                    params['adminFirebaseUid'],
+                    params['idToken'],
+                    params['inviteeUserId'],
+                    params['referralCode'],
+                    params['reason'],
+                  ),
+        ),
         'updateSettings': _i1.MethodConnector(
           name: 'updateSettings',
           params: {

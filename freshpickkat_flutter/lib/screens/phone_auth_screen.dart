@@ -1,13 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:pinput/pinput.dart';
-import 'dart:async';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:pinput/pinput.dart';
 import 'package:sms_autofill/sms_autofill.dart'
     if (dart.library.html) 'sms_autofill_stub.dart';
 
@@ -25,6 +27,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   final FocusNode _phoneFocusNode = FocusNode();
   final FocusNode _otpFocusNode = FocusNode();
   final AuthController _authController = AuthController.instance;
+  final _storage = GetStorage();
 
   String _countryCode = '+91';
   bool _isLoading = false;
@@ -271,7 +274,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
             Get.offAllNamed('/home');
           }
         } else {
-          // First time user or missing profile data, go to EditProfileScreen
+          // First time user or missing profile data
+          // Set flag so referral sheet shows on first home screen visit
+          _storage.write('pending_referral_onboarding', true);
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
@@ -320,7 +325,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
             Get.offAllNamed('/home');
           }
         } else {
-          // First time user or missing profile data, go to EditProfileScreen
+          // First time user or missing profile data
+          // Set flag so referral sheet shows on first home screen visit
+          _storage.write('pending_referral_onboarding', true);
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
+import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
     deferred as category_item_screen;
 import 'package:freshpickkat_flutter/screens/coupons_screen.dart'
@@ -100,6 +101,10 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
                 coupons_screen.CouponsScreen(autoApplyCouponCode: code),
           );
         }
+        break;
+      case DeepLinkType.invite:
+        // Referral code is already stored by DeepLinkService.openTarget
+        await Get.offAllNamed(RouteManager.home);
         break;
     }
   }

@@ -68,6 +68,63 @@ class ReferralEndpoint extends Endpoint {
     await _referral.acceptTerms(session, parsedId);
   }
 
+  Future<protocol.ReferralOnboardingStatus> getReferralOnboardingStatus(
+    Session session,
+    String userId,
+  ) async {
+    final parsedId = await _resolveUserId(session, userId);
+    return _referral.getReferralOnboardingStatus(session, parsedId);
+  }
+
+  Future<void> applyReferralOnboarding(
+    Session session,
+    String userId,
+    String referralCode, {
+    String? source,
+  }) async {
+    final parsedId = await _resolveUserId(session, userId);
+    final user = await protocol.AppUserRow.db.findById(session, parsedId);
+    if (user == null) throw Exception('User not found');
+    await _referral.applyReferral(
+      session,
+      parsedId,
+      user.phoneNumber,
+      referralCode,
+      source: source ?? 'onboarding',
+    );
+  }
+
+  Future<void> dismissReferralOnboarding(
+    Session session,
+    String userId,
+  ) async {
+    final parsedId = await _resolveUserId(session, userId);
+    await _referral.dismissReferralOnboarding(session, parsedId);
+  }
+
+  Future<void> adminApplyReferralCode(
+    Session session,
+    String adminFirebaseUid,
+    String idToken,
+    String inviteeUserId,
+    String referralCode,
+    String reason,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: adminFirebaseUid,
+      idToken: idToken,
+    );
+    final parsedId = await _resolveUserId(session, inviteeUserId);
+    await _referral.adminApplyReferral(
+      session,
+      adminFirebaseUid,
+      parsedId,
+      referralCode,
+      reason: reason,
+    );
+  }
+
   Future<UuidValue> _resolveUserId(Session session, String userId) async {
     final parsed = tryParseUuid(userId);
     if (parsed != null) return parsed;

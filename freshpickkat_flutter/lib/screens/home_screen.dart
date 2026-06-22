@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/services/home_data_service.dart';
+import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/widgets/categories_selection_listview.dart';
 import 'package:freshpickkat_flutter/widgets/home_banner_with_horizontal_item.dart';
 import 'package:freshpickkat_flutter/widgets/home_page_header.dart';
@@ -11,10 +16,11 @@ import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
+import 'package:freshpickkat_flutter/widgets/referral_onboarding_sheet.dart';
+import 'package:freshpickkat_flutter/widgets/referral_reminder_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class _LazyMiddleBanner extends StatefulWidget {
   const _LazyMiddleBanner();
@@ -108,11 +114,15 @@ class _HomePageState extends State<HomePage>
   final bannerController = BannerController.instance;
   final offerWidgetKey = GlobalKey<OfferWidgetState>();
   bool _hasRestoredScrollOffset = false;
+  bool _showReferralReminder = false;
+  final _storage = GetStorage();
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_storeScrollOffset);
+    _checkReferralReminder();
+    _showPendingReferralOnboarding();
 
     ever(networkController.connectionRestoredTrigger, (_) {
       if (!mounted) return;
@@ -125,11 +135,51 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  Future<void> _checkReferralReminder() async {
+    try {
+      final uid = AuthController.instance.currentUser?.uid;
+      if (uid == null || uid.isEmpty) return;
+      final client = ServerpodClient().client;
+      final status = await client.referral.getReferralOnboardingStatus(uid);
+      if (mounted && status.showReminder) {
+        setState(() => _showReferralReminder = true);
+      }
+    } catch (e) {
+      AppLogger.error('HomeScreen', 'Referral reminder: $e');
+    }
+  }
+
+  Future<void> _showPendingReferralOnboarding() async {
+    final pending = _storage.read<bool>('pending_referral_onboarding');
+    if (pending != true) return;
+
+    _storage.remove('pending_referral_onboarding');
+
+    try {
+      final uid = AuthController.instance.currentUser?.uid;
+      if (uid == null || uid.isEmpty) return;
+      final client = ServerpodClient().client;
+      final status = await client.referral.getReferralOnboardingStatus(uid);
+      if (!mounted || !status.isEligible) return;
+
+      await showModalBottomSheet(
+        context: Get.context!,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const ReferralOnboardingSheet(),
+      );
+    } catch (e) {
+      AppLogger.error('HomeScreen', 'Pending referral: $e');
+    }
+  }
+
   Future<void> _onRefresh() async {
     _savedScrollOffset = 0;
     _hasRestoredScrollOffset = false;
+    _showReferralReminder = false;
     await HomeDataService().fetchHomePageData();
     BannerController.instance.ensureHomeBannersLoaded();
+    await _checkReferralReminder();
   }
 
   void _storeScrollOffset() {
@@ -226,6 +276,11 @@ class _HomePageState extends State<HomePage>
                     else ...[
                       // 🎁 OFFER WIDGET
                       OfferWidget(key: offerWidgetKey),
+
+                      if (_showReferralReminder)
+                        const SliverToBoxAdapter(
+                          child: ReferralReminderCard(),
+                        ),
 
                       // 🎪 BANNER WITH HORIZONTAL ITEMS
                       HomeBannerWithHorizontalItem(height: height),

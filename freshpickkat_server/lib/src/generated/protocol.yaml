@@ -276,6 +276,10 @@ referral:
   - applyReferralCode:
   - hasAcceptedTerms:
   - acceptTerms:
+  - getReferralOnboardingStatus:
+  - applyReferralOnboarding:
+  - dismissReferralOnboarding:
+  - adminApplyReferralCode:
   - updateSettings:
   - getReferralAnalytics:
   - listReferrals:

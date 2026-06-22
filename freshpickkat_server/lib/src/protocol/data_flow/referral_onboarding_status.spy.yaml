@@ -1,0 +1,6 @@
+class: ReferralOnboardingStatus
+fields:
+  isEligible: bool
+  showReminder: bool
+  pendingReferralCode: String?
+  windowExpiresAt: DateTime?

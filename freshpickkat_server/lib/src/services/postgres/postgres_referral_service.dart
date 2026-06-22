@@ -92,8 +92,9 @@ class PostgresReferralService {
     Session session,
     UuidValue inviteeUserId,
     String inviteePhone,
-    String referralCode,
-  ) async {
+    String referralCode, {
+    String? source,
+  }) async {
     final normalized = referralCode.trim().toUpperCase();
 
     final referrer = await AppUserRow.db.findFirstRow(
@@ -139,6 +140,16 @@ class PostgresReferralService {
       ),
     );
 
+    // Mark referral code as applied on the user row
+    await AppUserRow.db.updateRow(
+      session,
+      (await AppUserRow.db.findById(session, inviteeUserId))!.copyWith(
+        referralCodeApplied: normalized,
+        referralSource: source ?? 'onboarding',
+        referralAppliedAt: now,
+      ),
+    );
+
     await _auditLog.write(
       session,
       actorFirebaseUid: 'referral_system',
@@ -148,6 +159,7 @@ class PostgresReferralService {
         'referrerUserId': referrer.id.toString(),
         'inviteeUserId': inviteeUserId.toString(),
         'referralCode': normalized,
+        'source': source ?? 'onboarding',
       },
     );
   }
@@ -161,6 +173,155 @@ class PostgresReferralService {
     return ReferralRow.db.findFirstRow(
       session,
       where: (t) => t.inviteeUserId.equals(userId),
+    );
+  }
+
+  // ── Referral Onboarding ──────────────────────────────────────────────────
+
+  Future<ReferralOnboardingStatus> getReferralOnboardingStatus(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final user = await AppUserRow.db.findById(session, userId);
+    if (user == null) {
+      return ReferralOnboardingStatus(
+        isEligible: false,
+        showReminder: false,
+      );
+    }
+
+    // Already applied a code
+    if (user.referralCodeApplied != null) {
+      return ReferralOnboardingStatus(
+        isEligible: false,
+        showReminder: false,
+      );
+    }
+
+    final now = DateTime.now().toUtc();
+
+    // Check if within 7-day window
+    final windowExpiresAt = user.referralWindowExpiresAt;
+    if (windowExpiresAt == null || now.isAfter(windowExpiresAt)) {
+      return ReferralOnboardingStatus(
+        isEligible: false,
+        showReminder: false,
+      );
+    }
+
+    // Check if already placed first order
+    final completedOrders = await CustomerOrderRow.db.count(
+      session,
+      where: (t) =>
+          t.userId.equals(userId) &
+          (t.orderStatus.equals('delivered') |
+              t.orderStatus.equals('placed') |
+              t.orderStatus.equals('confirmed') |
+              t.orderStatus.equals('out_for_delivery')),
+    );
+    if (completedOrders > 0) {
+      return ReferralOnboardingStatus(
+        isEligible: false,
+        showReminder: false,
+      );
+    }
+
+    // Check if already referred
+    final existing = await ReferralRow.db.findFirstRow(
+      session,
+      where: (t) => t.inviteeUserId.equals(userId),
+    );
+    if (existing != null) {
+      return ReferralOnboardingStatus(
+        isEligible: false,
+        showReminder: false,
+      );
+    }
+
+    // Determine if we should show the reminder card
+    final dismissedAt = user.referralOnboardingDismissedAt;
+    final showReminder = dismissedAt != null;
+
+    return ReferralOnboardingStatus(
+      isEligible: true,
+      showReminder: showReminder,
+      windowExpiresAt: windowExpiresAt,
+    );
+  }
+
+  Future<void> dismissReferralOnboarding(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final user = await AppUserRow.db.findById(session, userId);
+    if (user == null) throw Exception('User not found');
+
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        referralOnboardingDismissedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  Future<void> adminApplyReferral(
+    Session session,
+    String adminFirebaseUid,
+    UuidValue inviteeUserId,
+    String referralCode, {
+    required String reason,
+  }) async {
+    final invitee = await AppUserRow.db.findById(session, inviteeUserId);
+    if (invitee == null) throw Exception('Invitee user not found');
+
+    // Admin override: skip 7-day window check, skip order check
+    final referrer = await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.referralCode.equals(referralCode.trim().toUpperCase()),
+    );
+    if (referrer == null || referrer.id == inviteeUserId) {
+      throw Exception('Invalid referral code');
+    }
+
+    final existing = await ReferralRow.db.findFirstRow(
+      session,
+      where: (t) => t.inviteeUserId.equals(inviteeUserId),
+    );
+    if (existing != null) throw Exception('Already referred');
+
+    final now = DateTime.now().toUtc();
+    await ReferralRow.db.insertRow(
+      session,
+      ReferralRow(
+        referrerUserId: referrer.id!,
+        inviteeUserId: inviteeUserId,
+        inviteePhone: invitee.phoneNumber,
+        referralCodeUsed: referralCode.trim().toUpperCase(),
+        status: 'SIGNED_UP',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    await AppUserRow.db.updateRow(
+      session,
+      invitee.copyWith(
+        referralCodeApplied: referralCode.trim().toUpperCase(),
+        referralSource: 'admin_override',
+        referralAppliedAt: now,
+      ),
+    );
+
+    await _auditLog.write(
+      session,
+      actorFirebaseUid: adminFirebaseUid,
+      action: 'REFERRAL_ADMIN_OVERRIDE',
+      entityType: 'referral',
+      metadata: {
+        'inviteeUserId': inviteeUserId.toString(),
+        'referralCode': referralCode.trim().toUpperCase(),
+        'reason': reason,
+      },
     );
   }
 

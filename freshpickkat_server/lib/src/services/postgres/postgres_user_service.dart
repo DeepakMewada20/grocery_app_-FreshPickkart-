@@ -60,6 +60,7 @@ class PostgresUserService {
                 role: role,
                 fcmToken: cleanNullableString(user.fcmToken),
                 status: 'active',
+                referralWindowExpiresAt: now.add(const Duration(days: 7)),
                 createdAt: now,
                 updatedAt: now,
               ),
@@ -267,6 +268,12 @@ class PostgresUserService {
       currentFreshPoints: user.currentFreshPoints,
       totalEarned: user.totalEarned,
       totalRedeemed: user.totalRedeemed,
+      referralCode: user.referralCode,
+      referralCodeApplied: user.referralCodeApplied,
+      referralSource: user.referralSource,
+      referralAppliedAt: user.referralAppliedAt,
+      referralWindowExpiresAt: user.referralWindowExpiresAt,
+      referralOnboardingDismissedAt: user.referralOnboardingDismissedAt,
     );
   }
 

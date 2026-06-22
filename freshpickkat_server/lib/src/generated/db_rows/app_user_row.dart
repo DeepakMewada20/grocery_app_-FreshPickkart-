@@ -28,6 +28,11 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     this.referralCode,
+    this.referralCodeApplied,
+    this.referralSource,
+    this.referralAppliedAt,
+    this.referralWindowExpiresAt,
+    this.referralOnboardingDismissedAt,
     this.termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -53,6 +58,11 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -79,6 +89,25 @@ abstract class AppUserRow
       totalEarned: jsonSerialization['totalEarned'] as int?,
       totalRedeemed: jsonSerialization['totalRedeemed'] as int?,
       referralCode: jsonSerialization['referralCode'] as String?,
+      referralCodeApplied: jsonSerialization['referralCodeApplied'] as String?,
+      referralSource: jsonSerialization['referralSource'] as String?,
+      referralAppliedAt: jsonSerialization['referralAppliedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralAppliedAt'],
+            ),
+      referralWindowExpiresAt:
+          jsonSerialization['referralWindowExpiresAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralWindowExpiresAt'],
+            ),
+      referralOnboardingDismissedAt:
+          jsonSerialization['referralOnboardingDismissedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['referralOnboardingDismissedAt'],
+            ),
       termsAcceptedAt: jsonSerialization['termsAcceptedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -124,6 +153,16 @@ abstract class AppUserRow
 
   String? referralCode;
 
+  String? referralCodeApplied;
+
+  String? referralSource;
+
+  DateTime? referralAppliedAt;
+
+  DateTime? referralWindowExpiresAt;
+
+  DateTime? referralOnboardingDismissedAt;
+
   DateTime? termsAcceptedAt;
 
   DateTime createdAt;
@@ -150,6 +189,11 @@ abstract class AppUserRow
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -171,6 +215,16 @@ abstract class AppUserRow
       'totalEarned': totalEarned,
       'totalRedeemed': totalRedeemed,
       if (referralCode != null) 'referralCode': referralCode,
+      if (referralCodeApplied != null)
+        'referralCodeApplied': referralCodeApplied,
+      if (referralSource != null) 'referralSource': referralSource,
+      if (referralAppliedAt != null)
+        'referralAppliedAt': referralAppliedAt?.toJson(),
+      if (referralWindowExpiresAt != null)
+        'referralWindowExpiresAt': referralWindowExpiresAt?.toJson(),
+      if (referralOnboardingDismissedAt != null)
+        'referralOnboardingDismissedAt': referralOnboardingDismissedAt
+            ?.toJson(),
       if (termsAcceptedAt != null) 'termsAcceptedAt': termsAcceptedAt?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -229,6 +283,11 @@ class _AppUserRowImpl extends AppUserRow {
     int? totalEarned,
     int? totalRedeemed,
     String? referralCode,
+    String? referralCodeApplied,
+    String? referralSource,
+    DateTime? referralAppliedAt,
+    DateTime? referralWindowExpiresAt,
+    DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -246,6 +305,11 @@ class _AppUserRowImpl extends AppUserRow {
          totalEarned: totalEarned,
          totalRedeemed: totalRedeemed,
          referralCode: referralCode,
+         referralCodeApplied: referralCodeApplied,
+         referralSource: referralSource,
+         referralAppliedAt: referralAppliedAt,
+         referralWindowExpiresAt: referralWindowExpiresAt,
+         referralOnboardingDismissedAt: referralOnboardingDismissedAt,
          termsAcceptedAt: termsAcceptedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -269,6 +333,11 @@ class _AppUserRowImpl extends AppUserRow {
     int? totalEarned,
     int? totalRedeemed,
     Object? referralCode = _Undefined,
+    Object? referralCodeApplied = _Undefined,
+    Object? referralSource = _Undefined,
+    Object? referralAppliedAt = _Undefined,
+    Object? referralWindowExpiresAt = _Undefined,
+    Object? referralOnboardingDismissedAt = _Undefined,
     Object? termsAcceptedAt = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -289,6 +358,21 @@ class _AppUserRowImpl extends AppUserRow {
       totalEarned: totalEarned ?? this.totalEarned,
       totalRedeemed: totalRedeemed ?? this.totalRedeemed,
       referralCode: referralCode is String? ? referralCode : this.referralCode,
+      referralCodeApplied: referralCodeApplied is String?
+          ? referralCodeApplied
+          : this.referralCodeApplied,
+      referralSource: referralSource is String?
+          ? referralSource
+          : this.referralSource,
+      referralAppliedAt: referralAppliedAt is DateTime?
+          ? referralAppliedAt
+          : this.referralAppliedAt,
+      referralWindowExpiresAt: referralWindowExpiresAt is DateTime?
+          ? referralWindowExpiresAt
+          : this.referralWindowExpiresAt,
+      referralOnboardingDismissedAt: referralOnboardingDismissedAt is DateTime?
+          ? referralOnboardingDismissedAt
+          : this.referralOnboardingDismissedAt,
       termsAcceptedAt: termsAcceptedAt is DateTime?
           ? termsAcceptedAt
           : this.termsAcceptedAt,
@@ -362,6 +446,38 @@ class AppUserRowUpdateTable extends _i1.UpdateTable<AppUserRowTable> {
         table.referralCode,
         value,
       );
+
+  _i1.ColumnValue<String, String> referralCodeApplied(String? value) =>
+      _i1.ColumnValue(
+        table.referralCodeApplied,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> referralSource(String? value) =>
+      _i1.ColumnValue(
+        table.referralSource,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> referralAppliedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.referralAppliedAt,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> referralWindowExpiresAt(
+    DateTime? value,
+  ) => _i1.ColumnValue(
+    table.referralWindowExpiresAt,
+    value,
+  );
+
+  _i1.ColumnValue<DateTime, DateTime> referralOnboardingDismissedAt(
+    DateTime? value,
+  ) => _i1.ColumnValue(
+    table.referralOnboardingDismissedAt,
+    value,
+  );
 
   _i1.ColumnValue<DateTime, DateTime> termsAcceptedAt(DateTime? value) =>
       _i1.ColumnValue(
@@ -438,6 +554,26 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
       'referralCode',
       this,
     );
+    referralCodeApplied = _i1.ColumnString(
+      'referralCodeApplied',
+      this,
+    );
+    referralSource = _i1.ColumnString(
+      'referralSource',
+      this,
+    );
+    referralAppliedAt = _i1.ColumnDateTime(
+      'referralAppliedAt',
+      this,
+    );
+    referralWindowExpiresAt = _i1.ColumnDateTime(
+      'referralWindowExpiresAt',
+      this,
+    );
+    referralOnboardingDismissedAt = _i1.ColumnDateTime(
+      'referralOnboardingDismissedAt',
+      this,
+    );
     termsAcceptedAt = _i1.ColumnDateTime(
       'termsAcceptedAt',
       this,
@@ -480,6 +616,16 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString referralCode;
 
+  late final _i1.ColumnString referralCodeApplied;
+
+  late final _i1.ColumnString referralSource;
+
+  late final _i1.ColumnDateTime referralAppliedAt;
+
+  late final _i1.ColumnDateTime referralWindowExpiresAt;
+
+  late final _i1.ColumnDateTime referralOnboardingDismissedAt;
+
   late final _i1.ColumnDateTime termsAcceptedAt;
 
   late final _i1.ColumnDateTime createdAt;
@@ -501,6 +647,11 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
     totalEarned,
     totalRedeemed,
     referralCode,
+    referralCodeApplied,
+    referralSource,
+    referralAppliedAt,
+    referralWindowExpiresAt,
+    referralOnboardingDismissedAt,
     termsAcceptedAt,
     createdAt,
     updatedAt,
