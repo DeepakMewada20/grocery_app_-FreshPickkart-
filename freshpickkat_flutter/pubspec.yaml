@@ -32,9 +32,9 @@ dependencies:
     sdk: flutter
   freshpickkat_client:
     path: ../freshpickkat_client
-  serverpod_auth_idp_flutter: 3.4.5
-  serverpod_flutter: 3.4.5
-  serverpod_auth_client: 3.4.5
+  serverpod_auth_idp_flutter: ^3.4.10
+  serverpod_flutter: ^3.4.10
+  serverpod_auth_client: ^3.4.10
   firebase_auth: ^6.1.4
   firebase_messaging: ^16.1.1
   flutter_local_notifications: ^19.5.0
@@ -48,7 +48,7 @@ dependencies:
   geolocator: ^14.0.2
   google_maps_flutter: ^2.12.1
   flutter_dotenv: ^6.0.1
-  serverpod_auth_shared_flutter: 3.4.5
+  serverpod_auth_shared_flutter: ^3.4.10
   get: ^4.7.3
   get_storage: ^2.1.1
   device_info_plus: ^12.3.0

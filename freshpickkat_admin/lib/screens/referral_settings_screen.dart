@@ -22,12 +22,31 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
   late TextEditingController _maxMonthlyCtrl;
   late TextEditingController _expiryDaysCtrl;
   late TextEditingController _shareMessageCtrl;
+  late TextEditingController _autoApproveThresholdCtrl;
+  late TextEditingController _manualReviewThresholdCtrl;
+  late TextEditingController _autoRejectThresholdCtrl;
+  late TextEditingController _holdDurationHoursCtrl;
+  late TextEditingController _minPaymentCtrl;
+  late TextEditingController _maxDailyCtrl;
+  late TextEditingController _maxPendingCtrl;
+  late TextEditingController _maxSharesDayCtrl;
+  late TextEditingController _maxSharesMonthCtrl;
+  late TextEditingController _velocityScoreCtrl;
+  late TextEditingController _velocityWindowCtrl;
+  late TextEditingController _velocityThresholdCtrl;
+  late TextEditingController _newAccountScoreCtrl;
+  late TextEditingController _newAccountHoursCtrl;
+  late TextEditingController _autoReversalDaysCtrl;
+  late TextEditingController _termsTextCtrl;
 
   bool _isEnabled = true;
   bool _inviteeCouponEnabled = true;
   bool _referrerPointsEnabled = true;
   bool _enableFraudProtection = true;
   bool _enableReferralExpiry = false;
+  bool _enableFraudScoring = true;
+  bool _enableRewardHold = true;
+  bool _enableAutoReject = true;
   String _rewardTriggerStatus = 'DELIVERED';
 
   bool get _isSaving => _controller.isSaving.value;
@@ -45,11 +64,30 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
     _shareMessageCtrl = TextEditingController(
       text: s?.shareMessageTemplate ?? 'Join FreshPickKat using my referral code {CODE}. Get ₹50 OFF on your first order!',
     );
+    _autoApproveThresholdCtrl = TextEditingController(text: s?.autoApproveThreshold.toString() ?? '40');
+    _manualReviewThresholdCtrl = TextEditingController(text: s?.manualReviewThreshold.toString() ?? '69');
+    _autoRejectThresholdCtrl = TextEditingController(text: s?.autoRejectThreshold.toString() ?? '90');
+    _holdDurationHoursCtrl = TextEditingController(text: s?.holdDurationHours.toString() ?? '72');
+    _minPaymentCtrl = TextEditingController(text: s?.minimumActualPaymentForQualification.toString() ?? '0');
+    _maxDailyCtrl = TextEditingController(text: s?.maxRewardedPerDay.toString() ?? '10');
+    _maxPendingCtrl = TextEditingController(text: s?.maxPendingReferrals.toString() ?? '5');
+    _maxSharesDayCtrl = TextEditingController(text: s?.maxSharesPerDay.toString() ?? '20');
+    _maxSharesMonthCtrl = TextEditingController(text: s?.maxSharesPerMonth.toString() ?? '100');
+    _velocityScoreCtrl = TextEditingController(text: s?.referralVelocityScore.toString() ?? '30');
+    _velocityWindowCtrl = TextEditingController(text: s?.velocityTimeWindowHours.toString() ?? '24');
+    _velocityThresholdCtrl = TextEditingController(text: s?.velocityThreshold.toString() ?? '5');
+    _newAccountScoreCtrl = TextEditingController(text: s?.newAccountScore.toString() ?? '20');
+    _newAccountHoursCtrl = TextEditingController(text: s?.newAccountHours.toString() ?? '72');
+    _autoReversalDaysCtrl = TextEditingController(text: s?.autoReversalWindowDays.toString() ?? '30');
+    _termsTextCtrl = TextEditingController(text: s?.termsText ?? '');
     _isEnabled = s?.isEnabled ?? true;
     _inviteeCouponEnabled = s?.inviteeCouponEnabled ?? true;
     _referrerPointsEnabled = s?.referrerPointsEnabled ?? true;
     _enableFraudProtection = s?.enableFraudProtection ?? true;
     _enableReferralExpiry = s?.enableReferralExpiry ?? false;
+    _enableFraudScoring = s?.enableFraudScoring ?? true;
+    _enableRewardHold = s?.enableRewardHold ?? true;
+    _enableAutoReject = s?.enableAutoReject ?? true;
     _rewardTriggerStatus = s?.rewardTriggerStatus ?? 'DELIVERED';
   }
 
@@ -62,6 +100,22 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
     _maxMonthlyCtrl.dispose();
     _expiryDaysCtrl.dispose();
     _shareMessageCtrl.dispose();
+    _autoApproveThresholdCtrl.dispose();
+    _manualReviewThresholdCtrl.dispose();
+    _autoRejectThresholdCtrl.dispose();
+    _holdDurationHoursCtrl.dispose();
+    _minPaymentCtrl.dispose();
+    _maxDailyCtrl.dispose();
+    _maxPendingCtrl.dispose();
+    _maxSharesDayCtrl.dispose();
+    _maxSharesMonthCtrl.dispose();
+    _velocityScoreCtrl.dispose();
+    _velocityWindowCtrl.dispose();
+    _velocityThresholdCtrl.dispose();
+    _newAccountScoreCtrl.dispose();
+    _newAccountHoursCtrl.dispose();
+    _autoReversalDaysCtrl.dispose();
+    _termsTextCtrl.dispose();
     super.dispose();
   }
 
@@ -80,6 +134,25 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
       enableReferralExpiry: _enableReferralExpiry,
       referralExpiryDays: int.tryParse(_expiryDaysCtrl.text) ?? 90,
       shareMessageTemplate: _shareMessageCtrl.text,
+      enableFraudScoring: _enableFraudScoring,
+      autoApproveThreshold: int.tryParse(_autoApproveThresholdCtrl.text) ?? 40,
+      manualReviewThreshold: int.tryParse(_manualReviewThresholdCtrl.text) ?? 69,
+      autoRejectThreshold: int.tryParse(_autoRejectThresholdCtrl.text) ?? 90,
+      enableRewardHold: _enableRewardHold,
+      holdDurationHours: int.tryParse(_holdDurationHoursCtrl.text) ?? 72,
+      enableAutoReject: _enableAutoReject,
+      minimumActualPaymentForQualification: double.tryParse(_minPaymentCtrl.text) ?? 0,
+      maxRewardedPerDay: int.tryParse(_maxDailyCtrl.text) ?? 10,
+      maxPendingReferrals: int.tryParse(_maxPendingCtrl.text) ?? 5,
+      maxSharesPerDay: int.tryParse(_maxSharesDayCtrl.text) ?? 20,
+      maxSharesPerMonth: int.tryParse(_maxSharesMonthCtrl.text) ?? 100,
+      referralVelocityScore: int.tryParse(_velocityScoreCtrl.text) ?? 30,
+      velocityTimeWindowHours: int.tryParse(_velocityWindowCtrl.text) ?? 24,
+      velocityThreshold: int.tryParse(_velocityThresholdCtrl.text) ?? 5,
+      newAccountScore: int.tryParse(_newAccountScoreCtrl.text) ?? 20,
+      newAccountHours: int.tryParse(_newAccountHoursCtrl.text) ?? 72,
+      autoReversalWindowDays: int.tryParse(_autoReversalDaysCtrl.text) ?? 30,
+      termsText: _termsTextCtrl.text.isNotEmpty ? _termsTextCtrl.text : null,
       updatedAt: DateTime.now(),
     );
 
@@ -131,6 +204,40 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
               if (_enableReferralExpiry)
                 _buildTextField(_expiryDaysCtrl, 'Expiry (days)', '90'),
               _buildSwitchTile(cs, 'Enable Fraud Protection', _enableFraudProtection, (v) => setState(() => _enableFraudProtection = v)),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Fraud Scoring'),
+              _buildSwitchTile(cs, 'Enable Fraud Scoring', _enableFraudScoring, (v) => setState(() => _enableFraudScoring = v)),
+              _buildSwitchTile(cs, 'Enable Reward Hold', _enableRewardHold, (v) => setState(() => _enableRewardHold = v)),
+              if (_enableRewardHold)
+                _buildTextField(_holdDurationHoursCtrl, 'Hold Duration (hours)', '72'),
+              _buildSwitchTile(cs, 'Enable Auto Reject', _enableAutoReject, (v) => setState(() => _enableAutoReject = v)),
+              _buildTextField(_autoApproveThresholdCtrl, 'Auto-Approve Threshold (score < this)', '40'),
+              _buildTextField(_manualReviewThresholdCtrl, 'Manual Review Threshold (score >= this)', '69'),
+              _buildTextField(_autoRejectThresholdCtrl, 'Auto-Reject Threshold (score >= this)', '90'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Qualification Hardening'),
+              _buildTextField(_minPaymentCtrl, 'Minimum Actual Payment (INR)', '0'),
+              _buildTextField(_maxDailyCtrl, 'Max Rewards per Referrer per Day', '10'),
+              _buildTextField(_maxPendingCtrl, 'Max Pending Referrals per Referrer', '5'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Share Rate Limiting'),
+              _buildTextField(_maxSharesDayCtrl, 'Max Shares per Day', '20'),
+              _buildTextField(_maxSharesMonthCtrl, 'Max Shares per Month', '100'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Velocity Rule'),
+              _buildTextField(_velocityScoreCtrl, 'Velocity Score', '30'),
+              _buildTextField(_velocityWindowCtrl, 'Velocity Window (hours)', '24'),
+              _buildTextField(_velocityThresholdCtrl, 'Velocity Threshold (referrals)', '5'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'New Account Rule'),
+              _buildTextField(_newAccountScoreCtrl, 'New Account Score', '20'),
+              _buildTextField(_newAccountHoursCtrl, 'New Account Threshold (hours)', '72'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Reward Reversal'),
+              _buildTextField(_autoReversalDaysCtrl, 'Auto-Reversal Window (days)', '30'),
+              const SizedBox(height: 16),
+              _buildSectionHeader(context, 'Terms & Conditions'),
+              _buildTextField(_termsTextCtrl, 'Terms Text (displayed in Invite & Earn)', ''),
               const SizedBox(height: 16),
               _buildSectionHeader(context, 'Share Message'),
               _buildTextField(_shareMessageCtrl, 'Share Message Template (\'{CODE}\' will be replaced)', 'Join... {CODE}'),
