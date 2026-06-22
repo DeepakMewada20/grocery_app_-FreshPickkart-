@@ -21,10 +21,7 @@ class FreshPointsEndpoint extends Endpoint {
     Session session,
     String userId,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) {
-      throw Exception('Invalid user ID');
-    }
+    final parsedId = await _resolveUserId(session, userId);
     return _fp.getFullBalance(session, parsedId);
   }
 
@@ -34,10 +31,7 @@ class FreshPointsEndpoint extends Endpoint {
     int limit = 20,
     String? pageToken,
   }) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) {
-      throw Exception('Invalid user ID');
-    }
+    final parsedId = await _resolveUserId(session, userId);
     return _fp.getTransactions(session, parsedId, limit: limit, pageToken: pageToken);
   }
 
@@ -46,8 +40,7 @@ class FreshPointsEndpoint extends Endpoint {
     String userId,
     double payableAmountAfterCoupon,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) return 0;
+    final parsedId = await _resolveUserId(session, userId);
     return _fp.getMaxRedeemable(session, parsedId, payableAmountAfterCoupon);
   }
 
@@ -83,6 +76,17 @@ class FreshPointsEndpoint extends Endpoint {
       throw Exception('Invalid user ID');
     }
     return _fp.getFullBalance(session, parsedId);
+  }
+
+  Future<UuidValue> _resolveUserId(Session session, String userId) async {
+    final parsed = tryParseUuid(userId);
+    if (parsed != null) return parsed;
+    final user = await protocol.AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(userId),
+    );
+    if (user == null) throw Exception('Invalid user ID');
+    return user.id!;
   }
 
   Future<Map<String, dynamic>> getUserTransactions(

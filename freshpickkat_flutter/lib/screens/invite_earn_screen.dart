@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show Share;
-import 'package:url_launcher/url_launcher.dart' show launchUrl, LaunchMode;
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../controller/auth_controller.dart';
 import '../utils/serverpod_client.dart';
+import 'fresh_points_history_screen.dart';
 
 class InviteEarnScreen extends StatefulWidget {
   const InviteEarnScreen({super.key});
@@ -84,17 +84,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     Share.share('${_info!.shareMessage}\n\n${_info!.shareLink}');
   }
 
-  void _shareWhatsApp() {
-    if (_info == null) return;
-    final text = Uri.encodeComponent('${_info!.shareMessage}\n\n${_info!.shareLink}');
-    _openUrl('https://wa.me/?text=$text');
-  }
 
-  void _openUrl(String url) async {
-    try {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } catch (_) {}
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +103,8 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   _buildStatsCard(cs),
                   const SizedBox(height: 16),
                   _buildShareButtons(cs),
+                  const SizedBox(height: 16),
+                  _buildPointsHistorySection(cs),
                   const SizedBox(height: 16),
                   if (_settings?.termsText != null && _settings!.termsText!.isNotEmpty && !_termsLoading)
                     _buildTermsSection(cs),
@@ -173,9 +165,9 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
           children: [
             _buildStat('Invited', _info?.totalReferred ?? 0, Icons.people_outline, cs.primary),
             Container(height: 40, width: 1, color: cs.outlineVariant),
-            _buildStat('Qualified', _info?.totalQualified ?? 0, Icons.check_circle_outline, Colors.green),
+            _buildStat('Qualified', _info?.totalQualified ?? 0, Icons.check_circle_outline, cs.primary),
             Container(height: 40, width: 1, color: cs.outlineVariant),
-            _buildStat('Earned', _info?.totalRewardsEarned ?? 0, Icons.monetization_on_outlined, Colors.amber),
+            _buildStat('Earned', _info?.totalRewardsEarned ?? 0, Icons.monetization_on_outlined, cs.primary),
           ],
         ),
       ),
@@ -194,6 +186,46 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     );
   }
 
+  Widget _buildPointsHistorySection(ColorScheme cs) {
+    return Card(
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const FreshPointsHistoryScreen()),
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.monetization_on_outlined, color: cs.primary, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Points History',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('View your FreshPoints earned & redeemed',
+                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha: 0.3)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildShareButtons(ColorScheme cs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,11 +234,9 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         const SizedBox(height: 12),
         Row(
           children: [
-            _shareButton(Icons.share, 'Share', Colors.blue, _share),
+            _shareButton(Icons.share, 'Share', cs.primary, _share),
             const SizedBox(width: 12),
-            _shareButton(Icons.chat, 'WhatsApp', Colors.green, _shareWhatsApp),
-            const SizedBox(width: 12),
-            _shareButton(Icons.copy, 'Copy', Colors.grey, _copyCode),
+            _shareButton(Icons.copy, 'Copy', cs.onSurface.withValues(alpha: 0.6), _copyCode),
           ],
         ),
       ],
@@ -239,13 +269,13 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
               children: [
                 Icon(
                   _termsAccepted ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: _termsAccepted ? Colors.green : cs.primary,
+                  color: _termsAccepted ? cs.primary : cs.onSurface,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text('I accept the referral terms and conditions',
-                    style: TextStyle(color: _termsAccepted ? Colors.green : cs.onSurface)),
+                    style: TextStyle(color: _termsAccepted ? cs.primary : cs.onSurface)),
                 ),
               ],
             ),
@@ -289,7 +319,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     switch (a.type) {
       case 'REWARDED':
         icon = Icons.emoji_events;
-        color = Colors.amber;
+        color = cs.primary;
         break;
       case 'REJECTED':
         icon = Icons.cancel_outlined;
@@ -309,7 +339,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         title: Text(a.inviteePhone),
         subtitle: Text(a.description, style: Theme.of(context).textTheme.bodySmall),
         trailing: a.pointsEarned != null
-            ? Text('+${a.pointsEarned}', style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold))
+            ? Text('+${a.pointsEarned}', style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold))
             : null,
       ),
     );

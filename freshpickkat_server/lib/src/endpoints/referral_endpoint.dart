@@ -21,8 +21,7 @@ class ReferralEndpoint extends Endpoint {
     Session session,
     String userId,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, userId);
     return _referral.getMyReferralCodeInfo(session, parsedId);
   }
 
@@ -30,8 +29,7 @@ class ReferralEndpoint extends Endpoint {
     Session session,
     String userId,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, userId);
     return _referral.getMyReferralActivity(session, parsedId);
   }
 
@@ -40,8 +38,7 @@ class ReferralEndpoint extends Endpoint {
     String code,
     String currentUserId,
   ) async {
-    final parsedId = tryParseUuid(currentUserId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, currentUserId);
     return _referral.validateReferralCode(session, code, parsedId);
   }
 
@@ -51,8 +48,7 @@ class ReferralEndpoint extends Endpoint {
     String inviteePhone,
     String referralCode,
   ) async {
-    final parsedId = tryParseUuid(inviteeUserId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, inviteeUserId);
     await _referral.applyReferral(session, parsedId, inviteePhone, referralCode);
   }
 
@@ -60,8 +56,7 @@ class ReferralEndpoint extends Endpoint {
     Session session,
     String userId,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, userId);
     return _referral.hasAcceptedTerms(session, parsedId);
   }
 
@@ -69,9 +64,19 @@ class ReferralEndpoint extends Endpoint {
     Session session,
     String userId,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, userId);
     await _referral.acceptTerms(session, parsedId);
+  }
+
+  Future<UuidValue> _resolveUserId(Session session, String userId) async {
+    final parsed = tryParseUuid(userId);
+    if (parsed != null) return parsed;
+    final user = await protocol.AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(userId),
+    );
+    if (user == null) throw Exception('Invalid user ID');
+    return user.id!;
   }
 
   // ── Admin ──────────────────────────────────────────────────────────────────

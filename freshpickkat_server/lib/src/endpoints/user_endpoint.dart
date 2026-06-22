@@ -39,8 +39,18 @@ class UserEndpoint extends Endpoint {
     String phone,
     String referralCode,
   ) async {
-    final parsedId = tryParseUuid(userId);
-    if (parsedId == null) throw Exception('Invalid user ID');
+    final parsedId = await _resolveUserId(session, userId);
     await _referral.applyReferral(session, parsedId, phone, referralCode);
+  }
+
+  Future<UuidValue> _resolveUserId(Session session, String userId) async {
+    final parsed = tryParseUuid(userId);
+    if (parsed != null) return parsed;
+    final user = await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(userId),
+    );
+    if (user == null) throw Exception('Invalid user ID');
+    return user.id!;
   }
 }

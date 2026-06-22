@@ -128,7 +128,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.amber.shade700, Colors.orange.shade600],
+          colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -195,7 +195,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
   ) {
     final isPositive = txn.points > 0;
     final icon = isPositive ? Icons.add_circle_outline : Icons.remove_circle_outline;
-    final color = isPositive ? Colors.green : cs.error;
+    final color = isPositive ? cs.primary : cs.error;
 
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
