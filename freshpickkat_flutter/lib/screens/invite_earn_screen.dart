@@ -102,8 +102,6 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   const SizedBox(height: 16),
                   _buildStatsCard(cs),
                   const SizedBox(height: 16),
-                  _buildShareButtons(cs),
-                  const SizedBox(height: 16),
                   _buildPointsHistorySection(cs),
                   const SizedBox(height: 16),
                   if (_settings?.termsText != null && _settings!.termsText!.isNotEmpty && !_termsLoading)
@@ -118,37 +116,91 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
 
   Widget _buildCodeCard(ColorScheme cs) {
     final code = _info?.referralCode ?? '------';
-    return Card(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [
-              cs.primary.withValues(alpha: 0.8),
-              cs.primary.withValues(alpha: 0.6),
-            ],
+            colors: [cs.primary, cs.primary.withValues(alpha: 0.75)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
         child: Column(
           children: [
-            const Icon(Icons.card_giftcard, color: Colors.white, size: 40),
-            const SizedBox(height: 12),
-            Text('Your Referral Code', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14)),
-            const SizedBox(height: 8),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.card_giftcard, color: Colors.white, size: 22),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text('REFERRAL',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, letterSpacing: 1.5)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             Text(code, style: const TextStyle(
               color: Colors.white,
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
-              letterSpacing: 4,
+              letterSpacing: 8,
             )),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _copyCode,
-              icon: const Icon(Icons.copy, size: 18),
-              label: const Text('Copy Code'),
-              style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: cs.primary),
+            const SizedBox(height: 6),
+            Text('Your Referral Code', style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+              letterSpacing: 0.5,
+            )),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 42,
+                    child: OutlinedButton.icon(
+                      onPressed: _copyCode,
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy Code', style: TextStyle(fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
+                        side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 42,
+                    child: FilledButton.icon(
+                      onPressed: _share,
+                      icon: const Icon(Icons.share, size: 16),
+                      label: const Text('Share', style: TextStyle(fontSize: 13)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: cs.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -200,7 +252,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: cs.primaryContainer,
+                  color: cs.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(Icons.monetization_on_outlined, color: cs.primary, size: 24),
@@ -222,34 +274,6 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildShareButtons(ColorScheme cs) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Share your code', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _shareButton(Icons.share, 'Share', cs.primary, _share),
-            const SizedBox(width: 12),
-            _shareButton(Icons.copy, 'Copy', cs.onSurface.withValues(alpha: 0.6), _copyCode),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _shareButton(IconData icon, String label, Color color, VoidCallback onTap) {
-    return Expanded(
-      child: OutlinedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 18),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(foregroundColor: color),
       ),
     );
   }

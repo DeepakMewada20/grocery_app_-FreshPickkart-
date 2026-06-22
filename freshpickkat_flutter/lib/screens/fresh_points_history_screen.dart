@@ -124,47 +124,82 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
   }
 
   Widget _buildSummaryCard(ColorScheme cs) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(20.w, 20.w, 20.w, 16.w),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '$_balance',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 36.sp,
-              fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Icon(Icons.monetization_on_outlined, color: Colors.white, size: 22.w),
+                ),
+                const Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Text('BALANCE',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10.sp, letterSpacing: 1.5)),
+                ),
+              ],
             ),
-          ),
-          Text(
-            'Available Points',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14.sp,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStat('Earned', _totalEarned),
-              Container(
-                width: 1,
-                height: 30,
-                color: Colors.white24,
+            SizedBox(height: 16.h),
+            Text(
+              '$_balance',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28.sp,
+                fontWeight: FontWeight.bold,
               ),
-              _buildStat('Redeemed', _totalRedeemed),
-            ],
-          ),
-        ],
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Available Points',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 13.sp,
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildStat('Earned', _totalEarned),
+                  Container(
+                    width: 1,
+                    height: 24.h,
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                  _buildStat('Redeemed', _totalRedeemed),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -182,7 +217,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
         ),
       ],
     );
