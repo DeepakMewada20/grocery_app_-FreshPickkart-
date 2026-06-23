@@ -8374,6 +8374,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['userId'],
                   ),
         ),
+        'recordShare': _i1.MethodConnector(
+          name: 'recordShare',
+          params: {
+            'userId': _i1.ParameterDescription(
+              name: 'userId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['referral'] as _i31.ReferralEndpoint).recordShare(
+                    session,
+                    params['userId'],
+                  ),
+        ),
         'adminApplyReferralCode': _i1.MethodConnector(
           name: 'adminApplyReferralCode',
           params: {

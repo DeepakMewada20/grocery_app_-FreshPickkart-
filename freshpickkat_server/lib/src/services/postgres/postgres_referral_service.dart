@@ -416,7 +416,8 @@ class PostgresReferralService {
     if (referral == null) return;
     if (referral.status == 'REWARDED' ||
         referral.status == 'REJECTED' ||
-        referral.status == 'EXPIRED') return;
+        referral.status == 'EXPIRED' ||
+        referral.status == 'REVERSED') return;
 
     final settings = await getOrCreateSettings(session);
     if (!settings.isEnabled) return;
@@ -475,61 +476,77 @@ class PostgresReferralService {
     }
 
     // ── Fraud evaluation ──
-    final fraudService = PostgresFraudScoreService.instance;
-    final outcome = await fraudService.evaluateReferral(session, referral);
     final now = DateTime.now().toUtc();
-    final fraudBreakdownJson = jsonEncode(
-      outcome.ruleResults.map((r) => r.toJson()).toList(),
-    );
 
-    switch (outcome.result.outcome) {
-      case 'AUTO_APPROVE':
-        final settingsRow = await ReferralSettingsRow.db.findFirstRow(session);
-        // Update referral with score/breakdown before processing reward
-        await ReferralRow.db.updateRow(
-          session,
-          referral.copyWith(
-            fraudScore: outcome.result.totalScore,
-            fraudBreakdown: fraudBreakdownJson,
-            updatedAt: now,
-          ),
-        );
-        final refreshed = await ReferralRow.db.findById(
-          session, referral.id!) ?? referral;
-        await _processReward(session, refreshed, order, settingsRow);
-      case 'MANUAL_REVIEW':
-        await ReferralRow.db.updateRow(
-          session,
-          referral.copyWith(
-            status: 'PENDING_REVIEW',
-            fraudScore: outcome.result.totalScore,
-            fraudBreakdown: fraudBreakdownJson,
-            updatedAt: now,
-          ),
-        );
-      case 'AUTO_HOLD':
-        await ReferralRow.db.updateRow(
-          session,
-          referral.copyWith(
-            status: 'REWARD_HELD',
-            fraudScore: outcome.result.totalScore,
-            fraudBreakdown: fraudBreakdownJson,
-            holdExpiresAt: outcome.holdExpiresAt,
-            updatedAt: now,
-          ),
-        );
-      case 'AUTO_REJECT':
-        await ReferralRow.db.updateRow(
-          session,
-          referral.copyWith(
-            status: 'REJECTED',
-            fraudScore: outcome.result.totalScore,
-            fraudBreakdown: fraudBreakdownJson,
-            fraudNotes: outcome.result.hardRejectReason ??
-                'Auto-rejected by fraud scoring (score: ${outcome.result.totalScore})',
-            updatedAt: now,
-          ),
-        );
+    if (settings.enableFraudProtection) {
+      final fraudService = PostgresFraudScoreService.instance;
+      final outcome = await fraudService.evaluateReferral(session, referral);
+      final fraudBreakdownJson = jsonEncode(
+        outcome.ruleResults.map((r) => r.toJson()).toList(),
+      );
+
+      switch (outcome.result.outcome) {
+        case 'AUTO_APPROVE':
+          final settingsRow = await ReferralSettingsRow.db.findFirstRow(session);
+          await ReferralRow.db.updateRow(
+            session,
+            referral.copyWith(
+              fraudScore: outcome.result.totalScore,
+              fraudBreakdown: fraudBreakdownJson,
+              updatedAt: now,
+            ),
+          );
+          final refreshed = await ReferralRow.db.findById(
+            session, referral.id!) ?? referral;
+          await _processReward(session, refreshed, order, settingsRow);
+        case 'MANUAL_REVIEW':
+          await ReferralRow.db.updateRow(
+            session,
+            referral.copyWith(
+              status: 'PENDING_REVIEW',
+              fraudScore: outcome.result.totalScore,
+              fraudBreakdown: fraudBreakdownJson,
+              updatedAt: now,
+            ),
+          );
+        case 'AUTO_HOLD':
+          await ReferralRow.db.updateRow(
+            session,
+            referral.copyWith(
+              status: 'REWARD_HELD',
+              fraudScore: outcome.result.totalScore,
+              fraudBreakdown: fraudBreakdownJson,
+              holdExpiresAt: outcome.holdExpiresAt,
+              updatedAt: now,
+            ),
+          );
+        case 'AUTO_REJECT':
+          await ReferralRow.db.updateRow(
+            session,
+            referral.copyWith(
+              status: 'REJECTED',
+              fraudScore: outcome.result.totalScore,
+              fraudBreakdown: fraudBreakdownJson,
+              fraudNotes: outcome.result.hardRejectReason ??
+                  'Auto-rejected by fraud scoring (score: ${outcome.result.totalScore})',
+              updatedAt: now,
+            ),
+          );
+      }
+    } else {
+      // Fraud protection disabled — directly process reward without scoring
+      final settingsRow = await ReferralSettingsRow.db.findFirstRow(session);
+      await ReferralRow.db.updateRow(
+        session,
+        referral.copyWith(
+          fraudScore: 0,
+          fraudBreakdown: '[]',
+          updatedAt: now,
+        ),
+      );
+      final refreshed = await ReferralRow.db.findById(
+        session, referral.id!) ?? referral;
+      await _processReward(session, refreshed, order, settingsRow);
     }
   }
 
@@ -576,7 +593,8 @@ class PostgresReferralService {
       if (lockedReferral == null ||
           lockedReferral.status == 'REWARDED' ||
           lockedReferral.status == 'REJECTED' ||
-          lockedReferral.status == 'EXPIRED') {
+          lockedReferral.status == 'EXPIRED' ||
+          lockedReferral.status == 'REVERSED') {
         return; // Already processed by another concurrent request
       }
 
@@ -782,6 +800,13 @@ class PostgresReferralService {
         enableReferralExpiry: settings.enableReferralExpiry,
         referralExpiryDays: settings.referralExpiryDays,
         shareMessageTemplate: settings.shareMessageTemplate,
+        minimumActualPaymentForQualification:
+            settings.minimumActualPaymentForQualification,
+        maxRewardedPerDay: settings.maxRewardedPerDay,
+        autoReversalWindowDays: settings.autoReversalWindowDays,
+        maxSharesPerDay: settings.maxSharesPerDay,
+        maxSharesPerMonth: settings.maxSharesPerMonth,
+        termsText: settings.termsText,
         lastUpdatedBy: admin?.id,
         updatedAt: now,
       ),
@@ -1186,6 +1211,119 @@ class PostgresReferralService {
     }
     return reversed;
   }
+
+  // ── Referral Expiry ──────────────────────────────────────────────────────────
+
+  /// Expire old SIGNED_UP referrals past the configured window.
+  /// Returns the number of referrals expired.
+  Future<int> expireOldReferrals(Session session) async {
+    final settings = await ReferralSettingsRow.db.findFirstRow(session);
+    if (settings == null ||
+        !settings.enableReferralExpiry ||
+        settings.referralExpiryDays <= 0) {
+      return 0;
+    }
+
+    final now = DateTime.now().toUtc();
+    final cutoff = now.subtract(Duration(days: settings.referralExpiryDays));
+
+    final oldReferrals = await ReferralRow.db.find(
+      session,
+      where: (t) =>
+          t.status.equals('SIGNED_UP') & (t.createdAt <= cutoff),
+    );
+
+    for (final ref in oldReferrals) {
+      await ReferralRow.db.updateRow(
+        session,
+        ref.copyWith(
+          status: 'EXPIRED',
+          fraudNotes: 'Auto-expired after ${settings.referralExpiryDays} days',
+          updatedAt: now,
+        ),
+      );
+    }
+
+    if (oldReferrals.isNotEmpty) {
+      session.log(
+        'Expired ${oldReferrals.length} old referral(s)',
+        level: LogLevel.info,
+      );
+    }
+
+    return oldReferrals.length;
+  }
+
+  // ── Share Tracking ──────────────────────────────────────────────────────────
+
+  /// Record a share event for the given user.
+  /// Enforces maxSharesPerDay and maxSharesPerMonth limits.
+  Future<Map<String, dynamic>> recordShare(
+    Session session,
+    UuidValue userId,
+  ) async {
+    final settings = await getOrCreateSettings(session);
+    final now = DateTime.now().toUtc();
+
+    // Find the most recent referral row for this referrer
+    final rows = await ReferralRow.db.find(
+      session,
+      where: (t) => t.referrerUserId.equals(userId),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      return {'shared': true, 'dailyCount': 0, 'monthlyCount': 0};
+    }
+
+    final row = rows.first;
+    var dailyCount = row.dailyShareCount;
+    var monthlyCount = row.monthlyShareCount;
+
+    // Reset daily/monthly on date boundary
+    if (row.lastShareDate != null) {
+      if (!_isSameDay(row.lastShareDate!, now)) dailyCount = 0;
+      if (!_isSameMonth(row.lastShareDate!, now)) monthlyCount = 0;
+    }
+
+    // Enforce caps
+    if (settings.maxSharesPerDay > 0 &&
+        dailyCount >= settings.maxSharesPerDay) {
+      throw Exception(
+        'Daily share limit reached (${settings.maxSharesPerDay})',
+      );
+    }
+    if (settings.maxSharesPerMonth > 0 &&
+        monthlyCount >= settings.maxSharesPerMonth) {
+      throw Exception(
+        'Monthly share limit reached (${settings.maxSharesPerMonth})',
+      );
+    }
+
+    await ReferralRow.db.updateRow(
+      session,
+      row.copyWith(
+        dailyShareCount: dailyCount + 1,
+        monthlyShareCount: monthlyCount + 1,
+        lastShareDate: now,
+        updatedAt: now,
+      ),
+    );
+
+    return {
+      'shared': true,
+      'dailyCount': dailyCount + 1,
+      'monthlyCount': monthlyCount + 1,
+    };
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _isSameMonth(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month;
 
   // ── Fraud Dashboard ────────────────────────────────────────────────────────
 

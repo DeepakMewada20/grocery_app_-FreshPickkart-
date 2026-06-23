@@ -22,6 +22,7 @@ class PaymentReconciliationCronJob {
   static const int _paymentLinkReconciliationLock = 4200307;
   static const int _holdReleaseLock = 4200308;
   static const int _autoReversalLock = 4200309;
+  static const int _referralExpiryLock = 4200310;
 
   final Serverpod _pod;
   final PostgresPaymentService _payments = PostgresPaymentService();
@@ -40,6 +41,7 @@ class PaymentReconciliationCronJob {
   Timer? _paymentLinkReconciliationTimer;
   Timer? _holdReleaseTimer;
   Timer? _autoReversalTimer;
+  Timer? _referralExpiryTimer;
   bool _reconciliationRunning = false;
   bool _autoCancelRunning = false;
   bool _paymentLinkExpiryRunning = false;
@@ -49,6 +51,7 @@ class PaymentReconciliationCronJob {
   bool _paymentLinkReconciliationRunning = false;
   bool _holdReleaseRunning = false;
   bool _autoReversalRunning = false;
+  bool _referralExpiryRunning = false;
   final Set<String> _reportedOrphanIds = {};
 
   void start() {
@@ -88,12 +91,16 @@ class PaymentReconciliationCronJob {
       (_) => unawaited(runPaymentLinkReconciliation()),
     );
     _holdReleaseTimer ??= Timer.periodic(
-      const Duration(minutes: 5),
+      const Duration(days: 1),
       (_) => unawaited(runHoldRelease()),
     );
     _autoReversalTimer ??= Timer.periodic(
-      const Duration(minutes: 5),
+      const Duration(days: 1),
       (_) => unawaited(runAutoReversal()),
+    );
+    _referralExpiryTimer ??= Timer.periodic(
+      const Duration(days: 1),
+      (_) => unawaited(runReferralExpiry()),
     );
 
     unawaited(runPaymentReconciliation());
@@ -105,6 +112,7 @@ class PaymentReconciliationCronJob {
     unawaited(runPaymentLinkReconciliation());
     unawaited(runHoldRelease());
     unawaited(runAutoReversal());
+    unawaited(runReferralExpiry());
   }
 
   void stop() {
@@ -117,6 +125,7 @@ class PaymentReconciliationCronJob {
     _paymentLinkReconciliationTimer?.cancel();
     _holdReleaseTimer?.cancel();
     _autoReversalTimer?.cancel();
+    _referralExpiryTimer?.cancel();
     _reconciliationTimer = null;
     _autoCancelTimer = null;
     _paymentLinkExpiryTimer = null;
@@ -126,6 +135,7 @@ class PaymentReconciliationCronJob {
     _paymentLinkReconciliationTimer = null;
     _holdReleaseTimer = null;
     _autoReversalTimer = null;
+    _referralExpiryTimer = null;
   }
 
   Future<void> runPaymentReconciliation() async {
@@ -187,6 +197,25 @@ class PaymentReconciliationCronJob {
       });
     } finally {
       _autoReversalRunning = false;
+    }
+  }
+
+  /// Expire old SIGNED_UP referrals past the configured window.
+  Future<void> runReferralExpiry() async {
+    if (_referralExpiryRunning) return;
+    _referralExpiryRunning = true;
+    try {
+      await _runLocked(_referralExpiryLock, (session) async {
+        final expired = await _referral.expireOldReferrals(session);
+        if (expired > 0) {
+          session.log(
+            'Expired $expired old referral(s)',
+            level: LogLevel.info,
+          );
+        }
+      });
+    } finally {
+      _referralExpiryRunning = false;
     }
   }
 

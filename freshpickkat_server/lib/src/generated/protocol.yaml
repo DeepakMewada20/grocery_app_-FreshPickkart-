@@ -279,6 +279,7 @@ referral:
   - getReferralOnboardingStatus:
   - applyReferralOnboarding:
   - dismissReferralOnboarding:
+  - recordShare:
   - adminApplyReferralCode:
   - updateSettings:
   - getReferralAnalytics:

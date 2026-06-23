@@ -3921,6 +3921,13 @@ class EndpointReferral extends _i1.EndpointRef {
         {'userId': userId},
       );
 
+  _i2.Future<Map<String, dynamic>> recordShare(String userId) =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'referral',
+        'recordShare',
+        {'userId': userId},
+      );
+
   _i2.Future<void> adminApplyReferralCode(
     String adminFirebaseUid,
     String idToken,

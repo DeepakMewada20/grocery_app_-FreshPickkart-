@@ -102,6 +102,14 @@ class ReferralEndpoint extends Endpoint {
     await _referral.dismissReferralOnboarding(session, parsedId);
   }
 
+  Future<Map<String, dynamic>> recordShare(
+    Session session,
+    String userId,
+  ) async {
+    final parsedId = await _resolveUserId(session, userId);
+    return _referral.recordShare(session, parsedId);
+  }
+
   Future<void> adminApplyReferralCode(
     Session session,
     String adminFirebaseUid,

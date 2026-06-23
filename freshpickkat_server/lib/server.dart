@@ -16,6 +16,7 @@ import 'src/web/routes/razorpay_webhook_route.dart';
 import 'src/web/routes/payment_page_route.dart';
 import 'src/web/routes/confirm_payment_route.dart';
 import 'src/web/routes/pay_success_route.dart';
+import 'src/web/routes/referral_terms_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -59,6 +60,9 @@ void run(List<String> args) async {
 
   // Payment success page shown after Razorpay confirms payment
   pod.webServer.addRoute(PaySuccessRoute(), '/pay/success/:token');
+
+  // Referral terms & conditions page (dynamic from DB)
+  pod.webServer.addRoute(ReferralTermsRoute(), '/referral/terms');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

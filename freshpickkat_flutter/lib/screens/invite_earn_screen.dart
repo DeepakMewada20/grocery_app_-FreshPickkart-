@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show Share;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../controller/auth_controller.dart';
@@ -18,8 +19,8 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   final _auth = AuthController.instance;
 
   bool _isLoading = true;
-  bool _termsAccepted = false;
-  bool _termsLoading = true;
+  // bool _termsAccepted = false;
+  // bool _termsLoading = true;
   ReferralCodeInfo? _info;
   ReferralSettings? _settings;
   List<ReferralActivity> _activities = [];
@@ -39,14 +40,14 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         _client.referral.getMyReferralCodeInfo(uid),
         _client.referral.getMyReferralActivity(uid),
         _client.referral.getSettings(),
-        _client.referral.hasAcceptedTerms(uid),
+        // _client.referral.hasAcceptedTerms(uid),
       ]);
       setState(() {
         _info = results[0] as ReferralCodeInfo;
         _activities = results[1] as List<ReferralActivity>;
         _settings = results[2] as ReferralSettings;
-        _termsAccepted = results[3] as bool;
-        _termsLoading = false;
+        // _termsAccepted = results[3] as bool;
+        // _termsLoading = false;
       });
     } catch (_) {
     } finally {
@@ -54,20 +55,20 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     }
   }
 
-  Future<void> _toggleTerms() async {
-    if (_termsAccepted) return;
-    try {
-      final uid = _auth.currentUser?.uid;
-      if (uid == null) return;
-      await _client.referral.acceptTerms(uid);
-      setState(() => _termsAccepted = true);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Terms accepted!'), duration: Duration(seconds: 2)),
-        );
-      }
-    } catch (_) {}
-  }
+  // Future<void> _toggleTerms() async {
+  //   if (_termsAccepted) return;
+  //   try {
+  //     final uid = _auth.currentUser?.uid;
+  //     if (uid == null) return;
+  //     await _client.referral.acceptTerms(uid);
+  //     setState(() => _termsAccepted = true);
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Terms accepted!'), duration: Duration(seconds: 2)),
+  //       );
+  //     }
+  //   } catch (_) {}
+  // }
 
   void _copyCode() {
     if (_info == null) return;
@@ -81,16 +82,49 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
 
   void _share() {
     if (_info == null) return;
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      _client.referral.recordShare(uid).catchError((_) => <String, dynamic>{});
+    }
     Share.share('${_info!.shareMessage}\n\n${_info!.shareLink}');
   }
 
-
+  Future<void> _openTermsDocs() async {
+    final uid = _auth.currentUser?.uid ?? '';
+    final url =
+        'https://freshpickkat.com/referral/terms${uid.isNotEmpty ? '?uid=$uid' : ''}';
+    final uri = Uri.parse(url);
+    try {
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open terms')),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open terms')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Invite & Earn')),
+      appBar: AppBar(
+        title: const Text('Invite & Earn'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined),
+            tooltip: 'Terms & Conditions',
+            onPressed: _openTermsDocs,
+          ),
+        ],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -99,13 +133,16 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _buildCodeCard(cs),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  _buildRewardInfo(cs),
+                  const SizedBox(height: 12),
                   _buildStatsCard(cs),
                   const SizedBox(height: 16),
                   _buildPointsHistorySection(cs),
                   const SizedBox(height: 16),
-                  if (_settings?.termsText != null && _settings!.termsText!.isNotEmpty && !_termsLoading)
-                    _buildTermsSection(cs),
+                  // Terms section hidden — terms are served via /referral/terms web page
+                  // if (_settings?.termsText != null && _settings!.termsText!.isNotEmpty && !_termsLoading)
+                  //   _buildTermsSection(cs),
                   const SizedBox(height: 24),
                   _buildActivitySection(cs),
                 ],
@@ -208,6 +245,64 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     );
   }
 
+  Widget _buildRewardInfo(ColorScheme cs) {
+    final points = _settings?.referrerRewardPoints ?? 50;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      text: 'Earn ',
+                      style: TextStyle(fontSize: 14, color: cs.onSurface),
+                      children: [
+                        TextSpan(
+                          text: '$points FreshPoints',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber.shade700,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' per referral',
+                          style: TextStyle(fontSize: 14, color: cs.onSurface),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '1 FreshPoint = ₹1 Rupee',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatsCard(ColorScheme cs) {
     return Card(
       child: Padding(
@@ -278,46 +373,46 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     );
   }
 
-  Widget _buildTermsSection(ColorScheme cs) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Terms & Conditions', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(_settings?.termsText ?? '', style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  _termsAccepted ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: _termsAccepted ? cs.primary : cs.onSurface,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text('I accept the referral terms and conditions',
-                    style: TextStyle(color: _termsAccepted ? cs.primary : cs.onSurface)),
-                ),
-              ],
-            ),
-            if (!_termsAccepted) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _toggleTerms,
-                  child: const Text('Accept Terms'),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildTermsSection(ColorScheme cs) {
+  //   return Card(
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(16),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Text('Terms & Conditions', style: Theme.of(context).textTheme.titleMedium),
+  //           const SizedBox(height: 8),
+  //           Text(_settings?.termsText ?? '', style: Theme.of(context).textTheme.bodySmall),
+  //           const SizedBox(height: 12),
+  //           Row(
+  //             children: [
+  //               Icon(
+  //                 _termsAccepted ? Icons.check_circle : Icons.radio_button_unchecked,
+  //                 color: _termsAccepted ? cs.primary : cs.onSurface,
+  //                 size: 20,
+  //               ),
+  //               const SizedBox(width: 8),
+  //               Expanded(
+  //                 child: Text('I accept the referral terms and conditions',
+  //                   style: TextStyle(color: _termsAccepted ? cs.primary : cs.onSurface)),
+  //               ),
+  //             ],
+  //           ),
+  //           if (!_termsAccepted) ...[
+  //             const SizedBox(height: 12),
+  //             SizedBox(
+  //               width: double.infinity,
+  //               child: FilledButton(
+  //                 onPressed: _toggleTerms,
+  //                 child: const Text('Accept Terms'),
+  //               ),
+  //             ),
+  //           ],
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildActivitySection(ColorScheme cs) {
     return Column(

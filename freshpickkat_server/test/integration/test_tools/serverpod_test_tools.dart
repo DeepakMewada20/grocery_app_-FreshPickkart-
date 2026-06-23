@@ -10089,6 +10089,37 @@ class _ReferralEndpoint {
     });
   }
 
+  _i3.Future<Map<String, dynamic>> recordShare(
+    _i1.TestSessionBuilder sessionBuilder,
+    String userId,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'referral',
+            method: 'recordShare',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'referral',
+          methodName: 'recordShare',
+          parameters: _i1.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<void> adminApplyReferralCode(
     _i1.TestSessionBuilder sessionBuilder,
     String adminFirebaseUid,
