@@ -59,6 +59,18 @@ abstract class Order implements _i1.SerializableModel {
     this.deliveryPersonPhone,
     this.deliveryOtp,
     this.deliveryOtpExpiresAt,
+    this.deliveryVerificationMethod,
+    this.deliveryProofImageUrl,
+    this.deliveryProofLatitude,
+    this.deliveryProofLongitude,
+    this.deliveryProofTimestamp,
+    this.deliveryProofDistanceMeters,
+    this.deliveryProofGpsAccuracy,
+    this.deliveredByUserId,
+    this.deliveredByName,
+    this.deliveredByRole,
+    this.deliveryCompletedAt,
+    this.deliveryOtpVerifiedAt,
     this.couponApplied,
     required this.orderType,
     this.sourceOrderNumber,
@@ -115,6 +127,18 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? couponApplied,
     required String orderType,
     String? sourceOrderNumber,
@@ -202,6 +226,38 @@ abstract class Order implements _i1.SerializableModel {
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deliveryOtpExpiresAt'],
+            ),
+      deliveryVerificationMethod:
+          jsonSerialization['deliveryVerificationMethod'] as String?,
+      deliveryProofImageUrl:
+          jsonSerialization['deliveryProofImageUrl'] as String?,
+      deliveryProofLatitude:
+          (jsonSerialization['deliveryProofLatitude'] as num?)?.toDouble(),
+      deliveryProofLongitude:
+          (jsonSerialization['deliveryProofLongitude'] as num?)?.toDouble(),
+      deliveryProofTimestamp:
+          jsonSerialization['deliveryProofTimestamp'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryProofTimestamp'],
+            ),
+      deliveryProofDistanceMeters:
+          (jsonSerialization['deliveryProofDistanceMeters'] as num?)
+              ?.toDouble(),
+      deliveryProofGpsAccuracy:
+          (jsonSerialization['deliveryProofGpsAccuracy'] as num?)?.toDouble(),
+      deliveredByUserId: jsonSerialization['deliveredByUserId'] as String?,
+      deliveredByName: jsonSerialization['deliveredByName'] as String?,
+      deliveredByRole: jsonSerialization['deliveredByRole'] as String?,
+      deliveryCompletedAt: jsonSerialization['deliveryCompletedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryCompletedAt'],
+            ),
+      deliveryOtpVerifiedAt: jsonSerialization['deliveryOtpVerifiedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryOtpVerifiedAt'],
             ),
       couponApplied: jsonSerialization['couponApplied'] as String?,
       orderType: jsonSerialization['orderType'] as String,
@@ -295,6 +351,30 @@ abstract class Order implements _i1.SerializableModel {
 
   DateTime? deliveryOtpExpiresAt;
 
+  String? deliveryVerificationMethod;
+
+  String? deliveryProofImageUrl;
+
+  double? deliveryProofLatitude;
+
+  double? deliveryProofLongitude;
+
+  DateTime? deliveryProofTimestamp;
+
+  double? deliveryProofDistanceMeters;
+
+  double? deliveryProofGpsAccuracy;
+
+  String? deliveredByUserId;
+
+  String? deliveredByName;
+
+  String? deliveredByRole;
+
+  DateTime? deliveryCompletedAt;
+
+  DateTime? deliveryOtpVerifiedAt;
+
   String? couponApplied;
 
   String orderType;
@@ -351,6 +431,18 @@ abstract class Order implements _i1.SerializableModel {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? couponApplied,
     String? orderType,
     String? sourceOrderNumber,
@@ -406,6 +498,27 @@ abstract class Order implements _i1.SerializableModel {
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
       if (deliveryOtpExpiresAt != null)
         'deliveryOtpExpiresAt': deliveryOtpExpiresAt?.toJson(),
+      if (deliveryVerificationMethod != null)
+        'deliveryVerificationMethod': deliveryVerificationMethod,
+      if (deliveryProofImageUrl != null)
+        'deliveryProofImageUrl': deliveryProofImageUrl,
+      if (deliveryProofLatitude != null)
+        'deliveryProofLatitude': deliveryProofLatitude,
+      if (deliveryProofLongitude != null)
+        'deliveryProofLongitude': deliveryProofLongitude,
+      if (deliveryProofTimestamp != null)
+        'deliveryProofTimestamp': deliveryProofTimestamp?.toJson(),
+      if (deliveryProofDistanceMeters != null)
+        'deliveryProofDistanceMeters': deliveryProofDistanceMeters,
+      if (deliveryProofGpsAccuracy != null)
+        'deliveryProofGpsAccuracy': deliveryProofGpsAccuracy,
+      if (deliveredByUserId != null) 'deliveredByUserId': deliveredByUserId,
+      if (deliveredByName != null) 'deliveredByName': deliveredByName,
+      if (deliveredByRole != null) 'deliveredByRole': deliveredByRole,
+      if (deliveryCompletedAt != null)
+        'deliveryCompletedAt': deliveryCompletedAt?.toJson(),
+      if (deliveryOtpVerifiedAt != null)
+        'deliveryOtpVerifiedAt': deliveryOtpVerifiedAt?.toJson(),
       if (couponApplied != null) 'couponApplied': couponApplied,
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
@@ -466,6 +579,18 @@ class _OrderImpl extends Order {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? couponApplied,
     required String orderType,
     String? sourceOrderNumber,
@@ -514,6 +639,18 @@ class _OrderImpl extends Order {
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
          deliveryOtpExpiresAt: deliveryOtpExpiresAt,
+         deliveryVerificationMethod: deliveryVerificationMethod,
+         deliveryProofImageUrl: deliveryProofImageUrl,
+         deliveryProofLatitude: deliveryProofLatitude,
+         deliveryProofLongitude: deliveryProofLongitude,
+         deliveryProofTimestamp: deliveryProofTimestamp,
+         deliveryProofDistanceMeters: deliveryProofDistanceMeters,
+         deliveryProofGpsAccuracy: deliveryProofGpsAccuracy,
+         deliveredByUserId: deliveredByUserId,
+         deliveredByName: deliveredByName,
+         deliveredByRole: deliveredByRole,
+         deliveryCompletedAt: deliveryCompletedAt,
+         deliveryOtpVerifiedAt: deliveryOtpVerifiedAt,
          couponApplied: couponApplied,
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
@@ -568,6 +705,18 @@ class _OrderImpl extends Order {
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
     Object? deliveryOtpExpiresAt = _Undefined,
+    Object? deliveryVerificationMethod = _Undefined,
+    Object? deliveryProofImageUrl = _Undefined,
+    Object? deliveryProofLatitude = _Undefined,
+    Object? deliveryProofLongitude = _Undefined,
+    Object? deliveryProofTimestamp = _Undefined,
+    Object? deliveryProofDistanceMeters = _Undefined,
+    Object? deliveryProofGpsAccuracy = _Undefined,
+    Object? deliveredByUserId = _Undefined,
+    Object? deliveredByName = _Undefined,
+    Object? deliveredByRole = _Undefined,
+    Object? deliveryCompletedAt = _Undefined,
+    Object? deliveryOtpVerifiedAt = _Undefined,
     Object? couponApplied = _Undefined,
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
@@ -645,6 +794,42 @@ class _OrderImpl extends Order {
       deliveryOtpExpiresAt: deliveryOtpExpiresAt is DateTime?
           ? deliveryOtpExpiresAt
           : this.deliveryOtpExpiresAt,
+      deliveryVerificationMethod: deliveryVerificationMethod is String?
+          ? deliveryVerificationMethod
+          : this.deliveryVerificationMethod,
+      deliveryProofImageUrl: deliveryProofImageUrl is String?
+          ? deliveryProofImageUrl
+          : this.deliveryProofImageUrl,
+      deliveryProofLatitude: deliveryProofLatitude is double?
+          ? deliveryProofLatitude
+          : this.deliveryProofLatitude,
+      deliveryProofLongitude: deliveryProofLongitude is double?
+          ? deliveryProofLongitude
+          : this.deliveryProofLongitude,
+      deliveryProofTimestamp: deliveryProofTimestamp is DateTime?
+          ? deliveryProofTimestamp
+          : this.deliveryProofTimestamp,
+      deliveryProofDistanceMeters: deliveryProofDistanceMeters is double?
+          ? deliveryProofDistanceMeters
+          : this.deliveryProofDistanceMeters,
+      deliveryProofGpsAccuracy: deliveryProofGpsAccuracy is double?
+          ? deliveryProofGpsAccuracy
+          : this.deliveryProofGpsAccuracy,
+      deliveredByUserId: deliveredByUserId is String?
+          ? deliveredByUserId
+          : this.deliveredByUserId,
+      deliveredByName: deliveredByName is String?
+          ? deliveredByName
+          : this.deliveredByName,
+      deliveredByRole: deliveredByRole is String?
+          ? deliveredByRole
+          : this.deliveredByRole,
+      deliveryCompletedAt: deliveryCompletedAt is DateTime?
+          ? deliveryCompletedAt
+          : this.deliveryCompletedAt,
+      deliveryOtpVerifiedAt: deliveryOtpVerifiedAt is DateTime?
+          ? deliveryOtpVerifiedAt
+          : this.deliveryOtpVerifiedAt,
       couponApplied: couponApplied is String?
           ? couponApplied
           : this.couponApplied,

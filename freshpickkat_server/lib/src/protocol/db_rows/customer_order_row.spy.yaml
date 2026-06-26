@@ -51,6 +51,18 @@ fields:
   deliveryPersonPhone: String?
   deliveryOtp: String?
   deliveryOtpExpiresAt: DateTime?
+  deliveryVerificationMethod: String?, default='otp'
+  deliveryProofImageUrl: String?
+  deliveryProofLatitude: double?
+  deliveryProofLongitude: double?
+  deliveryProofTimestamp: DateTime?
+  deliveryProofDistanceMeters: double?
+  deliveryProofGpsAccuracy: double?
+  deliveredByUserId: String?
+  deliveredByName: String?
+  deliveredByRole: String?, default='admin'
+  deliveryCompletedAt: DateTime?
+  deliveryOtpVerifiedAt: DateTime?
   orderType: String, default='regular'
   sourceOrderNumber: String?
   complaintId: String?

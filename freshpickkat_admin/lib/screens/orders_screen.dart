@@ -20,6 +20,7 @@ import '../widgets/network_error_widget.dart';
 import '../tracking/services/delivery_location_sender_service.dart';
 import 'order_detail_screen.dart' deferred as order_detail_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
+import 'delivery_photo_verification_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -220,6 +221,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
+        );
+      }
+    }
+  }
+
+  Future<void> _photoDelivery(Order order) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DeliveryPhotoVerificationScreen(order: order),
+      ),
+    );
+    if (result == true && mounted) {
+      final index = _orderController.orders.indexWhere(
+        (o) => o.orderId == order.orderId,
+      );
+      if (index != -1) {
+        _orderController.orders[index] = order.copyWith(
+          status: 'delivered',
         );
       }
     }
@@ -557,8 +577,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               onStatusChanged: (status) =>
                                   _updateStatus(order, status),
                               onStartDelivery: _startDelivery,
-                              onGenerateOtp: _generateDeliveryOtp,
-                            );
+                               onGenerateOtp: _generateDeliveryOtp,
+                               onPhotoDelivery: _photoDelivery,
+                             );
                           },
                         ),
                 ),
@@ -654,6 +675,7 @@ class _OrderCard extends StatefulWidget {
     required this.onStatusChanged,
     required this.onStartDelivery,
     required this.onGenerateOtp,
+    required this.onPhotoDelivery,
   });
 
   final Order order;
@@ -662,6 +684,7 @@ class _OrderCard extends StatefulWidget {
   final Future<void> Function(String) onStatusChanged;
   final Future<void> Function(Order order) onStartDelivery;
   final Future<void> Function(Order order) onGenerateOtp;
+  final Future<void> Function(Order order) onPhotoDelivery;
 
   @override
   State<_OrderCard> createState() => _OrderCardState();
@@ -958,7 +981,26 @@ class _OrderCardState extends State<_OrderCard> {
       buttons.add(
         _lifecycleButton(
           context: context,
-          label: 'Generate Delivery OTP',
+          label: 'Photo Delivery',
+          color: primaryColor,
+          icon: Icons.camera_alt_outlined,
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await widget.onPhotoDelivery(order);
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
+                  }
+                },
+        ),
+      );
+      buttons.add(
+        _lifecycleButton(
+          context: context,
+          label: 'OTP Delivery',
           color: primaryColor,
           icon: Icons.pin_outlined,
           isLoading: _isLoading,

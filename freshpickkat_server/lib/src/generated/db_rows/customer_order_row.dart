@@ -64,6 +64,18 @@ abstract class CustomerOrderRow
     this.deliveryPersonPhone,
     this.deliveryOtp,
     this.deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    this.deliveryProofImageUrl,
+    this.deliveryProofLatitude,
+    this.deliveryProofLongitude,
+    this.deliveryProofTimestamp,
+    this.deliveryProofDistanceMeters,
+    this.deliveryProofGpsAccuracy,
+    this.deliveredByUserId,
+    this.deliveredByName,
+    String? deliveredByRole,
+    this.deliveryCompletedAt,
+    this.deliveryOtpVerifiedAt,
     String? orderType,
     this.sourceOrderNumber,
     this.complaintId,
@@ -84,6 +96,8 @@ abstract class CustomerOrderRow
        freshPointsUsed = freshPointsUsed ?? 0,
        freshPointsValue = freshPointsValue ?? 0.0,
        actualPaymentAmount = actualPaymentAmount ?? 0.0,
+       deliveryVerificationMethod = deliveryVerificationMethod ?? 'otp',
+       deliveredByRole = deliveredByRole ?? 'admin',
        orderType = orderType ?? 'regular',
        orderedAt = orderedAt ?? DateTime.now(),
        createdAt = createdAt ?? DateTime.now(),
@@ -139,6 +153,18 @@ abstract class CustomerOrderRow
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -253,6 +279,38 @@ abstract class CustomerOrderRow
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['deliveryOtpExpiresAt'],
+            ),
+      deliveryVerificationMethod:
+          jsonSerialization['deliveryVerificationMethod'] as String?,
+      deliveryProofImageUrl:
+          jsonSerialization['deliveryProofImageUrl'] as String?,
+      deliveryProofLatitude:
+          (jsonSerialization['deliveryProofLatitude'] as num?)?.toDouble(),
+      deliveryProofLongitude:
+          (jsonSerialization['deliveryProofLongitude'] as num?)?.toDouble(),
+      deliveryProofTimestamp:
+          jsonSerialization['deliveryProofTimestamp'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryProofTimestamp'],
+            ),
+      deliveryProofDistanceMeters:
+          (jsonSerialization['deliveryProofDistanceMeters'] as num?)
+              ?.toDouble(),
+      deliveryProofGpsAccuracy:
+          (jsonSerialization['deliveryProofGpsAccuracy'] as num?)?.toDouble(),
+      deliveredByUserId: jsonSerialization['deliveredByUserId'] as String?,
+      deliveredByName: jsonSerialization['deliveredByName'] as String?,
+      deliveredByRole: jsonSerialization['deliveredByRole'] as String?,
+      deliveryCompletedAt: jsonSerialization['deliveryCompletedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryCompletedAt'],
+            ),
+      deliveryOtpVerifiedAt: jsonSerialization['deliveryOtpVerifiedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['deliveryOtpVerifiedAt'],
             ),
       orderType: jsonSerialization['orderType'] as String?,
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
@@ -377,6 +435,30 @@ abstract class CustomerOrderRow
 
   DateTime? deliveryOtpExpiresAt;
 
+  String? deliveryVerificationMethod;
+
+  String? deliveryProofImageUrl;
+
+  double? deliveryProofLatitude;
+
+  double? deliveryProofLongitude;
+
+  DateTime? deliveryProofTimestamp;
+
+  double? deliveryProofDistanceMeters;
+
+  double? deliveryProofGpsAccuracy;
+
+  String? deliveredByUserId;
+
+  String? deliveredByName;
+
+  String? deliveredByRole;
+
+  DateTime? deliveryCompletedAt;
+
+  DateTime? deliveryOtpVerifiedAt;
+
   String orderType;
 
   String? sourceOrderNumber;
@@ -447,6 +529,18 @@ abstract class CustomerOrderRow
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -514,6 +608,27 @@ abstract class CustomerOrderRow
       if (deliveryOtp != null) 'deliveryOtp': deliveryOtp,
       if (deliveryOtpExpiresAt != null)
         'deliveryOtpExpiresAt': deliveryOtpExpiresAt?.toJson(),
+      if (deliveryVerificationMethod != null)
+        'deliveryVerificationMethod': deliveryVerificationMethod,
+      if (deliveryProofImageUrl != null)
+        'deliveryProofImageUrl': deliveryProofImageUrl,
+      if (deliveryProofLatitude != null)
+        'deliveryProofLatitude': deliveryProofLatitude,
+      if (deliveryProofLongitude != null)
+        'deliveryProofLongitude': deliveryProofLongitude,
+      if (deliveryProofTimestamp != null)
+        'deliveryProofTimestamp': deliveryProofTimestamp?.toJson(),
+      if (deliveryProofDistanceMeters != null)
+        'deliveryProofDistanceMeters': deliveryProofDistanceMeters,
+      if (deliveryProofGpsAccuracy != null)
+        'deliveryProofGpsAccuracy': deliveryProofGpsAccuracy,
+      if (deliveredByUserId != null) 'deliveredByUserId': deliveredByUserId,
+      if (deliveredByName != null) 'deliveredByName': deliveredByName,
+      if (deliveredByRole != null) 'deliveredByRole': deliveredByRole,
+      if (deliveryCompletedAt != null)
+        'deliveryCompletedAt': deliveryCompletedAt?.toJson(),
+      if (deliveryOtpVerifiedAt != null)
+        'deliveryOtpVerifiedAt': deliveryOtpVerifiedAt?.toJson(),
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
       if (complaintId != null) 'complaintId': complaintId,
@@ -613,6 +728,18 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? deliveryPersonPhone,
     String? deliveryOtp,
     DateTime? deliveryOtpExpiresAt,
+    String? deliveryVerificationMethod,
+    String? deliveryProofImageUrl,
+    double? deliveryProofLatitude,
+    double? deliveryProofLongitude,
+    DateTime? deliveryProofTimestamp,
+    double? deliveryProofDistanceMeters,
+    double? deliveryProofGpsAccuracy,
+    String? deliveredByUserId,
+    String? deliveredByName,
+    String? deliveredByRole,
+    DateTime? deliveryCompletedAt,
+    DateTime? deliveryOtpVerifiedAt,
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
@@ -670,6 +797,18 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
          deliveryOtpExpiresAt: deliveryOtpExpiresAt,
+         deliveryVerificationMethod: deliveryVerificationMethod,
+         deliveryProofImageUrl: deliveryProofImageUrl,
+         deliveryProofLatitude: deliveryProofLatitude,
+         deliveryProofLongitude: deliveryProofLongitude,
+         deliveryProofTimestamp: deliveryProofTimestamp,
+         deliveryProofDistanceMeters: deliveryProofDistanceMeters,
+         deliveryProofGpsAccuracy: deliveryProofGpsAccuracy,
+         deliveredByUserId: deliveredByUserId,
+         deliveredByName: deliveredByName,
+         deliveredByRole: deliveredByRole,
+         deliveryCompletedAt: deliveryCompletedAt,
+         deliveryOtpVerifiedAt: deliveryOtpVerifiedAt,
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
          complaintId: complaintId,
@@ -733,6 +872,18 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
     Object? deliveryOtpExpiresAt = _Undefined,
+    Object? deliveryVerificationMethod = _Undefined,
+    Object? deliveryProofImageUrl = _Undefined,
+    Object? deliveryProofLatitude = _Undefined,
+    Object? deliveryProofLongitude = _Undefined,
+    Object? deliveryProofTimestamp = _Undefined,
+    Object? deliveryProofDistanceMeters = _Undefined,
+    Object? deliveryProofGpsAccuracy = _Undefined,
+    Object? deliveredByUserId = _Undefined,
+    Object? deliveredByName = _Undefined,
+    Object? deliveredByRole = _Undefined,
+    Object? deliveryCompletedAt = _Undefined,
+    Object? deliveryOtpVerifiedAt = _Undefined,
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
     Object? complaintId = _Undefined,
@@ -825,6 +976,42 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       deliveryOtpExpiresAt: deliveryOtpExpiresAt is DateTime?
           ? deliveryOtpExpiresAt
           : this.deliveryOtpExpiresAt,
+      deliveryVerificationMethod: deliveryVerificationMethod is String?
+          ? deliveryVerificationMethod
+          : this.deliveryVerificationMethod,
+      deliveryProofImageUrl: deliveryProofImageUrl is String?
+          ? deliveryProofImageUrl
+          : this.deliveryProofImageUrl,
+      deliveryProofLatitude: deliveryProofLatitude is double?
+          ? deliveryProofLatitude
+          : this.deliveryProofLatitude,
+      deliveryProofLongitude: deliveryProofLongitude is double?
+          ? deliveryProofLongitude
+          : this.deliveryProofLongitude,
+      deliveryProofTimestamp: deliveryProofTimestamp is DateTime?
+          ? deliveryProofTimestamp
+          : this.deliveryProofTimestamp,
+      deliveryProofDistanceMeters: deliveryProofDistanceMeters is double?
+          ? deliveryProofDistanceMeters
+          : this.deliveryProofDistanceMeters,
+      deliveryProofGpsAccuracy: deliveryProofGpsAccuracy is double?
+          ? deliveryProofGpsAccuracy
+          : this.deliveryProofGpsAccuracy,
+      deliveredByUserId: deliveredByUserId is String?
+          ? deliveredByUserId
+          : this.deliveredByUserId,
+      deliveredByName: deliveredByName is String?
+          ? deliveredByName
+          : this.deliveredByName,
+      deliveredByRole: deliveredByRole is String?
+          ? deliveredByRole
+          : this.deliveredByRole,
+      deliveryCompletedAt: deliveryCompletedAt is DateTime?
+          ? deliveryCompletedAt
+          : this.deliveryCompletedAt,
+      deliveryOtpVerifiedAt: deliveryOtpVerifiedAt is DateTime?
+          ? deliveryOtpVerifiedAt
+          : this.deliveryOtpVerifiedAt,
       orderType: orderType ?? this.orderType,
       sourceOrderNumber: sourceOrderNumber is String?
           ? sourceOrderNumber
@@ -1120,6 +1307,78 @@ class CustomerOrderRowUpdateTable
         value,
       );
 
+  _i1.ColumnValue<String, String> deliveryVerificationMethod(String? value) =>
+      _i1.ColumnValue(
+        table.deliveryVerificationMethod,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> deliveryProofImageUrl(String? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofImageUrl,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> deliveryProofLatitude(double? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofLatitude,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> deliveryProofLongitude(double? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofLongitude,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> deliveryProofTimestamp(DateTime? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofTimestamp,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> deliveryProofDistanceMeters(double? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofDistanceMeters,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> deliveryProofGpsAccuracy(double? value) =>
+      _i1.ColumnValue(
+        table.deliveryProofGpsAccuracy,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> deliveredByUserId(String? value) =>
+      _i1.ColumnValue(
+        table.deliveredByUserId,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> deliveredByName(String? value) =>
+      _i1.ColumnValue(
+        table.deliveredByName,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> deliveredByRole(String? value) =>
+      _i1.ColumnValue(
+        table.deliveredByRole,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> deliveryCompletedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.deliveryCompletedAt,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> deliveryOtpVerifiedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.deliveryOtpVerifiedAt,
+        value,
+      );
+
   _i1.ColumnValue<String, String> orderType(String value) => _i1.ColumnValue(
     table.orderType,
     value,
@@ -1370,6 +1629,56 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'deliveryOtpExpiresAt',
       this,
     );
+    deliveryVerificationMethod = _i1.ColumnString(
+      'deliveryVerificationMethod',
+      this,
+      hasDefault: true,
+    );
+    deliveryProofImageUrl = _i1.ColumnString(
+      'deliveryProofImageUrl',
+      this,
+    );
+    deliveryProofLatitude = _i1.ColumnDouble(
+      'deliveryProofLatitude',
+      this,
+    );
+    deliveryProofLongitude = _i1.ColumnDouble(
+      'deliveryProofLongitude',
+      this,
+    );
+    deliveryProofTimestamp = _i1.ColumnDateTime(
+      'deliveryProofTimestamp',
+      this,
+    );
+    deliveryProofDistanceMeters = _i1.ColumnDouble(
+      'deliveryProofDistanceMeters',
+      this,
+    );
+    deliveryProofGpsAccuracy = _i1.ColumnDouble(
+      'deliveryProofGpsAccuracy',
+      this,
+    );
+    deliveredByUserId = _i1.ColumnString(
+      'deliveredByUserId',
+      this,
+    );
+    deliveredByName = _i1.ColumnString(
+      'deliveredByName',
+      this,
+    );
+    deliveredByRole = _i1.ColumnString(
+      'deliveredByRole',
+      this,
+      hasDefault: true,
+    );
+    deliveryCompletedAt = _i1.ColumnDateTime(
+      'deliveryCompletedAt',
+      this,
+    );
+    deliveryOtpVerifiedAt = _i1.ColumnDateTime(
+      'deliveryOtpVerifiedAt',
+      this,
+    );
     orderType = _i1.ColumnString(
       'orderType',
       this,
@@ -1502,6 +1811,30 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime deliveryOtpExpiresAt;
 
+  late final _i1.ColumnString deliveryVerificationMethod;
+
+  late final _i1.ColumnString deliveryProofImageUrl;
+
+  late final _i1.ColumnDouble deliveryProofLatitude;
+
+  late final _i1.ColumnDouble deliveryProofLongitude;
+
+  late final _i1.ColumnDateTime deliveryProofTimestamp;
+
+  late final _i1.ColumnDouble deliveryProofDistanceMeters;
+
+  late final _i1.ColumnDouble deliveryProofGpsAccuracy;
+
+  late final _i1.ColumnString deliveredByUserId;
+
+  late final _i1.ColumnString deliveredByName;
+
+  late final _i1.ColumnString deliveredByRole;
+
+  late final _i1.ColumnDateTime deliveryCompletedAt;
+
+  late final _i1.ColumnDateTime deliveryOtpVerifiedAt;
+
   late final _i1.ColumnString orderType;
 
   late final _i1.ColumnString sourceOrderNumber;
@@ -1567,6 +1900,18 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     deliveryPersonPhone,
     deliveryOtp,
     deliveryOtpExpiresAt,
+    deliveryVerificationMethod,
+    deliveryProofImageUrl,
+    deliveryProofLatitude,
+    deliveryProofLongitude,
+    deliveryProofTimestamp,
+    deliveryProofDistanceMeters,
+    deliveryProofGpsAccuracy,
+    deliveredByUserId,
+    deliveredByName,
+    deliveredByRole,
+    deliveryCompletedAt,
+    deliveryOtpVerifiedAt,
     orderType,
     sourceOrderNumber,
     complaintId,

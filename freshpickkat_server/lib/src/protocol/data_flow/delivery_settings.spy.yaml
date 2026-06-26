@@ -1,0 +1,8 @@
+class: DeliverySettings
+fields:
+  defaultVerificationMethod: String
+  cameraOnlyCapture: bool
+  gpsRequired: bool
+  strictDistanceValidation: bool
+  maxAllowedRadiusMeters: int
+  updatedAt: DateTime

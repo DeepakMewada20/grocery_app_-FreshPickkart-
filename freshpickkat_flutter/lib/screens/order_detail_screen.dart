@@ -238,6 +238,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               _buildComplaintCta(order, cs),
               SizedBox(height: 16.h),
               _buildAddress(order, cs),
+              if (order.status == 'delivered')
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildDeliveryProof(order, cs),
+                ),
               SizedBox(height: 16.h),
               _buildItems(order, cs),
               SizedBox(height: 16.h),
@@ -869,6 +874,158 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             style: AppTextStyles.caption(context),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryProof(Order order, ColorScheme cs) {
+    final isPhoto = order.deliveryVerificationMethod == 'photo';
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Delivery Info',
+            style: AppTextStyles.sectionTitle(context)
+                .copyWith(fontSize: 16.sp),
+          ),
+          SizedBox(height: 12.h),
+          _proofRow(
+            Icons.verified_user_outlined,
+            'Verification',
+            isPhoto ? 'Photo Proof' : 'OTP',
+            cs,
+          ),
+          if (order.deliveredByName != null &&
+              order.deliveredByName!.isNotEmpty)
+            _proofRow(
+              Icons.person_pin,
+              'Delivered By',
+              order.deliveredByName!,
+              cs,
+            ),
+          if (order.deliveryCompletedAt != null)
+            _proofRow(
+              Icons.access_time,
+              'Delivered At',
+              _formatDate(order.deliveryCompletedAt!),
+              cs,
+            ),
+          if (isPhoto && order.deliveryProofDistanceMeters != null)
+            _proofRow(
+              Icons.straighten,
+              'Distance From Address',
+              '${order.deliveryProofDistanceMeters!.toStringAsFixed(0)} meters',
+              cs,
+            ),
+          if (isPhoto &&
+              order.deliveryProofImageUrl != null &&
+              order.deliveryProofImageUrl!.isNotEmpty) ...[
+            SizedBox(height: 12.h),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12.r),
+              child: GestureDetector(
+                onTap: () => _showFullProofImage(order.deliveryProofImageUrl!),
+                child: Image.network(
+                  order.deliveryProofImageUrl!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 200,
+                    color: cs.surfaceContainerHighest,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image,
+                              size: 32, color: cs.onSurfaceVariant),
+                          SizedBox(height: 4),
+                          Text('Image unavailable',
+                              style: TextStyle(color: cs.onSurfaceVariant)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Tap to view full image',
+              style: TextStyle(
+                fontSize: 12.sp.clamp(10.0, 13.0),
+                color: cs.primary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _proofRow(IconData icon, String label, String value, ColorScheme cs) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: cs.onSurface.withValues(alpha: 0.5)),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  value,
+                  style: AppTextStyles.body(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullProofImage(String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            title: const Text('Delivery Proof'),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Text('Failed to load image',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

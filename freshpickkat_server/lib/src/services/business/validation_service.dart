@@ -207,6 +207,7 @@ class ValidationService {
       },
       statusOutForDelivery: {
         statusDeliveryOtpPending,
+        statusDelivered,
         statusCancellationRequested,
       },
       statusDeliveryOtpPending: {

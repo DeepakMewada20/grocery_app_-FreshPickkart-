@@ -1,0 +1,11 @@
+class: DeliverySettingsRow
+serverOnly: true
+table: delivery_settings
+fields:
+  id: UuidValue?, defaultPersist=random
+  defaultVerificationMethod: String, default='otp'
+  cameraOnlyCapture: bool, default=true
+  gpsRequired: bool, default=true
+  strictDistanceValidation: bool, default=true
+  maxAllowedRadiusMeters: int, default=200
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

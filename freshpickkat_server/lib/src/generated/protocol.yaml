@@ -119,6 +119,9 @@ coupon:
   - applyCoupon:
   - getAvailableCoupons:
   - getBestCoupon:
+deliverySettings:
+  - getSettings:
+  - updateSettings:
 freeDelivery:
   - getDeliveryConfig:
   - getUserDeliveryOffer:
@@ -187,6 +190,7 @@ order:
   - resendDeliveryOtp:
   - getActiveDeliveryOtp:
   - getDashboardStats:
+  - completePhotoDelivery:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:

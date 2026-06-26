@@ -75,7 +75,7 @@ class PaymentReconciliationCronJob {
       (_) => unawaited(runPaymentLinkExpiry()),
     );
     _autoRefundTimer ??= Timer.periodic(
-      const Duration(seconds: 60),
+      const Duration(hours: 6),
       (_) => unawaited(runAutoRefundProcessing()),
     );
     _sessionExpiryTimer ??= Timer.periodic(

@@ -6,6 +6,7 @@ import '../services/background/order_outbox_service.dart';
 import '../services/postgres/postgres_admin_guard_service.dart';
 import '../services/postgres/postgres_audit_log_service.dart';
 import '../services/postgres/postgres_delivery_otp_service.dart';
+import '../services/postgres/postgres_delivery_verification_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
 import '../services/postgres/postgres_referral_service.dart';
@@ -41,6 +42,8 @@ class OrderEndpoint extends Endpoint {
   final PostgresAuditLogService _audit = PostgresAuditLogService();
   final PostgresRefundService _pgRefunds = PostgresRefundService();
   final PostgresDeliveryOtpService _deliveryOtp = PostgresDeliveryOtpService();
+  final PostgresDeliveryVerificationService _deliveryVerification =
+      PostgresDeliveryVerificationService();
   final FirebaseNotificationService _notifications =
       FirebaseNotificationService();
   final PostgresReferralService _referral = PostgresReferralService();
@@ -643,6 +646,13 @@ class OrderEndpoint extends Endpoint {
       );
     }
 
+    // Set delivery verification method to OTP
+    await _orders.setDeliveryVerificationMethod(
+      session,
+      orderId,
+      'otp',
+    );
+
     final result = await _deliveryOtp.generateOtp(
       session: session,
       orderNumber: orderId,
@@ -748,6 +758,14 @@ class OrderEndpoint extends Endpoint {
     if (!updated) {
       throw StateError('Failed to update order status.');
     }
+
+    // Record delivered-by metadata
+    await _deliveryVerification.recordOtpDeliveryMetadata(
+      session,
+      orderId: orderId,
+      adminFirebaseUid: firebaseUid,
+      adminName: actor.name ?? actor.firebaseUid ?? 'Admin',
+    );
 
     // Disable tracking
     await _tracking.updateTrackingEnabled(
@@ -932,6 +950,88 @@ class OrderEndpoint extends Endpoint {
       'deliveredOrders': deliveredCount,
       'cancelledOrders': cancelledCount,
     };
+  }
+
+  Future<bool> completePhotoDelivery(
+    Session session,
+    String orderId,
+    String imageUrl,
+    double latitude,
+    double longitude,
+    double gpsAccuracy, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.status != statusOutForDelivery) {
+      throw StateError(
+        'Order status must be "out_for_delivery" to complete photo delivery. '
+        'Current status: ${order.status}',
+      );
+    }
+
+    await _deliveryVerification.completePhotoDelivery(
+      session,
+      orderId: orderId,
+      imageUrl: imageUrl,
+      latitude: latitude,
+      longitude: longitude,
+      gpsAccuracy: gpsAccuracy,
+      adminFirebaseUid: firebaseUid,
+      adminName: actor.name ?? actor.firebaseUid ?? 'Admin',
+    );
+
+    // Disable tracking
+    await _tracking.updateTrackingEnabled(
+      session,
+      orderNumber: orderId,
+      enabled: false,
+    );
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'complete_photo_delivery',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {
+        'deliveryMethod': 'photo',
+        'gpsAccuracy': gpsAccuracy.toStringAsFixed(1),
+        'latitude': latitude.toStringAsFixed(6),
+        'longitude': longitude.toStringAsFixed(6),
+      },
+    );
+
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    if (updatedOrder != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: updatedOrder.userId,
+        status: statusDelivered,
+      );
+      await _referral.checkOrderForReward(session, orderId);
+      await RealtimeService().broadcastOrderEvent(
+        session,
+        protocol.OrderRealtimeEvent(
+          eventType: 'status_changed',
+          orderId: orderId,
+          status: statusDelivered,
+          userId: updatedOrder.userId,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+
+    return true;
   }
 
   Future<void> _ensureOrderOwner(

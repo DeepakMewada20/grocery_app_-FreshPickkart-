@@ -5,6 +5,7 @@ import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
 import 'package:freshpickkat_admin/screens/fresh_points_settings_screen.dart';
 import 'package:freshpickkat_admin/screens/referral_settings_screen.dart';
 import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
+import 'package:freshpickkat_admin/screens/delivery_settings_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/widgets/admin_appearance_section.dart';
@@ -134,6 +135,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => const NotificationPreferencesScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildSettingsItem(
+              context,
+              Icons.delivery_dining_outlined,
+              'Delivery Settings',
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const DeliverySettingsScreen(),
                   ),
                 );
               },

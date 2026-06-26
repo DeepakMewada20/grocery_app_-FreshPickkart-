@@ -736,6 +736,18 @@ class PostgresOrderService {
           deliveryPersonPhone: order.deliveryPersonPhone,
           deliveryOtp: order.deliveryOtp,
           deliveryOtpExpiresAt: order.deliveryOtpExpiresAt,
+          deliveryVerificationMethod: order.deliveryVerificationMethod,
+          deliveryProofImageUrl: order.deliveryProofImageUrl,
+          deliveryProofLatitude: order.deliveryProofLatitude,
+          deliveryProofLongitude: order.deliveryProofLongitude,
+          deliveryProofTimestamp: order.deliveryProofTimestamp,
+          deliveryProofDistanceMeters: order.deliveryProofDistanceMeters,
+          deliveryProofGpsAccuracy: order.deliveryProofGpsAccuracy,
+          deliveredByUserId: order.deliveredByUserId,
+          deliveredByName: order.deliveredByName,
+          deliveredByRole: order.deliveredByRole,
+          deliveryCompletedAt: order.deliveryCompletedAt,
+          deliveryOtpVerifiedAt: order.deliveryOtpVerifiedAt,
           orderType: order.orderType,
           sourceOrderNumber: order.sourceOrderNumber,
           complaintId: order.complaintId,
@@ -1576,6 +1588,25 @@ class PostgresOrderService {
       address.country,
     ].where((part) => part.trim().isNotEmpty).toList(growable: false);
     return parts.join(', ');
+  }
+
+  Future<void> setDeliveryVerificationMethod(
+    Session session,
+    String orderNumber,
+    String method,
+  ) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (row == null) return;
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        deliveryVerificationMethod: method,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 
   Future<bool> assignDeliveryPerson(

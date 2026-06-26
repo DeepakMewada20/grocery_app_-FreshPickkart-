@@ -14,6 +14,7 @@ import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_sc
     deferred as live_delivery_map_preview_screen;
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
+import 'package:freshpickkat_admin/screens/delivery_photo_verification_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   const OrderDetailScreen({
@@ -418,6 +419,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ],
                 ),
               ],
+              if (order.status == 'delivered') ...[
+                SizedBox(height: 12.h),
+                _DeliveryProofSection(order: order),
+              ],
               if (order.cancellationReason != null &&
                   order.cancellationReason!.isNotEmpty) ...[
                 SizedBox(height: 12.h),
@@ -636,7 +641,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       buttons.add(
         _lifecycleButton(
           context: context,
-          label: 'Generate Delivery OTP',
+          label: 'Photo Delivery',
+          color: primaryColor,
+          icon: Icons.camera_alt_outlined,
+          isLoading: false,
+          onPressed: () async {
+            final result = await Navigator.push<bool>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DeliveryPhotoVerificationScreen(order: order),
+              ),
+            );
+            if (result == true && mounted) {
+              setState(
+                () => _order = _order.copyWith(status: 'delivered'),
+              );
+            }
+          },
+        ),
+      );
+      buttons.add(
+        _lifecycleButton(
+          context: context,
+          label: 'OTP Delivery',
           color: primaryColor,
           icon: Icons.pin_outlined,
           isLoading: _otpGenerating,
@@ -1338,8 +1365,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   String _formatDate(DateTime? dateTime) {
-    if (dateTime == null) return 'N/A';
-    return '${dateTime.day.toString().padLeft(2, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.year}';
+    return formatDate(dateTime);
   }
 
   String _formatTime(DateTime? dateTime) {
@@ -1436,6 +1462,194 @@ class _DetailSection extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DeliveryProofSection extends StatelessWidget {
+  const _DeliveryProofSection({required this.order});
+
+  final Order order;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final method = order.deliveryVerificationMethod ?? 'otp';
+    final isPhoto = method == 'photo';
+
+    return Container(
+      width: double.infinity,
+      padding: AdminResponsive.cardPadding(context),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(
+                Icons.check_circle,
+                size: 20.sp.clamp(18.0, 22.0),
+                color: AdminAppTheme.getSuccessColor(context),
+              ),
+              Text(
+                'Delivery Completed',
+                style: AdminTextStyles.sectionTitle(context).copyWith(
+                  color: AdminAppTheme.getSuccessColor(context),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          _buildRow(context, Icons.verified_user_outlined, 'Verification',
+              isPhoto ? 'Photo Proof' : 'OTP'),
+          if (order.deliveredByName != null &&
+              order.deliveredByName!.isNotEmpty)
+            _buildRow(context, Icons.person_pin, 'Delivered By',
+                order.deliveredByName!),
+          if (order.deliveryCompletedAt != null)
+            _buildRow(context, Icons.access_time, 'Delivered At',
+                formatDate(order.deliveryCompletedAt!)),
+          if (order.deliveredByRole != null)
+            _buildRow(
+                context, Icons.badge_outlined, 'Role', order.deliveredByRole!),
+          if (isPhoto && order.deliveryProofDistanceMeters != null)
+            _buildRow(context, Icons.straighten, 'Distance From Address',
+                '${order.deliveryProofDistanceMeters!.toStringAsFixed(0)} meters'),
+          if (isPhoto && order.deliveryProofGpsAccuracy != null)
+            _buildRow(context, Icons.satellite_alt, 'GPS Accuracy',
+                '${order.deliveryProofGpsAccuracy!.toStringAsFixed(1)}m'),
+          if (isPhoto &&
+              order.deliveryProofLatitude != null &&
+              order.deliveryProofLongitude != null)
+            _buildRow(
+              context,
+              Icons.location_on_outlined,
+              'Proof Coordinates',
+              '${order.deliveryProofLatitude!.toStringAsFixed(6)}, '
+                  '${order.deliveryProofLongitude!.toStringAsFixed(6)}',
+            ),
+          if (isPhoto && order.deliveryProofImageUrl != null &&
+              order.deliveryProofImageUrl!.isNotEmpty) ...[
+            SizedBox(height: 12.h),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: GestureDetector(
+                onTap: () => _showFullImage(context, order.deliveryProofImageUrl!),
+                child: Image.network(
+                  order.deliveryProofImageUrl!,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 200,
+                    color: cs.surfaceContainerHighest,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image,
+                              size: 32, color: cs.onSurfaceVariant),
+                          SizedBox(height: 4),
+                          Text('Image unavailable',
+                              style: TextStyle(color: cs.onSurfaceVariant)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Tap to view full image',
+              style: TextStyle(
+                fontSize: 12.sp.clamp(10.0, 13.0),
+                color: cs.primary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRow(
+      BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon,
+              size: 18.sp.clamp(16.0, 20.0),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5)),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  value,
+                  style: AdminTextStyles.body(context),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullImage(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            title: const Text('Delivery Proof'),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Text('Failed to load image',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String formatDate(DateTime? dateTime) {
+  if (dateTime == null) return 'N/A';
+  return '${dateTime.day.toString().padLeft(2, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.year}';
 }
 
 class _DetailRow extends StatelessWidget {
