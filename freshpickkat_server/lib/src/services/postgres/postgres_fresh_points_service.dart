@@ -25,7 +25,7 @@ class PostgresFreshPointsService {
       session,
       FreshPointsSettingsRow(
         isEnabled: true,
-        redemptionPercentageLimit: 0.50,
+        redemptionPercentageLimit: 50.0,
         allowRedemptionOnCOD: true,
         minimumOrderForRedemption: 0,
         enablePointExpiry: false,

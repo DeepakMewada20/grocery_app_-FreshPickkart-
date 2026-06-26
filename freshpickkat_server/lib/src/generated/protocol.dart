@@ -3433,7 +3433,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,
           dartType: 'double',
-          columnDefault: '0.50',
+          columnDefault: '50.0',
         ),
         _i2.ColumnDefinition(
           name: 'allowRedemptionOnCOD',

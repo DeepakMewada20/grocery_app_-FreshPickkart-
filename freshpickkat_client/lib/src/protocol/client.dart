@@ -214,6 +214,20 @@ class EndpointAdmin extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<String> updateAdminUsername(
+    String firebaseUid,
+    String idToken,
+    String newUsername,
+  ) => caller.callServerEndpoint<String>(
+    'admin',
+    'updateAdminUsername',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'newUsername': newUsername,
+    },
+  );
+
   _i2.Future<List<_i4.AppUser>> getAllUsers(
     String firebaseUid,
     String idToken,

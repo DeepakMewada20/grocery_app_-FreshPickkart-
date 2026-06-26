@@ -41,6 +41,24 @@ class AdminEndpoint extends Endpoint {
     return _adminService.completeFirebaseSetup(session, idToken, username);
   }
 
+  Future<String> updateAdminUsername(
+    Session session,
+    String firebaseUid,
+    String idToken,
+    String newUsername,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _adminService.updateAdminUsername(
+      session,
+      firebaseUid,
+      newUsername,
+    );
+  }
+
   Future<List<protocol.AppUser>> getAllUsers(
     Session session,
     String firebaseUid,

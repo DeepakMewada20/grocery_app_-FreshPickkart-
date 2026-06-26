@@ -3,6 +3,7 @@ admin:
   - resolveAdminLoginEmail:
   - firebaseLogin:
   - completeFirebaseSetup:
+  - updateAdminUsername:
   - getAllUsers:
   - getDashboardStats:
   - getAnalytics:

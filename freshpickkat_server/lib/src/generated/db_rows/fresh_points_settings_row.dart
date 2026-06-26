@@ -26,7 +26,7 @@ abstract class FreshPointsSettingsRow
     this.lastUpdatedBy,
     DateTime? updatedAt,
   }) : isEnabled = isEnabled ?? true,
-       redemptionPercentageLimit = redemptionPercentageLimit ?? 0.5,
+       redemptionPercentageLimit = redemptionPercentageLimit ?? 50.0,
        allowRedemptionOnCOD = allowRedemptionOnCOD ?? true,
        minimumOrderForRedemption = minimumOrderForRedemption ?? 0.0,
        enablePointExpiry = enablePointExpiry ?? false,

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:freshpickkat_admin/screens/appearance_screen.dart';
 import 'package:freshpickkat_admin/screens/audit_logs_screen.dart';
 import 'package:freshpickkat_admin/screens/fresh_points_settings_screen.dart';
+import 'package:freshpickkat_admin/screens/profile_screen.dart';
 import 'package:freshpickkat_admin/screens/referral_settings_screen.dart';
 import 'package:freshpickkat_admin/screens/notification_preferences_screen.dart';
 import 'package:freshpickkat_admin/screens/delivery_settings_screen.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
-import 'package:freshpickkat_admin/widgets/admin_appearance_section.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -124,9 +125,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SizedBox(height: 24.h),
-            const AdminAppearanceSection(),
-            SizedBox(height: 16.h),
-            _buildSettingsItem(context, Icons.person_outline, 'Profile', () {}),
+            _buildSettingsItem(
+              context,
+              Icons.person_outline,
+              'Profile',
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildSettingsItem(
+              context,
+              Icons.palette_outlined,
+              'Appearance',
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AppearanceScreen(),
+                  ),
+                );
+              },
+            ),
             _buildSettingsItem(
               context,
               Icons.notifications_outlined,
@@ -179,7 +201,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               context,
               Icons.lock_outline,
               'Change Password',
-              () {},
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ProfileScreen(),
+                  ),
+                );
+              },
             ),
             _buildSettingsItem(
               context,

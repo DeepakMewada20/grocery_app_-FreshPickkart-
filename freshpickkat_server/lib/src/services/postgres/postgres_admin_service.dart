@@ -14,6 +14,11 @@ import 'postgres_support.dart';
 class PostgresAdminService {
   static const String _adminRole = 'ADMIN_SELLER';
   static final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+  static final RegExp _usernameRegex = RegExp(r'^[a-z][a-z0-9_]{3,23}$');
+
+  static bool isValidUsername(String username) {
+    return _usernameRegex.hasMatch(username.trim().toLowerCase());
+  }
 
   Future<bool> isAdminSetupCompleted(Session session) async {
     final users = await AppUserRow.db.find(
@@ -49,12 +54,8 @@ class PostgresAdminService {
 
     AppUserRow? match;
     for (final user in eligible) {
-      final email = user.email?.trim().toLowerCase();
-      final localPart = email == null || !email.contains('@')
-          ? null
-          : email.split('@').first;
       final name = user.name?.trim().toLowerCase();
-      if (localPart == normalized || name == normalized) {
+      if (name == normalized) {
         if (match != null) return '';
         match = user;
       }
@@ -515,6 +516,46 @@ class PostgresAdminService {
       username: match.name,
     );
     return true;
+  }
+
+  Future<AppUserRow?> _findAdminByFirebaseUid(
+    Session session,
+    String firebaseUid,
+  ) async {
+    return AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.firebaseUid.equals(firebaseUid),
+    );
+  }
+
+  Future<String> updateAdminUsername(
+    Session session,
+    String firebaseUid,
+    String newUsername,
+  ) async {
+    final normalized = newUsername.trim().toLowerCase();
+    if (normalized.isEmpty || !isValidUsername(normalized)) {
+      throw ArgumentError(
+        'Username must be 4-24 characters, start with a letter, '
+        'and contain only lowercase letters, digits, and underscores.',
+      );
+    }
+
+    final admin = await _findAdminByFirebaseUid(session, firebaseUid);
+    if (admin == null) {
+      throw StateError('Admin not found for the given Firebase UID.');
+    }
+
+    final now = DateTime.now().toUtc();
+    await AppUserRow.db.updateRow(
+      session,
+      admin.copyWith(
+        name: normalized,
+        updatedAt: now,
+      ),
+    );
+
+    return normalized;
   }
 
   AppUserRow? _findAdminByEmail(List<AppUserRow> users, String email) {

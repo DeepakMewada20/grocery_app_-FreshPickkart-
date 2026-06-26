@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'admin_notification_service.dart';
@@ -6,8 +5,6 @@ import 'network_status_service.dart';
 import 'serverpod_client.dart';
 
 class AdminAuthService {
-  static const String _sellerCollection = 'sellers';
-  static const String _adminRole = 'ADMIN_SELLER';
   static final RegExp _usernameRegex = RegExp(r'^[a-z][a-z0-9_]{3,23}$');
   static final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   static const String usernameRuleText =
@@ -16,7 +13,6 @@ class AdminAuthService {
 
   final _client = ServerpodAdminClient().client;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static bool isValidUsername(String username) {
     final normalized = username.trim().toLowerCase();
@@ -172,12 +168,6 @@ class AdminAuthService {
       throw Exception('Email not found on authenticated user.');
     }
 
-    await _upsertSellerProfile(
-      user.uid,
-      email,
-      preferredUsername: user.displayName,
-    );
-
     final idToken = await user.getIdToken(true);
     if (idToken == null || idToken.trim().isEmpty) {
       throw Exception('Failed to fetch Firebase auth token.');
@@ -208,57 +198,8 @@ class AdminAuthService {
     return _firebaseAuth.currentUser;
   }
 
-  Future<void> _upsertSellerProfile(
-    String uid,
-    String email, {
-    String? preferredUsername,
-  }) async {
-    final normalizedUsername = _normalizeUsername(preferredUsername ?? '');
-    final usernameToStore = isValidUsername(normalizedUsername)
-        ? normalizedUsername
-        : _usernameFromEmail(email);
-
-    await _firestore.collection(_sellerCollection).doc(uid).set({
-      'email': email,
-      'username': usernameToStore,
-      'role': _adminRole,
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
-
   String _normalizeUsername(String username) {
     return username.trim().toLowerCase();
-  }
-
-  String _usernameFromEmail(String email) {
-    final normalized = email.trim().toLowerCase();
-    if (normalized.isEmpty) return 'admin000';
-    final atIndex = normalized.indexOf('@');
-    final localPart = atIndex <= 0
-        ? normalized
-        : normalized.substring(0, atIndex);
-
-    var username = localPart.replaceAll(RegExp(r'[^a-z0-9_]'), '_');
-    username = username.replaceAll(RegExp(r'_+'), '_');
-    username = username.replaceAll(RegExp(r'^_+|_+$'), '');
-
-    if (username.isEmpty) {
-      username = 'admin';
-    }
-    if (!RegExp(r'^[a-z]').hasMatch(username)) {
-      username = 'a$username';
-    }
-    if (username.length > 24) {
-      username = username.substring(0, 24);
-    }
-    while (username.length < 4) {
-      username = '${username}0';
-    }
-
-    if (!isValidUsername(username)) {
-      return 'admin000';
-    }
-    return username;
   }
 
   void _ensureValidUsername(String username) {

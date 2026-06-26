@@ -4,7 +4,7 @@ table: fresh_points_settings
 fields:
   id: UuidValue?, defaultPersist=random
   isEnabled: bool, default=true
-  redemptionPercentageLimit: double, default=0.50
+  redemptionPercentageLimit: double, default=50.0
   allowRedemptionOnCOD: bool, default=true
   minimumOrderForRedemption: double, default=0
   enablePointExpiry: bool, default=false
