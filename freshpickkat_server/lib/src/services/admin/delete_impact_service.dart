@@ -216,4 +216,28 @@ class DeleteImpactService {
       references: [],
     );
   }
+
+  static Future<DeleteImpactResponse> checkShopMoreGetMoreImpact(
+    Session session,
+    UuidValue offerId,
+  ) async {
+    final refs = <DeleteImpactReference>[];
+
+    final offerIdStr = offerId.toString();
+    final bannerResult = await session.db.unsafeQuery(
+      'SELECT COUNT(*) AS cnt FROM banner WHERE "actionType" = \'offer\' AND "offerId" = @id',
+      parameters: QueryParameters.named({'id': offerIdStr}),
+    );
+    final bannerCount = bannerResult.isNotEmpty
+        ? (bannerResult.first.toColumnMap()['cnt'] as int?) ?? 0
+        : 0;
+    if (bannerCount > 0) {
+      refs.add(DeleteImpactReference(type: 'banners', count: bannerCount));
+    }
+
+    return DeleteImpactResponse(
+      canHardDelete: refs.isEmpty,
+      references: refs,
+    );
+  }
 }

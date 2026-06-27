@@ -167,12 +167,16 @@ import 'package:freshpickkat_server/src/generated/data_flow/referral_onboarding_
     as _i79;
 import 'package:freshpickkat_server/src/generated/data_flow/referral_admin_stats.dart'
     as _i80;
-import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer.dart'
     as _i81;
-import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer_page.dart'
     as _i82;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
     as _i83;
+import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
+    as _i84;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i85;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -351,6 +355,8 @@ class TestEndpoints {
 
   late final _RefundEndpoint refund;
 
+  late final _ShopMoreGetMoreEndpoint shopMoreGetMore;
+
   late final _SubCategoryEndpoint subCategory;
 
   late final _SupportEndpoint support;
@@ -490,6 +496,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     refund = _RefundEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    shopMoreGetMore = _ShopMoreGetMoreEndpoint(
       endpoints,
       serializationManager,
     );
@@ -10830,6 +10840,414 @@ class _RefundEndpoint {
   }
 }
 
+class _ShopMoreGetMoreEndpoint {
+  _ShopMoreGetMoreEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i15.OfferMutationResult> upsertOfferWithConflicts(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i81.ShopMoreGetMoreOffer offer,
+    String firebaseUid,
+    String idToken, {
+    _i17.NotificationDraft? notificationDraft,
+    required bool confirmDisableConflictingCombo,
+    required bool forceDisableFreeDelivery,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'upsertOfferWithConflicts',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'upsertOfferWithConflicts',
+          parameters: _i1.testObjectToJson({
+            'offer': offer,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'notificationDraft': notificationDraft,
+            'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
+            'forceDisableFreeDelivery': forceDisableFreeDelivery,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i15.OfferMutationResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> upsertOffer(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i81.ShopMoreGetMoreOffer offer,
+    String firebaseUid,
+    String idToken, {
+    _i17.NotificationDraft? notificationDraft,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'upsertOffer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'upsertOffer',
+          parameters: _i1.testObjectToJson({
+            'offer': offer,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'notificationDraft': notificationDraft,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> deleteOffer(
+    _i1.TestSessionBuilder sessionBuilder,
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'deleteOffer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'deleteOffer',
+          parameters: _i1.testObjectToJson({
+            'offerId': offerId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i13.DeleteImpactResponse> checkDeleteImpact(
+    _i1.TestSessionBuilder sessionBuilder,
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'checkDeleteImpact',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'checkDeleteImpact',
+          parameters: _i1.testObjectToJson({
+            'offerId': offerId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i13.DeleteImpactResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i14.HardDeleteResponse> hardDeleteOffer(
+    _i1.TestSessionBuilder sessionBuilder,
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'hardDeleteOffer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'hardDeleteOffer',
+          parameters: _i1.testObjectToJson({
+            'offerId': offerId,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i14.HardDeleteResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> setOfferActive(
+    _i1.TestSessionBuilder sessionBuilder,
+    String offerId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'setOfferActive',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'setOfferActive',
+          parameters: _i1.testObjectToJson({
+            'offerId': offerId,
+            'isActive': isActive,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i81.ShopMoreGetMoreOffer>> getInactiveOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'getInactiveOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'getInactiveOffers',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i81.ShopMoreGetMoreOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i81.ShopMoreGetMoreOffer>> getAllOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'getAllOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'getAllOffers',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i81.ShopMoreGetMoreOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i82.ShopMoreGetMoreOfferPage> getOffersPage(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'getOffersPage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'getOffersPage',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'limit': limit,
+            'pageToken': pageToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i82.ShopMoreGetMoreOfferPage>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<List<_i81.ShopMoreGetMoreOffer>> getActiveOffers(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'getActiveOffers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'getActiveOffers',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<List<_i81.ShopMoreGetMoreOffer>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i81.ShopMoreGetMoreOffer?> getApplicableOffer(
+    _i1.TestSessionBuilder sessionBuilder,
+    double eligibleAmount,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'shopMoreGetMore',
+            method: 'getApplicableOffer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'shopMoreGetMore',
+          methodName: 'getApplicableOffer',
+          parameters: _i1.testObjectToJson({'eligibleAmount': eligibleAmount}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i81.ShopMoreGetMoreOffer?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _SubCategoryEndpoint {
   _SubCategoryEndpoint(
     this._endpointDispatch,
@@ -10840,7 +11258,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i81.SubCategory>> getSubCategories(
+  _i3.Future<List<_i83.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -10862,7 +11280,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i81.SubCategory>>);
+                as _i3.Future<List<_i83.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10872,7 +11290,7 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i81.SubCategory subCategory,
+    _i83.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -10911,7 +11329,7 @@ class _SubCategoryEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String categoryName,
     String oldSubName,
-    _i81.SubCategory subCategory,
+    _i83.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -10998,7 +11416,7 @@ class _SupportEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i82.SupportIssue> submitIssue(
+  _i3.Future<_i84.SupportIssue> submitIssue(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,
     required String idToken,
@@ -11039,7 +11457,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i82.SupportIssue>);
+                as _i3.Future<_i84.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11047,7 +11465,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<List<_i82.SupportIssue>> listSupportIssues(
+  _i3.Future<List<_i84.SupportIssue>> listSupportIssues(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken, {
@@ -11080,7 +11498,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i82.SupportIssue>>);
+                as _i3.Future<List<_i84.SupportIssue>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11088,7 +11506,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i82.SupportIssue?> getSupportIssueDetail(
+  _i3.Future<_i84.SupportIssue?> getSupportIssueDetail(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -11117,7 +11535,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i82.SupportIssue?>);
+                as _i3.Future<_i84.SupportIssue?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11125,7 +11543,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i82.SupportIssue> updateSupportIssueStatus(
+  _i3.Future<_i84.SupportIssue> updateSupportIssueStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -11156,7 +11574,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i82.SupportIssue>);
+                as _i3.Future<_i84.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11240,7 +11658,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i83.CartItem> cart,
+    List<_i85.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

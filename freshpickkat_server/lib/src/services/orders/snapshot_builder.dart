@@ -137,6 +137,13 @@ class SnapshotBuilder {
           'discountType': combo.discountType,
           'discountValue': combo.discountValue,
         });
+      } else if (item.isFreeItem && item.rewardSource == 'SHOP_MORE_GET_MORE') {
+        offerJson = jsonEncode({
+          'offerType': 'SHOP_MORE_GET_MORE',
+          'rewardOfferId': item.rewardOfferId ?? '',
+          'rewardOfferName': item.rewardOfferName ?? '',
+          'rewardThreshold': item.rewardThreshold ?? 0,
+        });
       }
 
       result[item.productId] = OrderItemSnapshot(

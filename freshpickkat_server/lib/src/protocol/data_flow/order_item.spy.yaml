@@ -22,3 +22,7 @@ fields:
   comboDiscountType: String?
   comboDiscountValue: double?
   comboItemQuantity: int?
+  rewardOfferId: String?
+  rewardOfferName: String?
+  rewardThreshold: double?
+  rewardSource: String?

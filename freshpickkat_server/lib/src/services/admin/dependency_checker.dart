@@ -51,6 +51,12 @@ class DependencyChecker {
     );
     if (comboCount > 0) refs.add('$comboCount combo offer(s)');
 
+    final smgmCount = await ShopMoreGetMoreOfferRow.db.count(
+      session,
+      where: (t) => t.freeProductId.equals(productId),
+    );
+    if (smgmCount > 0) refs.add('$smgmCount Shop More, Get More offer(s)');
+
     final couponResult = await session.db.unsafeQuery(
       'SELECT COUNT(*) AS cnt FROM coupon WHERE "productIds" IS NOT NULL AND @id = ANY(string_to_array("productIds", \',\'))',
       parameters: QueryParameters.named({'id': idStr}),
@@ -86,6 +92,12 @@ class DependencyChecker {
       where: (t) => t.productVariantId.equals(variantId),
     );
     if (comboCount > 0) refs.add('$comboCount combo offer(s)');
+
+    final smgmCount = await ShopMoreGetMoreOfferRow.db.count(
+      session,
+      where: (t) => t.freeVariantId.equals(variantId),
+    );
+    if (smgmCount > 0) refs.add('$smgmCount Shop More, Get More offer(s)');
 
     return refs;
   }
@@ -218,6 +230,27 @@ class DependencyChecker {
     UuidValue offerId,
   ) async {
     final refs = <String>[];
+    return refs;
+  }
+
+  /// Checks if a Shop More, Get More offer is referenced by any entity.
+  static Future<List<String>> checkShopMoreGetMoreOffer(
+    Session session,
+    UuidValue offerId,
+  ) async {
+    final refs = <String>[];
+    final bannerCount = await BannerRow.db.count(
+      session,
+      where: (t) => t.offerId.equals(offerId.toString()),
+    );
+    if (bannerCount > 0) refs.add('$bannerCount banner(s)');
+
+    final orderCount = await OrderItemRow.db.count(
+      session,
+      where: (t) => t.rewardOfferId.equals(offerId.toString()),
+    );
+    if (orderCount > 0) refs.add('$orderCount order(s)');
+
     return refs;
   }
 

@@ -240,6 +240,10 @@ class PostgresOrderService {
             unitPrice: serverUnitPrice,
             totalPrice: serverTotalPrice,
             isFreeItem: item.isFreeItem,
+            rewardOfferId: item.rewardOfferId,
+            rewardOfferName: item.rewardOfferName,
+            rewardThreshold: item.rewardThreshold,
+            rewardSource: item.rewardSource,
             createdAt: now,
           );
         }).toList();
@@ -671,6 +675,10 @@ class PostgresOrderService {
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
             isFreeItem: item.isFreeItem,
+            rewardOfferId: item.rewardOfferId,
+            rewardOfferName: item.rewardOfferName,
+            rewardThreshold: item.rewardThreshold,
+            rewardSource: item.rewardSource,
             triggerProductId: bogo?.triggerProductId.toString(),
             comboId: comboOfferId?.toString(),
             comboName: combo?.name,

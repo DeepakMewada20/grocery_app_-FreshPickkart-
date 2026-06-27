@@ -1,0 +1,13 @@
+class: ShopMoreGetMoreOffer
+fields:
+  offerId: String?
+  name: String
+  minimumOrderAmount: double
+  freeProductId: String
+  freeVariantId: String?
+  freeQuantity: int
+  priority: int
+  startDate: DateTime
+  endDate: DateTime
+  isActive: bool
+  createdAt: DateTime

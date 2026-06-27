@@ -738,6 +738,284 @@ class PostgresOfferService {
     return true;
   }
 
+  // ═══════════════════════════════════════════════════════════
+  //  SHOP MORE, GET MORE
+  // ═══════════════════════════════════════════════════════════
+
+  Future<bool> upsertShopMoreGetMoreOffer(
+    Session session,
+    ShopMoreGetMoreOffer offer,
+  ) async {
+    return session.db.transaction<bool>((transaction) async {
+      ShopMoreGetMoreOfferRow? row;
+      final providedId = tryParseUuid(offer.offerId);
+      if (providedId != null) {
+        row = await ShopMoreGetMoreOfferRow.db.findById(
+          session,
+          providedId,
+          transaction: transaction,
+        );
+      }
+
+      final now = DateTime.now().toUtc();
+      if (row == null) {
+        await ShopMoreGetMoreOfferRow.db.insertRow(
+          session,
+          ShopMoreGetMoreOfferRow(
+            name: offer.name.trim(),
+            minimumOrderAmount: offer.minimumOrderAmount,
+            freeProductId: parseUuid(
+              offer.freeProductId,
+              fieldName: 'freeProductId',
+            ),
+            freeVariantId: tryParseUuid(offer.freeVariantId),
+            freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
+            priority: offer.priority,
+            startsAt: offer.startDate.toUtc(),
+            endsAt: offer.endDate.toUtc(),
+            status: offer.isActive ? 'active' : 'inactive',
+            deactivatedAt: offer.isActive ? null : now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+      } else {
+        await ShopMoreGetMoreOfferRow.db.updateRow(
+          session,
+          row.copyWith(
+            name: offer.name.trim(),
+            minimumOrderAmount: offer.minimumOrderAmount,
+            freeProductId: parseUuid(
+              offer.freeProductId,
+              fieldName: 'freeProductId',
+            ),
+            freeVariantId: tryParseUuid(offer.freeVariantId),
+            freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
+            priority: offer.priority,
+            startsAt: offer.startDate.toUtc(),
+            endsAt: offer.endDate.toUtc(),
+            status: offer.isActive ? 'active' : 'inactive',
+            deactivatedAt: offer.isActive ? null : now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+      }
+      return true;
+    });
+  }
+
+  Future<String> deleteShopMoreGetMoreOffer(
+    Session session,
+    String offerId,
+  ) async {
+    final parsedId = tryParseUuid(offerId);
+    if (parsedId == null) return 'Invalid offer ID';
+
+    final row = await ShopMoreGetMoreOfferRow.db.findById(session, parsedId);
+    if (row == null) return 'Offer not found';
+
+    final refs = await DependencyChecker.checkShopMoreGetMoreOffer(
+      session,
+      parsedId,
+    );
+    if (refs.isEmpty) {
+      final now = DateTime.now().toUtc();
+      await ShopMoreGetMoreOfferRow.db.updateRow(
+        session,
+        row.copyWith(
+          status: 'inactive',
+          deactivatedAt: now,
+          updatedAt: now,
+        ),
+      );
+      return '';
+    }
+    return DependencyChecker.formatRefs(refs);
+  }
+
+  Future<HardDeleteResponse> hardDeleteShopMoreGetMoreOffer(
+    Session session,
+    String offerId,
+  ) async {
+    final parsedId = tryParseUuid(offerId);
+    if (parsedId == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'invalid_id',
+        message: 'Invalid offer ID.',
+      );
+    }
+
+    final row = await ShopMoreGetMoreOfferRow.db.findById(session, parsedId);
+    if (row == null) {
+      return HardDeleteResponse(
+        success: false,
+        action: 'not_found',
+        message: 'Offer not found.',
+      );
+    }
+
+    await ShopMoreGetMoreOfferRow.db.deleteRow(session, row);
+    return HardDeleteResponse(
+      success: true,
+      action: 'hard_delete',
+      message: 'Shop More, Get More offer permanently deleted.',
+    );
+  }
+
+  Future<bool> setShopMoreGetMoreOfferActive(
+    Session session,
+    String offerId,
+    bool isActive,
+  ) async {
+    final parsedId = tryParseUuid(offerId);
+    if (parsedId == null) return false;
+
+    final row = await ShopMoreGetMoreOfferRow.db.findById(session, parsedId);
+    if (row == null) return false;
+
+    final now = DateTime.now().toUtc();
+    await ShopMoreGetMoreOfferRow.db.updateRow(
+      session,
+      row.copyWith(
+        status: isActive ? 'active' : 'inactive',
+        deactivatedAt: isActive ? null : now,
+        updatedAt: now,
+      ),
+    );
+    return true;
+  }
+
+  Future<List<ShopMoreGetMoreOffer>> getInactiveShopMoreGetMoreOffers(
+    Session session,
+  ) async {
+    final rows = await ShopMoreGetMoreOfferRow.db.find(
+      session,
+      where: (t) => t.status.equals('inactive'),
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    return _hydrateShopMoreGetMoreOffers(rows);
+  }
+
+  Future<List<ShopMoreGetMoreOffer>> getAllShopMoreGetMoreOffers(
+    Session session,
+  ) async {
+    final rows = await ShopMoreGetMoreOfferRow.db.find(
+      session,
+      orderBy: (t) => t.createdAt,
+      orderDescending: true,
+    );
+    return _hydrateShopMoreGetMoreOffers(rows);
+  }
+
+  Future<ShopMoreGetMoreOfferPage> getShopMoreGetMoreOffersPage(
+    Session session, {
+    int limit = 20,
+    String? pageToken,
+  }) async {
+    final offers = await getAllShopMoreGetMoreOffers(session);
+    offers.sort((a, b) {
+      final priorityCompare = b.priority.compareTo(a.priority);
+      if (priorityCompare != 0) return priorityCompare;
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+
+    final offset = int.tryParse(pageToken ?? '') ?? 0;
+    final safeOffset = offset.clamp(0, offers.length);
+    final end =
+        (safeOffset + clampPageLimit(limit, defaultLimit: 20)) //
+            .clamp(0, offers.length);
+
+    return ShopMoreGetMoreOfferPage(
+      offers: offers.sublist(safeOffset, end),
+      nextPageToken: end < offers.length ? '$end' : null,
+      totalCount: offers.length,
+    );
+  }
+
+  Future<List<ShopMoreGetMoreOffer>> getActiveShopMoreGetMoreOffers(
+    Session session,
+  ) async {
+    final now = DateTime.now().toUtc();
+    final rows = await ShopMoreGetMoreOfferRow.db.find(
+      session,
+      where: (t) => t.status.equals('active'),
+      orderBy: (t) => t.minimumOrderAmount,
+      orderDescending: false,
+    );
+    final activeRows = rows.where(
+      (row) => _isWithinWindow(now, row.startsAt, row.endsAt),
+    );
+    return _hydrateShopMoreGetMoreOffers(activeRows.toList());
+  }
+
+  /// Finds the highest eligible SMGM offer for the given eligible amount.
+  /// Checks stock availability; falls back to lower tiers if the reward is
+  /// out of stock.
+  Future<ShopMoreGetMoreOffer?> getApplicableShopMoreGetMoreOffer(
+    Session session, {
+    required double eligibleAmount,
+  }) async {
+    final offers = await getActiveShopMoreGetMoreOffers(session);
+    final eligible = offers
+        .where((o) => o.minimumOrderAmount <= eligibleAmount)
+        .toList();
+    eligible.sort((a, b) => b.minimumOrderAmount.compareTo(a.minimumOrderAmount));
+
+    for (final offer in eligible) {
+      final productId = tryParseUuid(offer.freeProductId);
+      if (productId == null) continue;
+
+      final product = await ProductRow.db.findById(session, productId);
+      if (product == null || product.status != 'active') continue;
+
+      if (offer.freeVariantId != null && offer.freeVariantId!.isNotEmpty) {
+        final variantId = tryParseUuid(offer.freeVariantId);
+        if (variantId != null) {
+          final variant = await ProductVariantRow.db.findById(
+            session,
+            variantId,
+          );
+          if (variant == null || !variant.isAvailable) continue;
+        }
+      } else {
+        final variants = await ProductVariantRow.db.find(
+          session,
+          where: (t) =>
+              t.productId.equals(productId) & t.isAvailable.equals(true),
+        );
+        if (variants.isEmpty) continue;
+      }
+
+      return offer;
+    }
+
+    return null;
+  }
+
+  List<ShopMoreGetMoreOffer> _hydrateShopMoreGetMoreOffers(
+    List<ShopMoreGetMoreOfferRow> rows,
+  ) {
+    return rows.map((row) {
+      return ShopMoreGetMoreOffer(
+        offerId: row.id!.toString(),
+        name: row.name,
+        minimumOrderAmount: row.minimumOrderAmount,
+        freeProductId: row.freeProductId.toString(),
+        freeVariantId: row.freeVariantId?.toString(),
+        freeQuantity: row.freeQuantity,
+        priority: row.priority,
+        startDate: row.startsAt,
+        endDate: row.endsAt,
+        isActive: row.status == 'active',
+        createdAt: row.createdAt,
+      );
+    }).toList();
+  }
+
   Future<List<BogoOffer>> _hydrateBogoOffers(
     Session session,
     List<BogoOfferRow> rows,

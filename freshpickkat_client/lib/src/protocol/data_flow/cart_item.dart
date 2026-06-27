@@ -23,6 +23,7 @@ abstract class CartItem implements _i1.SerializableModel {
     this.comboDiscountType,
     this.comboDiscountValue,
     this.comboItemQuantity,
+    this.shopMoreGetMoreOfferId,
   });
 
   factory CartItem({
@@ -35,6 +36,7 @@ abstract class CartItem implements _i1.SerializableModel {
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? shopMoreGetMoreOfferId,
   }) = _CartItemImpl;
 
   factory CartItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -49,6 +51,8 @@ abstract class CartItem implements _i1.SerializableModel {
       comboDiscountValue: (jsonSerialization['comboDiscountValue'] as num?)
           ?.toDouble(),
       comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
+      shopMoreGetMoreOfferId:
+          jsonSerialization['shopMoreGetMoreOfferId'] as String?,
     );
   }
 
@@ -70,6 +74,8 @@ abstract class CartItem implements _i1.SerializableModel {
 
   int? comboItemQuantity;
 
+  String? shopMoreGetMoreOfferId;
+
   /// Returns a shallow copy of this [CartItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -83,6 +89,7 @@ abstract class CartItem implements _i1.SerializableModel {
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? shopMoreGetMoreOfferId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -97,6 +104,8 @@ abstract class CartItem implements _i1.SerializableModel {
       if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
       if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
       if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
+      if (shopMoreGetMoreOfferId != null)
+        'shopMoreGetMoreOfferId': shopMoreGetMoreOfferId,
     };
   }
 
@@ -119,6 +128,7 @@ class _CartItemImpl extends CartItem {
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? shopMoreGetMoreOfferId,
   }) : super._(
          productId: productId,
          variantId: variantId,
@@ -129,6 +139,7 @@ class _CartItemImpl extends CartItem {
          comboDiscountType: comboDiscountType,
          comboDiscountValue: comboDiscountValue,
          comboItemQuantity: comboItemQuantity,
+         shopMoreGetMoreOfferId: shopMoreGetMoreOfferId,
        );
 
   /// Returns a shallow copy of this [CartItem]
@@ -145,6 +156,7 @@ class _CartItemImpl extends CartItem {
     Object? comboDiscountType = _Undefined,
     Object? comboDiscountValue = _Undefined,
     Object? comboItemQuantity = _Undefined,
+    Object? shopMoreGetMoreOfferId = _Undefined,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
@@ -164,6 +176,9 @@ class _CartItemImpl extends CartItem {
       comboItemQuantity: comboItemQuantity is int?
           ? comboItemQuantity
           : this.comboItemQuantity,
+      shopMoreGetMoreOfferId: shopMoreGetMoreOfferId is String?
+          ? shopMoreGetMoreOfferId
+          : this.shopMoreGetMoreOfferId,
     );
   }
 }

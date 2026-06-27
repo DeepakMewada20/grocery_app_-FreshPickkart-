@@ -1,0 +1,5 @@
+class: ShopMoreGetMoreOfferPage
+fields:
+  offers: List<ShopMoreGetMoreOffer>
+  nextPageToken: String?
+  totalCount: int

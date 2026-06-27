@@ -5,3 +5,4 @@ fields:
   quantity: int
   comboId: String?
   bogoFreeProductId: String?
+  shopMoreGetMoreOfferId: String?

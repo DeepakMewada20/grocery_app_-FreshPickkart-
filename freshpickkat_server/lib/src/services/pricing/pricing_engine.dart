@@ -409,6 +409,49 @@ class PricingEngine {
       }
     }
 
+    // ── Shop More, Get More (eligibility based on effectiveSubtotal) ──
+    final smgmOffer = await _offerService.getApplicableShopMoreGetMoreOffer(
+      session,
+      eligibleAmount: effectiveSubtotal,
+    );
+    if (smgmOffer != null) {
+      String smgmProductName = '';
+      if (productMap.containsKey(smgmOffer.freeProductId)) {
+        smgmProductName =
+            productMap[smgmOffer.freeProductId]?.productName ?? '';
+      } else {
+        try {
+          final parsedPid = tryParseUuid(smgmOffer.freeProductId);
+          if (parsedPid != null) {
+            final pRow = await ProductRow.db.findById(session, parsedPid);
+            smgmProductName = pRow?.name ?? '';
+          }
+        } catch (_) {}
+      }
+      freeItemsList.add(
+        FreeItemInfo(
+          productId: smgmOffer.freeProductId,
+          productName: smgmProductName,
+          variantId: smgmOffer.freeVariantId?.isNotEmpty == true
+              ? smgmOffer.freeVariantId
+              : null,
+          quantity: smgmOffer.freeQuantity,
+          rewardSource: 'SHOP_MORE_GET_MORE',
+          rewardOfferId: smgmOffer.offerId,
+          rewardOfferName: smgmOffer.name,
+          rewardThreshold: smgmOffer.minimumOrderAmount,
+        ),
+      );
+      appliedOffersList.add(
+        AppliedOfferInfo(
+          offerId: smgmOffer.offerId ?? '',
+          offerName: smgmOffer.name,
+          offerType: 'shop_more_get_more',
+          discountAmount: 0,
+        ),
+      );
+    }
+
     final deliveryPricing = await DeliveryChargeCalculator.calculate(
       session: session,
       cartTotal: effectiveSubtotal,

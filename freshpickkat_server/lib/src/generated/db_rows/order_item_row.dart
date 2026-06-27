@@ -34,6 +34,10 @@ abstract class OrderItemRow
     required this.unitPrice,
     required this.totalPrice,
     bool? isFreeItem,
+    this.rewardOfferId,
+    this.rewardOfferName,
+    this.rewardThreshold,
+    this.rewardSource,
     DateTime? createdAt,
   }) : isFreeItem = isFreeItem ?? false,
        createdAt = createdAt ?? DateTime.now();
@@ -58,6 +62,10 @@ abstract class OrderItemRow
     required double unitPrice,
     required double totalPrice,
     bool? isFreeItem,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
     DateTime? createdAt,
   }) = _OrderItemRowImpl;
 
@@ -107,6 +115,11 @@ abstract class OrderItemRow
       isFreeItem: jsonSerialization['isFreeItem'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeItem']),
+      rewardOfferId: jsonSerialization['rewardOfferId'] as String?,
+      rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
+      rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
+          ?.toDouble(),
+      rewardSource: jsonSerialization['rewardSource'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -156,6 +169,14 @@ abstract class OrderItemRow
 
   bool isFreeItem;
 
+  String? rewardOfferId;
+
+  String? rewardOfferName;
+
+  double? rewardThreshold;
+
+  String? rewardSource;
+
   DateTime createdAt;
 
   @override
@@ -184,6 +205,10 @@ abstract class OrderItemRow
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
     DateTime? createdAt,
   });
   @override
@@ -216,6 +241,10 @@ abstract class OrderItemRow
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
+      if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
+      if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
+      if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (rewardSource != null) 'rewardSource': rewardSource,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -278,6 +307,10 @@ class _OrderItemRowImpl extends OrderItemRow {
     required double unitPrice,
     required double totalPrice,
     bool? isFreeItem,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
     DateTime? createdAt,
   }) : super._(
          id: id,
@@ -299,6 +332,10 @@ class _OrderItemRowImpl extends OrderItemRow {
          unitPrice: unitPrice,
          totalPrice: totalPrice,
          isFreeItem: isFreeItem,
+         rewardOfferId: rewardOfferId,
+         rewardOfferName: rewardOfferName,
+         rewardThreshold: rewardThreshold,
+         rewardSource: rewardSource,
          createdAt: createdAt,
        );
 
@@ -326,6 +363,10 @@ class _OrderItemRowImpl extends OrderItemRow {
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    Object? rewardOfferId = _Undefined,
+    Object? rewardOfferName = _Undefined,
+    Object? rewardThreshold = _Undefined,
+    Object? rewardSource = _Undefined,
     DateTime? createdAt,
   }) {
     return OrderItemRow(
@@ -366,6 +407,16 @@ class _OrderItemRowImpl extends OrderItemRow {
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
       isFreeItem: isFreeItem ?? this.isFreeItem,
+      rewardOfferId: rewardOfferId is String?
+          ? rewardOfferId
+          : this.rewardOfferId,
+      rewardOfferName: rewardOfferName is String?
+          ? rewardOfferName
+          : this.rewardOfferName,
+      rewardThreshold: rewardThreshold is double?
+          ? rewardThreshold
+          : this.rewardThreshold,
+      rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -480,6 +531,30 @@ class OrderItemRowUpdateTable extends _i1.UpdateTable<OrderItemRowTable> {
     value,
   );
 
+  _i1.ColumnValue<String, String> rewardOfferId(String? value) =>
+      _i1.ColumnValue(
+        table.rewardOfferId,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> rewardOfferName(String? value) =>
+      _i1.ColumnValue(
+        table.rewardOfferName,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> rewardThreshold(double? value) =>
+      _i1.ColumnValue(
+        table.rewardThreshold,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> rewardSource(String? value) =>
+      _i1.ColumnValue(
+        table.rewardSource,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -563,6 +638,22 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    rewardOfferId = _i1.ColumnString(
+      'rewardOfferId',
+      this,
+    );
+    rewardOfferName = _i1.ColumnString(
+      'rewardOfferName',
+      this,
+    );
+    rewardThreshold = _i1.ColumnDouble(
+      'rewardThreshold',
+      this,
+    );
+    rewardSource = _i1.ColumnString(
+      'rewardSource',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -608,6 +699,14 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnBool isFreeItem;
 
+  late final _i1.ColumnString rewardOfferId;
+
+  late final _i1.ColumnString rewardOfferName;
+
+  late final _i1.ColumnDouble rewardThreshold;
+
+  late final _i1.ColumnString rewardSource;
+
   late final _i1.ColumnDateTime createdAt;
 
   @override
@@ -631,6 +730,10 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     unitPrice,
     totalPrice,
     isFreeItem,
+    rewardOfferId,
+    rewardOfferName,
+    rewardThreshold,
+    rewardSource,
     createdAt,
   ];
 }

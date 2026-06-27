@@ -1,0 +1,18 @@
+class: ShopMoreGetMoreOfferRow
+serverOnly: true
+table: shop_more_get_more_offer
+fields:
+  id: UuidValue?, defaultPersist=random
+  name: String
+  minimumOrderAmount: double, default=0
+  freeProductId: UuidValue
+  freeVariantId: UuidValue?
+  freeQuantity: int, default=1
+  priority: int, default=0
+  startsAt: DateTime
+  endsAt: DateTime
+  status: String, default='active'
+  deactivatedAt: DateTime?
+  createdBy: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

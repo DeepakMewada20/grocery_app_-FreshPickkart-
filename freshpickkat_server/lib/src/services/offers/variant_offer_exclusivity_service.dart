@@ -226,11 +226,73 @@ class VariantOfferExclusivityService {
     return null;
   }
 
+  /// Validates that saving a Shop More, Get More offer wouldn't violate
+  /// exclusivity (the reward product shouldn't already be in another offer).
+  static Future<String?> validateShopMoreGetMoreSave(
+    Session session,
+    ShopMoreGetMoreOffer offer, {
+    String? existingOfferId,
+  }) async {
+    final productId = offer.freeProductId;
+    final parsedProductId = tryParseUuid(productId);
+    if (parsedProductId == null) return null;
+
+    final productRow = await ProductRow.db.findById(session, parsedProductId);
+    if (productRow == null) return null;
+
+    final variantRows = await ProductVariantRow.db.find(
+      session,
+      where: (t) => t.productId.equals(productRow.id!),
+    );
+
+    // Existing BOGO offers where this product is the trigger
+    final bogoRows = await BogoOfferRow.db.find(
+      session,
+      where: (t) =>
+          t.triggerProductId.equals(productRow.id!) & t.status.equals('active'),
+    );
+    final now = DateTime.now().toUtc();
+    final activeBogo = bogoRows
+        .where(
+          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
+        )
+        .toList();
+
+    // Existing combo offers involving this product
+    final comboItemRows = await ComboOfferItemRow.db.find(
+      session,
+      where: (t) => t.productId.equals(productRow.id!),
+    );
+    final comboIds = comboItemRows.map((r) => r.comboOfferId).toSet();
+    final comboRows = comboIds.isEmpty
+        ? <ComboOfferRow>[]
+        : await ComboOfferRow.db.find(
+            session,
+            where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
+          );
+    final activeComboIds = comboRows
+        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .map((r) => r.id!.toString())
+        .toSet();
+    final applicableComboItems = comboItemRows
+        .where((r) => activeComboIds.contains(r.comboOfferId.toString()))
+        .toList();
+
+    return _checkExclusivity(
+      variantRows: variantRows,
+      productHasFreeDelivery: productRow.isFreeDelivery,
+      existingBogoRows: activeBogo,
+      existingComboItems: applicableComboItems,
+      proposedShopMoreGetMore: true,
+      proposedShopMoreGetMoreVariantId: offer.freeVariantId,
+    );
+  }
+
   /// Core exclusivity check.
   ///
   /// Builds a per-variant set of active offer types ({'bogo', 'combo',
-  /// 'free_delivery'}), applies proposed changes, then verifies no variant
-  /// has more than one type active.
+  /// 'free_delivery', 'shop_more_get_more'}), applies proposed changes, then
+  /// verifies no variant has more than one type active.
   static Future<String?> _checkExclusivity({
     required List<ProductVariantRow> variantRows,
     required bool productHasFreeDelivery,
@@ -240,6 +302,8 @@ class VariantOfferExclusivityService {
     bool proposedBogoIsProductLevel = false,
     String? proposedComboVariantId,
     bool proposedFreeDelivery = false,
+    bool proposedShopMoreGetMore = false,
+    String? proposedShopMoreGetMoreVariantId,
   }) async {
     if (variantRows.isEmpty) return null;
 
@@ -342,6 +406,19 @@ class VariantOfferExclusivityService {
         )) {
           activeTypes[v.id.toString()]!.add('free_delivery');
         }
+      }
+    }
+
+    // Proposed Shop More, Get More
+    if (proposedShopMoreGetMore && defaultVariant != null) {
+      if (proposedShopMoreGetMoreVariantId != null &&
+          proposedShopMoreGetMoreVariantId.isNotEmpty) {
+        if (activeTypes.containsKey(proposedShopMoreGetMoreVariantId)) {
+          activeTypes[proposedShopMoreGetMoreVariantId]!
+              .add('shop_more_get_more');
+        }
+      } else {
+        activeTypes[defaultVariant.id.toString()]!.add('shop_more_get_more');
       }
     }
 

@@ -195,6 +195,9 @@ class CascadeDeactivationService {
       case 'banner':
         final name = await _resolveBannerName(session, entityId, tx);
         return (await _analyzeBanner(session, entityId, tx), name);
+      case 'shop_more_get_more_offer':
+        final name = await _resolveShopMoreGetMoreOfferName(session, entityId, tx);
+        return (await _analyzeShopMoreGetMoreOffer(session, entityId, tx), name);
       default:
         return (
           [CascadeEntityInfo(
@@ -315,6 +318,19 @@ class CascadeDeactivationService {
             entityName: combo.name ?? 'Untitled Combo',
             action: 'delete_combo_item', reason: 'Product deactivated — removed from combo'));
       }
+    }
+
+    // 5a. Shop More, Get More offers where this product is the reward
+    final smgmRewards = await ShopMoreGetMoreOfferRow.db.find(
+      session,
+      where: (t) => t.freeProductId.equals(productId) & t.status.equals('active'),
+      transaction: tx,
+    );
+    for (final smgm in smgmRewards) {
+      actions.add(_info('shop_more_get_more_offer', smgm.id?.toString() ?? '',
+          entityName: smgm.name.isNotEmpty ? smgm.name : 'Untitled SMGM',
+          action: 'deactivate', reason: 'Reward product deactivated'));
+      await _addBannerRefsForShopMoreGetMore(session, smgm.id!, actions, tx);
     }
 
     // 6. Category offers (scopeProductIds CSV)
@@ -481,6 +497,18 @@ class CascadeDeactivationService {
     ];
   }
 
+  Future<List<CascadeEntityInfo>> _analyzeShopMoreGetMoreOffer(
+    Session session,
+    UuidValue offerId, [
+    Transaction? tx,
+  ]) async {
+    final actions = <CascadeEntityInfo>[];
+    actions.add(_info('shop_more_get_more_offer', offerId.toString(), action: 'deactivate',
+        reason: 'Manual offer deactivation'));
+    await _addBannerRefsForShopMoreGetMore(session, offerId, actions, tx);
+    return actions;
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // Banner helpers
   // ═══════════════════════════════════════════════════════════════
@@ -617,6 +645,28 @@ class CascadeDeactivationService {
     }
   }
 
+  Future<void> _addBannerRefsForShopMoreGetMore(
+    Session session,
+    UuidValue offerId,
+    List<CascadeEntityInfo> actions, [
+    Transaction? tx,
+  ]) async {
+    final offerIdStr = offerId.toString();
+    final banners = await BannerRow.db.find(
+      session,
+      where: (t) =>
+          t.actionType.equals('offer') &
+          t.offerId.equals(offerIdStr) &
+          t.status.equals('active'),
+      transaction: tx,
+    );
+    for (final b in banners) {
+      actions.add(_info('banner', b.id?.toString() ?? '',
+          entityName: b.title,
+          action: 'deactivate', reason: 'Linked Shop More, Get More offer deactivated'));
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // Execution helpers
   // ═══════════════════════════════════════════════════════════════
@@ -695,6 +745,13 @@ class CascadeDeactivationService {
             status: 'inactive', deactivatedAt: now, updatedAt: now,
           ), transaction: tx);
         }
+      case 'shop_more_get_more_offer':
+        final smgmRow = await ShopMoreGetMoreOfferRow.db.findById(session, parsedId, transaction: tx);
+        if (smgmRow != null) {
+          await ShopMoreGetMoreOfferRow.db.updateRow(session, smgmRow.copyWith(
+            status: 'inactive', deactivatedAt: now, updatedAt: now,
+          ), transaction: tx);
+        }
     }
   }
 
@@ -735,6 +792,8 @@ class CascadeDeactivationService {
       if (bogo != null) return bogo.status == 'active';
       final cat = await CategoryOfferRow.db.findById(session, oid);
       if (cat != null) return cat.status == 'active';
+      final smgm = await ShopMoreGetMoreOfferRow.db.findById(session, oid);
+      if (smgm != null) return smgm.status == 'active';
     }
     if (banner.linkedCategoryId != null) {
       final cat = await CategoryRow.db.findById(session, banner.linkedCategoryId!);
@@ -767,6 +826,7 @@ class CascadeDeactivationService {
       case 'coupon': return _resolveCouponName(session, id, tx);
       case 'delivery_rule': return _resolveDeliveryRuleName(session, id, tx);
       case 'banner': return _resolveBannerName(session, id, tx);
+      case 'shop_more_get_more_offer': return _resolveShopMoreGetMoreOfferName(session, id, tx);
       default: return id.toString();
     }
   }
@@ -804,6 +864,11 @@ class CascadeDeactivationService {
   Future<String> _resolveBannerName(Session session, UuidValue id, [Transaction? tx]) async {
     final row = await BannerRow.db.findById(session, id, transaction: tx);
     return row?.title ?? id.toString();
+  }
+
+  Future<String> _resolveShopMoreGetMoreOfferName(Session session, UuidValue id, [Transaction? tx]) async {
+    final row = await ShopMoreGetMoreOfferRow.db.findById(session, id, transaction: tx);
+    return row?.name ?? id.toString();
   }
 
   // ═══════════════════════════════════════════════════════════════

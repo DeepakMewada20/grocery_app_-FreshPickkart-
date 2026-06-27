@@ -300,6 +300,18 @@ refund:
   - initiateRefund:
   - getRefundStatus:
   - adminGetRefundStatus:
+shopMoreGetMore:
+  - upsertOfferWithConflicts:
+  - upsertOffer:
+  - deleteOffer:
+  - checkDeleteImpact:
+  - hardDeleteOffer:
+  - setOfferActive:
+  - getInactiveOffers:
+  - getAllOffers:
+  - getOffersPage:
+  - getActiveOffers:
+  - getApplicableOffer:
 subCategory:
   - getSubCategories:
   - uploadSubCategory:

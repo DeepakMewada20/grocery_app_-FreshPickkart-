@@ -11,6 +11,7 @@ import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_categ
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_banner_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_shop_more_get_more_controller.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
@@ -25,6 +26,7 @@ import 'combo_offers_screen.dart';
 import 'category_offers_screen.dart';
 import 'free_delivery_screen.dart';
 import 'banners_screen.dart';
+import 'shop_more_get_more_screen.dart';
 
 class OffersScreen extends StatefulWidget {
   const OffersScreen({super.key});
@@ -50,6 +52,8 @@ class _OffersScreenState extends State<OffersScreen>
       AdminFreeDeliveryController.instance;
   final AdminBannerController _bannerController =
       AdminBannerController.instance;
+  final AdminShopMoreGetMoreController _shopMoreGetMoreController =
+      AdminShopMoreGetMoreController.instance;
 
   String _couponSearchQuery = '';
   String _offerSearchQuery = '';
@@ -120,6 +124,10 @@ class _OffersScreenState extends State<OffersScreen>
             !_bannerController.isLoading.value) {
           futures.add(_bannerController.loadBanners(loadAll: true));
         }
+        if (_shopMoreGetMoreController.offers.isEmpty &&
+            !_shopMoreGetMoreController.isLoading.value) {
+          futures.add(_shopMoreGetMoreController.loadOffers(loadAll: true));
+        }
       case 1:
         if (_categoryController.categories.isEmpty &&
             !_categoryController.isLoading.value) {
@@ -173,6 +181,7 @@ class _OffersScreenState extends State<OffersScreen>
       _comboOfferController.loadComboOffers(force: true, loadAll: true),
       _freeDeliveryController.loadDeliveryData(force: true, loadAll: true),
       _bannerController.loadBanners(force: true, loadAll: true),
+      _shopMoreGetMoreController.loadOffers(force: true, loadAll: true),
     ]);
   }
 
@@ -227,6 +236,14 @@ class _OffersScreenState extends State<OffersScreen>
           await showAddCategoryOfferDialog(
             context: overlayContext,
             controller: _categoryOfferController,
+          );
+          break;
+        case 'shop_more_get_more':
+          if (!mounted) return;
+          await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => const ShopMoreGetMoreScreen(),
+            ),
           );
           break;
       }
@@ -422,9 +439,10 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
 
   @override
   Widget build(BuildContext context) {
-    final categoryAnimation = _segment(2, 3);
-    final comboAnimation = _segment(1, 3);
-    final bogoAnimation = _segment(0, 3);
+    final smgmAnimation = _segment(3, 4);
+    final categoryAnimation = _segment(2, 4);
+    final comboAnimation = _segment(1, 4);
+    final bogoAnimation = _segment(0, 4);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -437,6 +455,16 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
             builder: (context, _) => Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                _OfferFabAnimatedAction(
+                  animation: smgmAnimation,
+                  child: _OfferFabAction(
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Shop More, Get More',
+                    color: AdminThemeTokens.tonePurple,
+                    onTap: () => widget.onSelected('shop_more_get_more'),
+                  ),
+                ),
+                SizedBox(height: _controller.value == 0 ? 0 : 10),
                 _OfferFabAnimatedAction(
                   animation: categoryAnimation,
                   child: _OfferFabAction(

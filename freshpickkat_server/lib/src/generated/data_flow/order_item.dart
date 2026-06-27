@@ -37,6 +37,10 @@ abstract class OrderItem
     this.comboDiscountType,
     this.comboDiscountValue,
     this.comboItemQuantity,
+    this.rewardOfferId,
+    this.rewardOfferName,
+    this.rewardThreshold,
+    this.rewardSource,
   });
 
   factory OrderItem({
@@ -62,6 +66,10 @@ abstract class OrderItem
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
   }) = _OrderItemImpl;
 
   factory OrderItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -92,6 +100,11 @@ abstract class OrderItem
       comboDiscountValue: (jsonSerialization['comboDiscountValue'] as num?)
           ?.toDouble(),
       comboItemQuantity: jsonSerialization['comboItemQuantity'] as int?,
+      rewardOfferId: jsonSerialization['rewardOfferId'] as String?,
+      rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
+      rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
+          ?.toDouble(),
+      rewardSource: jsonSerialization['rewardSource'] as String?,
     );
   }
 
@@ -139,6 +152,14 @@ abstract class OrderItem
 
   int? comboItemQuantity;
 
+  String? rewardOfferId;
+
+  String? rewardOfferName;
+
+  double? rewardThreshold;
+
+  String? rewardSource;
+
   /// Returns a shallow copy of this [OrderItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -165,6 +186,10 @@ abstract class OrderItem
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -193,6 +218,10 @@ abstract class OrderItem
       if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
       if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
       if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
+      if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
+      if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
+      if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (rewardSource != null) 'rewardSource': rewardSource,
     };
   }
 
@@ -223,6 +252,10 @@ abstract class OrderItem
       if (comboDiscountType != null) 'comboDiscountType': comboDiscountType,
       if (comboDiscountValue != null) 'comboDiscountValue': comboDiscountValue,
       if (comboItemQuantity != null) 'comboItemQuantity': comboItemQuantity,
+      if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
+      if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
+      if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (rewardSource != null) 'rewardSource': rewardSource,
     };
   }
 
@@ -258,6 +291,10 @@ class _OrderItemImpl extends OrderItem {
     String? comboDiscountType,
     double? comboDiscountValue,
     int? comboItemQuantity,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
+    String? rewardSource,
   }) : super._(
          orderItemId: orderItemId,
          productId: productId,
@@ -281,6 +318,10 @@ class _OrderItemImpl extends OrderItem {
          comboDiscountType: comboDiscountType,
          comboDiscountValue: comboDiscountValue,
          comboItemQuantity: comboItemQuantity,
+         rewardOfferId: rewardOfferId,
+         rewardOfferName: rewardOfferName,
+         rewardThreshold: rewardThreshold,
+         rewardSource: rewardSource,
        );
 
   /// Returns a shallow copy of this [OrderItem]
@@ -310,6 +351,10 @@ class _OrderItemImpl extends OrderItem {
     Object? comboDiscountType = _Undefined,
     Object? comboDiscountValue = _Undefined,
     Object? comboItemQuantity = _Undefined,
+    Object? rewardOfferId = _Undefined,
+    Object? rewardOfferName = _Undefined,
+    Object? rewardThreshold = _Undefined,
+    Object? rewardSource = _Undefined,
   }) {
     return OrderItem(
       orderItemId: orderItemId is String? ? orderItemId : this.orderItemId,
@@ -346,6 +391,16 @@ class _OrderItemImpl extends OrderItem {
       comboItemQuantity: comboItemQuantity is int?
           ? comboItemQuantity
           : this.comboItemQuantity,
+      rewardOfferId: rewardOfferId is String?
+          ? rewardOfferId
+          : this.rewardOfferId,
+      rewardOfferName: rewardOfferName is String?
+          ? rewardOfferName
+          : this.rewardOfferName,
+      rewardThreshold: rewardThreshold is double?
+          ? rewardThreshold
+          : this.rewardThreshold,
+      rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
     );
   }
 }

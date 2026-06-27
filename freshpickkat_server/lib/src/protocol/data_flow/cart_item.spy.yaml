@@ -9,3 +9,4 @@ fields:
   comboDiscountType: String?
   comboDiscountValue: double?
   comboItemQuantity: int?
+  shopMoreGetMoreOfferId: String?

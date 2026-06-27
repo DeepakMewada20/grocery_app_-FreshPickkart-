@@ -131,6 +131,96 @@ class OfferConflictService {
     return true;
   }
 
+  Future<OfferConflictResponse> checkShopMoreGetMoreConflicts(
+    Session session,
+    ShopMoreGetMoreOffer offer,
+  ) async {
+    if (!offer.isActive) return _none();
+
+    final bogoOffers = await _offers.getActiveBogoOffersForProducts(
+      session,
+      [offer.freeProductId],
+    );
+    if (bogoOffers.isNotEmpty) {
+      final bogo = bogoOffers.first;
+      return OfferConflictResponse(
+        hasConflict: true,
+        conflictType: 'smgm_bogo',
+        message:
+            'The reward product has an active BOGO offer. Confirm to disable it.',
+        productIds: [bogo.triggerProductId],
+        productNames: await _productNames(session, [bogo.triggerProductId]),
+        bogoOffer: bogo,
+      );
+    }
+
+    final combos = await _offers.getActiveComboOffersForProducts(
+      session,
+      [offer.freeProductId],
+    );
+    if (combos.isNotEmpty) {
+      final combo = combos.first;
+      final comboProductIds = combo.comboProducts
+          .map((item) => item.productId)
+          .toList();
+      return OfferConflictResponse(
+        hasConflict: true,
+        conflictType: 'smgm_combo',
+        message:
+            'The reward product is part of an active combo. Confirm to disable it.',
+        productIds: comboProductIds,
+        productNames: await _productNames(session, comboProductIds),
+        comboOffer: combo,
+      );
+    }
+
+    final freeDeliveryProducts = await _freeDeliveryProducts(
+      session,
+      [offer.freeProductId],
+    );
+    if (freeDeliveryProducts.isNotEmpty) {
+      return OfferConflictResponse(
+        hasConflict: true,
+        conflictType: 'smgm_product_free_delivery',
+        message: 'The reward product has active Free Delivery.',
+        productIds: freeDeliveryProducts
+            .map((product) => product.productId)
+            .whereType<String>()
+            .toList(),
+        productNames: freeDeliveryProducts
+            .map((product) => product.productName)
+            .toList(),
+      );
+    }
+
+    final parsedFreeProductId = tryParseUuid(offer.freeProductId);
+    if (parsedFreeProductId != null) {
+      final duplicateSmgm = await ShopMoreGetMoreOfferRow.db.find(
+        session,
+        where: (t) =>
+            t.freeProductId.equals(parsedFreeProductId) &
+            t.status.equals('active'),
+      );
+      if (duplicateSmgm.isNotEmpty) {
+        final dup = duplicateSmgm.first;
+        return OfferConflictResponse(
+          hasConflict: true,
+          conflictType: 'smgm_duplicate',
+          message:
+              'Another active Shop More, Get More offer already uses this reward product.',
+          productIds: [offer.freeProductId],
+          productNames: await _productNames(session, [offer.freeProductId]),
+        );
+      }
+    }
+
+    return _none();
+  }
+
+  Future<bool> disableShopMoreGetMore(Session session, String offerId) {
+    return _offers.setShopMoreGetMoreOfferActive(session, offerId, false);
+  }
+
   Future<OfferConflictResponse> _checkProductOfferConflicts(
     Session session, {
     required List<String> productIds,
@@ -160,6 +250,30 @@ class OfferConflictService {
           bogoOffer: bogo,
         );
       }
+
+      if (sourceType != 'shop_more_get_more') {
+        final smgmRows = await ShopMoreGetMoreOfferRow.db.find(
+          session,
+          where: (t) => t.status.equals('active'),
+        );
+        final parsedIds = ids.map(tryParseUuid).whereType<UuidValue>().toSet();
+        final conflictingSmgm = smgmRows
+            .where((row) => parsedIds.contains(row.freeProductId))
+            .toList();
+        if (conflictingSmgm.isNotEmpty) {
+          final smgmIds = conflictingSmgm
+              .map((row) => row.freeProductId.toString())
+              .toList();
+          return OfferConflictResponse(
+            hasConflict: true,
+            conflictType: '${sourceType}_smgm',
+            message:
+                'This product is used as a reward in an active Shop More, Get More offer.',
+            productIds: smgmIds,
+            productNames: await _productNames(session, smgmIds),
+          );
+        }
+      }
     } else {
       final freeDeliveryProducts = await _freeDeliveryProducts(
         session,
@@ -177,6 +291,28 @@ class OfferConflictService {
           productNames: freeDeliveryProducts
               .map((product) => product.productName)
               .toList(),
+        );
+      }
+
+      final smgmRows = await ShopMoreGetMoreOfferRow.db.find(
+        session,
+        where: (t) => t.status.equals('active'),
+      );
+      final parsedIds = ids.map(tryParseUuid).whereType<UuidValue>().toSet();
+      final conflictingSmgm = smgmRows
+          .where((row) => parsedIds.contains(row.freeProductId))
+          .toList();
+      if (conflictingSmgm.isNotEmpty) {
+        final smgmIds = conflictingSmgm
+            .map((row) => row.freeProductId.toString())
+            .toList();
+        return OfferConflictResponse(
+          hasConflict: true,
+          conflictType: 'bogo_smgm',
+          message:
+              'This product is used as a reward in an active Shop More, Get More offer.',
+          productIds: smgmIds,
+          productNames: await _productNames(session, smgmIds),
         );
       }
     }

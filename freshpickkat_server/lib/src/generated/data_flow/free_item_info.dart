@@ -21,6 +21,10 @@ abstract class FreeItemInfo
     required this.quantity,
     this.triggerProductId,
     this.bogoOfferId,
+    this.rewardSource,
+    this.rewardOfferId,
+    this.rewardOfferName,
+    this.rewardThreshold,
   });
 
   factory FreeItemInfo({
@@ -30,6 +34,10 @@ abstract class FreeItemInfo
     required int quantity,
     String? triggerProductId,
     String? bogoOfferId,
+    String? rewardSource,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
   }) = _FreeItemInfoImpl;
 
   factory FreeItemInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -40,6 +48,11 @@ abstract class FreeItemInfo
       quantity: jsonSerialization['quantity'] as int,
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
       bogoOfferId: jsonSerialization['bogoOfferId'] as String?,
+      rewardSource: jsonSerialization['rewardSource'] as String?,
+      rewardOfferId: jsonSerialization['rewardOfferId'] as String?,
+      rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
+      rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
+          ?.toDouble(),
     );
   }
 
@@ -55,6 +68,14 @@ abstract class FreeItemInfo
 
   String? bogoOfferId;
 
+  String? rewardSource;
+
+  String? rewardOfferId;
+
+  String? rewardOfferName;
+
+  double? rewardThreshold;
+
   /// Returns a shallow copy of this [FreeItemInfo]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -65,6 +86,10 @@ abstract class FreeItemInfo
     int? quantity,
     String? triggerProductId,
     String? bogoOfferId,
+    String? rewardSource,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -76,6 +101,10 @@ abstract class FreeItemInfo
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
       if (bogoOfferId != null) 'bogoOfferId': bogoOfferId,
+      if (rewardSource != null) 'rewardSource': rewardSource,
+      if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
+      if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
+      if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
     };
   }
 
@@ -89,6 +118,10 @@ abstract class FreeItemInfo
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
       if (bogoOfferId != null) 'bogoOfferId': bogoOfferId,
+      if (rewardSource != null) 'rewardSource': rewardSource,
+      if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
+      if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
+      if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
     };
   }
 
@@ -108,6 +141,10 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     required int quantity,
     String? triggerProductId,
     String? bogoOfferId,
+    String? rewardSource,
+    String? rewardOfferId,
+    String? rewardOfferName,
+    double? rewardThreshold,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -115,6 +152,10 @@ class _FreeItemInfoImpl extends FreeItemInfo {
          quantity: quantity,
          triggerProductId: triggerProductId,
          bogoOfferId: bogoOfferId,
+         rewardSource: rewardSource,
+         rewardOfferId: rewardOfferId,
+         rewardOfferName: rewardOfferName,
+         rewardThreshold: rewardThreshold,
        );
 
   /// Returns a shallow copy of this [FreeItemInfo]
@@ -128,6 +169,10 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     int? quantity,
     Object? triggerProductId = _Undefined,
     Object? bogoOfferId = _Undefined,
+    Object? rewardSource = _Undefined,
+    Object? rewardOfferId = _Undefined,
+    Object? rewardOfferName = _Undefined,
+    Object? rewardThreshold = _Undefined,
   }) {
     return FreeItemInfo(
       productId: productId ?? this.productId,
@@ -138,6 +183,16 @@ class _FreeItemInfoImpl extends FreeItemInfo {
           ? triggerProductId
           : this.triggerProductId,
       bogoOfferId: bogoOfferId is String? ? bogoOfferId : this.bogoOfferId,
+      rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
+      rewardOfferId: rewardOfferId is String?
+          ? rewardOfferId
+          : this.rewardOfferId,
+      rewardOfferName: rewardOfferName is String?
+          ? rewardOfferName
+          : this.rewardOfferName,
+      rewardThreshold: rewardThreshold is double?
+          ? rewardThreshold
+          : this.rewardThreshold,
     );
   }
 }

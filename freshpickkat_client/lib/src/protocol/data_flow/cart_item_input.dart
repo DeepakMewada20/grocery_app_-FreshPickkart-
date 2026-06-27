@@ -19,6 +19,7 @@ abstract class CartItemInput implements _i1.SerializableModel {
     required this.quantity,
     this.comboId,
     this.bogoFreeProductId,
+    this.shopMoreGetMoreOfferId,
   });
 
   factory CartItemInput({
@@ -27,6 +28,7 @@ abstract class CartItemInput implements _i1.SerializableModel {
     required int quantity,
     String? comboId,
     String? bogoFreeProductId,
+    String? shopMoreGetMoreOfferId,
   }) = _CartItemInputImpl;
 
   factory CartItemInput.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -36,6 +38,8 @@ abstract class CartItemInput implements _i1.SerializableModel {
       quantity: jsonSerialization['quantity'] as int,
       comboId: jsonSerialization['comboId'] as String?,
       bogoFreeProductId: jsonSerialization['bogoFreeProductId'] as String?,
+      shopMoreGetMoreOfferId:
+          jsonSerialization['shopMoreGetMoreOfferId'] as String?,
     );
   }
 
@@ -49,6 +53,8 @@ abstract class CartItemInput implements _i1.SerializableModel {
 
   String? bogoFreeProductId;
 
+  String? shopMoreGetMoreOfferId;
+
   /// Returns a shallow copy of this [CartItemInput]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -58,6 +64,7 @@ abstract class CartItemInput implements _i1.SerializableModel {
     int? quantity,
     String? comboId,
     String? bogoFreeProductId,
+    String? shopMoreGetMoreOfferId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -68,6 +75,8 @@ abstract class CartItemInput implements _i1.SerializableModel {
       'quantity': quantity,
       if (comboId != null) 'comboId': comboId,
       if (bogoFreeProductId != null) 'bogoFreeProductId': bogoFreeProductId,
+      if (shopMoreGetMoreOfferId != null)
+        'shopMoreGetMoreOfferId': shopMoreGetMoreOfferId,
     };
   }
 
@@ -86,12 +95,14 @@ class _CartItemInputImpl extends CartItemInput {
     required int quantity,
     String? comboId,
     String? bogoFreeProductId,
+    String? shopMoreGetMoreOfferId,
   }) : super._(
          productId: productId,
          variantId: variantId,
          quantity: quantity,
          comboId: comboId,
          bogoFreeProductId: bogoFreeProductId,
+         shopMoreGetMoreOfferId: shopMoreGetMoreOfferId,
        );
 
   /// Returns a shallow copy of this [CartItemInput]
@@ -104,6 +115,7 @@ class _CartItemInputImpl extends CartItemInput {
     int? quantity,
     Object? comboId = _Undefined,
     Object? bogoFreeProductId = _Undefined,
+    Object? shopMoreGetMoreOfferId = _Undefined,
   }) {
     return CartItemInput(
       productId: productId ?? this.productId,
@@ -113,6 +125,9 @@ class _CartItemInputImpl extends CartItemInput {
       bogoFreeProductId: bogoFreeProductId is String?
           ? bogoFreeProductId
           : this.bogoFreeProductId,
+      shopMoreGetMoreOfferId: shopMoreGetMoreOfferId is String?
+          ? shopMoreGetMoreOfferId
+          : this.shopMoreGetMoreOfferId,
     );
   }
 }

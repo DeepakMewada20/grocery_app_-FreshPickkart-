@@ -1,7 +1,9 @@
 ## Goal
+Module 1 (Shop More, Get More Promotional Offer) complete — full CRUD endpoint, admin controller, admin screen with add/edit dialog, FAB integration, offer conflict/exclusivity checks, pricing engine integration, order hydration, cascade deactivation, dependency checker.
+
 Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I — anti-fraud scoring engine, hybrid reward routing, qualification hardening, coupon protection, reward reversal, admin fraud dashboard, terms & conditions, hardening tests.
 
-## Current Task: (completed) Phases A–I — All hardening phases complete
+## Current Task: (completed) SMGM Module 1 — All phases complete
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -23,6 +25,27 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 - Every fraud decision must be explainable — store per-rule breakdown
 
 ## Done
+### Module 1 — Shop More, Get More (SMGM) Promotional Offer
+- **Protocol layer**: `shop_more_get_more_offer_row.spy.yaml`, `shop_more_get_more_offer.spy.yaml`, `shop_more_get_more_offer_page.spy.yaml` — DB table + API DTO + paginated response
+- **Cart/order protocol modifications**: Added `rewardSource`, `rewardOfferId`, `rewardOfferName`, `rewardThreshold` to `FreeItemInfo`, `OrderItemRow`, `OrderItem`; added `shopMoreGetMoreOfferId` to `CartItemInput`/`CartItem`
+- **DB migration**: `20260627142045538` — created `shop_more_get_more_offer` table + altered columns on `order_item`/`cart_item`
+- **`PostgresOfferService`**: Full SMGM CRUD — `upsertShopMoreGetMoreOffer`, `deleteShopMoreGetMoreOffer`, `hardDeleteShopMoreGetMoreOffer`, `setShopMoreGetMoreOfferActive`, `getInactiveShopMoreGetMoreOffers`, `getAllShopMoreGetMoreOffers`, `getShopMoreGetMoreOffersPage`, `getActiveShopMoreGetMoreOffers`, `getApplicableShopMoreGetMoreOffer` (with out-of-stock fallback)
+- **`OfferConflictService`**: `checkShopMoreGetMoreConflicts` (BOGO/combo/FD/duplicate checks) + `disableShopMoreGetMore` + SMGM guard in `_checkProductOfferConflicts`
+- **`VariantOfferExclusivityService`**: `validateShopMoreGetMoreSave` + SMGM param in `_checkExclusivity`
+- **`PricingEngine`**: SMGM reward step after coupon, before delivery fee (fetches product name on-the-spot if missing from product map)
+- **`SnapshotBuilder`**: SMGM `appliedOfferJson` with `SHOP_MORE_GET_MORE` offer type
+- **`PostgresOrderService`**: SMGM reward fields in `createPendingOrder` (`OrderItemRow`) and `_hydrateOrders` (`OrderItem`)
+- **`CascadeDeactivationService`**: SMGM `shop_more_get_more_offer` entity type — `_analyze`, banner cascade, product cascade, `_resolveName`
+- **`DependencyChecker`**: `checkShopMoreGetMoreOffer` + SMGM checks in `checkProduct` and `checkVariant`
+- **`DeleteImpactService`**: `checkShopMoreGetMoreImpact` — banner reference check
+- **`ShopMoreGetMoreEndpoint`**: Full CRUD with conflict checking — `upsertOfferWithConflicts`, `upsertOffer`, `deleteOffer`, `checkDeleteImpact`, `hardDeleteOffer`, `setOfferActive`, `getInactiveOffers`, `getAllOffers`, `getOffersPage`, `getActiveOffers`, `getApplicableOffer` — follows `BogoEndpoint` pattern
+- **`AdminShopMoreGetMoreController`**: GetX controller — paginated/all loading, upsert, delete (with impact dialog), cascade-aware setActive, local state management
+- **Admin `ShopMoreGetMoreScreen`**: Standalone screen with search, card list, FAB, add/edit bottom sheet dialog (name, min amount, free product picker, variant, qty, priority, date range)
+- **`OffersScreen`**: SMGM FAB menu item added (Shop More, Get More → opens `ShopMoreGetMoreScreen`); SMGM controller loaded in tab data + refresh
+- **Server analysis**: 0 issues in all SMGM files
+- **Client analysis**: 0 issues in controller + screen
+- **25/25 unit tests pass**
+
 ### Module 2 — Referral Growth System (Phases 1-7)
 - **Phase 1**: 8 protocol models + DB migration (`referral`, `referral_settings` tables, `app_user.referralCode` column)
 - **Phase 2**: `PostgresReferralService` (~700 lines) — code generation, validation, apply referral, user stats, reward engine (`checkOrderForReward` + `_processReward`), settings CRUD, admin analytics/list/approve/reject
@@ -255,6 +278,23 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 - **`FeaturedVariantResolver`**: New service that selects the best variant per product using priority rules (BOGO > Free Delivery > Combo > Discount > Default). Replaces `onlyDefaultVariant: true` on the homepage — now each product displays its most valuable variant with correct badges and pricing.
 
 ## Relevant Files
+### Module 1 — Shop More, Get More
+- `freshpickkat_server/lib/src/protocol/db_rows/shop_more_get_more_offer_row.spy.yaml` — DB table
+- `freshpickkat_server/lib/src/protocol/data_flow/shop_more_get_more_offer.spy.yaml` — API DTO
+- `freshpickkat_server/lib/src/protocol/data_flow/shop_more_get_more_offer_page.spy.yaml` — paginated DTO
+- `freshpickkat_server/lib/src/endpoints/shop_more_get_more_endpoint.dart` — CRUD endpoint
+- `freshpickkat_server/lib/src/services/postgres/postgres_offer_service.dart` — SMGM CRUD + eligibility (line 745)
+- `freshpickkat_server/lib/src/services/offers/offer_conflict_service.dart` — SMGM conflict checks (line 134)
+- `freshpickkat_server/lib/src/services/offers/variant_offer_exclusivity_service.dart` — SMGM exclusivity (line 231)
+- `freshpickkat_server/lib/src/services/pricing/pricing_engine.dart` — SMGM reward step
+- `freshpickkat_server/lib/src/services/orders/snapshot_builder.dart` — SMGM snapshot
+- `freshpickkat_server/lib/src/services/postgres/postgres_order_service.dart` — SMGM reward fields
+- `freshpickkat_server/lib/src/services/admin/cascade_deactivation_service.dart` — SMGM cascade
+- `freshpickkat_server/lib/src/services/admin/dependency_checker.dart` — SMGM dependency checks
+- `freshpickkat_server/lib/src/services/admin/delete_impact_service.dart` — SMGM impact (line 209)
+- `freshpickkat_admin/lib/controller/admin_offer_controller/admin_shop_more_get_more_controller.dart` — GetX controller
+- `freshpickkat_admin/lib/screens/shop_more_get_more_screen.dart` — Admin screen
+- `freshpickkat_admin/lib/screens/offers_screen.dart` — FAB integration
 - `freshpickkat_server/lib/src/protocol/product.spy.yaml`: added `comboOfferIds`, `hasCategoryOffer`
 - `freshpickkat_server/lib/src/services/postgres/postgres_catalog_service.dart`: hydrateProductsByIds parallelized; combo/category hydration; `getActiveProductIds()` added
 - `freshpickkat_admin/lib/screens/product_dialogs/products_list_content.dart`: `_OfferChips` widget in `_ProductAdminCard`

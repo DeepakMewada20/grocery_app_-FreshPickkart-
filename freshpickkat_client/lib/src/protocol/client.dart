@@ -163,17 +163,21 @@ import 'package:freshpickkat_client/src/protocol/data_flow/referral_onboarding_s
     as _i78;
 import 'package:freshpickkat_client/src/protocol/data_flow/referral_admin_stats.dart'
     as _i79;
-import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/shop_more_get_more_offer.dart'
     as _i80;
-import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/shop_more_get_more_offer_page.dart'
     as _i81;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
     as _i82;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
     as _i83;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
     as _i84;
-import 'protocol.dart' as _i85;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i85;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i86;
+import 'protocol.dart' as _i87;
 
 /// {@category Endpoint}
 class EndpointAdmin extends _i1.EndpointRef {
@@ -4213,21 +4217,173 @@ class EndpointRefund extends _i1.EndpointRef {
 }
 
 /// {@category Endpoint}
+class EndpointShopMoreGetMore extends _i1.EndpointRef {
+  EndpointShopMoreGetMore(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'shopMoreGetMore';
+
+  _i2.Future<_i14.OfferMutationResult> upsertOfferWithConflicts(
+    _i80.ShopMoreGetMoreOffer offer,
+    String firebaseUid,
+    String idToken, {
+    _i16.NotificationDraft? notificationDraft,
+    required bool confirmDisableConflictingCombo,
+    required bool forceDisableFreeDelivery,
+  }) => caller.callServerEndpoint<_i14.OfferMutationResult>(
+    'shopMoreGetMore',
+    'upsertOfferWithConflicts',
+    {
+      'offer': offer,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'notificationDraft': notificationDraft,
+      'confirmDisableConflictingCombo': confirmDisableConflictingCombo,
+      'forceDisableFreeDelivery': forceDisableFreeDelivery,
+    },
+  );
+
+  _i2.Future<bool> upsertOffer(
+    _i80.ShopMoreGetMoreOffer offer,
+    String firebaseUid,
+    String idToken, {
+    _i16.NotificationDraft? notificationDraft,
+  }) => caller.callServerEndpoint<bool>(
+    'shopMoreGetMore',
+    'upsertOffer',
+    {
+      'offer': offer,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'notificationDraft': notificationDraft,
+    },
+  );
+
+  _i2.Future<String> deleteOffer(
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<String>(
+    'shopMoreGetMore',
+    'deleteOffer',
+    {
+      'offerId': offerId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i12.DeleteImpactResponse> checkDeleteImpact(
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i12.DeleteImpactResponse>(
+    'shopMoreGetMore',
+    'checkDeleteImpact',
+    {
+      'offerId': offerId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i13.HardDeleteResponse> hardDeleteOffer(
+    String offerId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<_i13.HardDeleteResponse>(
+    'shopMoreGetMore',
+    'hardDeleteOffer',
+    {
+      'offerId': offerId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> setOfferActive(
+    String offerId,
+    bool isActive,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'shopMoreGetMore',
+    'setOfferActive',
+    {
+      'offerId': offerId,
+      'isActive': isActive,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<List<_i80.ShopMoreGetMoreOffer>> getInactiveOffers() =>
+      caller.callServerEndpoint<List<_i80.ShopMoreGetMoreOffer>>(
+        'shopMoreGetMore',
+        'getInactiveOffers',
+        {},
+      );
+
+  _i2.Future<List<_i80.ShopMoreGetMoreOffer>> getAllOffers(
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<List<_i80.ShopMoreGetMoreOffer>>(
+    'shopMoreGetMore',
+    'getAllOffers',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<_i81.ShopMoreGetMoreOfferPage> getOffersPage({
+    required String firebaseUid,
+    required String idToken,
+    required int limit,
+    String? pageToken,
+  }) => caller.callServerEndpoint<_i81.ShopMoreGetMoreOfferPage>(
+    'shopMoreGetMore',
+    'getOffersPage',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'limit': limit,
+      'pageToken': pageToken,
+    },
+  );
+
+  _i2.Future<List<_i80.ShopMoreGetMoreOffer>> getActiveOffers() =>
+      caller.callServerEndpoint<List<_i80.ShopMoreGetMoreOffer>>(
+        'shopMoreGetMore',
+        'getActiveOffers',
+        {},
+      );
+
+  _i2.Future<_i80.ShopMoreGetMoreOffer?> getApplicableOffer(
+    double eligibleAmount,
+  ) => caller.callServerEndpoint<_i80.ShopMoreGetMoreOffer?>(
+    'shopMoreGetMore',
+    'getApplicableOffer',
+    {'eligibleAmount': eligibleAmount},
+  );
+}
+
+/// {@category Endpoint}
 class EndpointSubCategory extends _i1.EndpointRef {
   EndpointSubCategory(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'subCategory';
 
-  _i2.Future<List<_i80.SubCategory>> getSubCategories() =>
-      caller.callServerEndpoint<List<_i80.SubCategory>>(
+  _i2.Future<List<_i82.SubCategory>> getSubCategories() =>
+      caller.callServerEndpoint<List<_i82.SubCategory>>(
         'subCategory',
         'getSubCategories',
         {},
       );
 
   _i2.Future<bool> uploadSubCategory(
-    _i80.SubCategory subCategory,
+    _i82.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -4243,7 +4399,7 @@ class EndpointSubCategory extends _i1.EndpointRef {
   _i2.Future<bool> updateSubCategory(
     String categoryName,
     String oldSubName,
-    _i80.SubCategory subCategory,
+    _i82.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) => caller.callServerEndpoint<bool>(
@@ -4282,7 +4438,7 @@ class EndpointSupport extends _i1.EndpointRef {
   @override
   String get name => 'support';
 
-  _i2.Future<_i81.SupportIssue> submitIssue({
+  _i2.Future<_i83.SupportIssue> submitIssue({
     required String firebaseUid,
     required String idToken,
     required String issueType,
@@ -4292,7 +4448,7 @@ class EndpointSupport extends _i1.EndpointRef {
     required String appVersion,
     required String buildNumber,
     required String deviceInfo,
-  }) => caller.callServerEndpoint<_i81.SupportIssue>(
+  }) => caller.callServerEndpoint<_i83.SupportIssue>(
     'support',
     'submitIssue',
     {
@@ -4308,13 +4464,13 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<List<_i81.SupportIssue>> listSupportIssues(
+  _i2.Future<List<_i83.SupportIssue>> listSupportIssues(
     String firebaseUid,
     String idToken, {
     String? status,
     required int limit,
     required int offset,
-  }) => caller.callServerEndpoint<List<_i81.SupportIssue>>(
+  }) => caller.callServerEndpoint<List<_i83.SupportIssue>>(
     'support',
     'listSupportIssues',
     {
@@ -4326,11 +4482,11 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i81.SupportIssue?> getSupportIssueDetail(
+  _i2.Future<_i83.SupportIssue?> getSupportIssueDetail(
     String firebaseUid,
     String idToken,
     String issueId,
-  ) => caller.callServerEndpoint<_i81.SupportIssue?>(
+  ) => caller.callServerEndpoint<_i83.SupportIssue?>(
     'support',
     'getSupportIssueDetail',
     {
@@ -4340,12 +4496,12 @@ class EndpointSupport extends _i1.EndpointRef {
     },
   );
 
-  _i2.Future<_i81.SupportIssue> updateSupportIssueStatus(
+  _i2.Future<_i83.SupportIssue> updateSupportIssueStatus(
     String firebaseUid,
     String idToken,
     String issueId,
     String status,
-  ) => caller.callServerEndpoint<_i81.SupportIssue>(
+  ) => caller.callServerEndpoint<_i83.SupportIssue>(
     'support',
     'updateSupportIssueStatus',
     {
@@ -4380,7 +4536,7 @@ class EndpointUser extends _i1.EndpointRef {
 
   _i2.Future<bool> updateCart(
     String uid,
-    List<_i82.CartItem> cart,
+    List<_i84.CartItem> cart,
   ) => caller.callServerEndpoint<bool>(
     'user',
     'updateCart',
@@ -4419,13 +4575,13 @@ class EndpointUser extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i83.Caller(client);
-    serverpod_auth_core = _i84.Caller(client);
+    serverpod_auth_idp = _i85.Caller(client);
+    serverpod_auth_core = _i86.Caller(client);
   }
 
-  late final _i83.Caller serverpod_auth_idp;
+  late final _i85.Caller serverpod_auth_idp;
 
-  late final _i84.Caller serverpod_auth_core;
+  late final _i86.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -4448,7 +4604,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i85.Protocol(),
+         _i87.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -4489,6 +4645,7 @@ class Client extends _i1.ServerpodClientShared {
     productRanking = EndpointProductRanking(this);
     referral = EndpointReferral(this);
     refund = EndpointRefund(this);
+    shopMoreGetMore = EndpointShopMoreGetMore(this);
     subCategory = EndpointSubCategory(this);
     support = EndpointSupport(this);
     user = EndpointUser(this);
@@ -4559,6 +4716,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointRefund refund;
 
+  late final EndpointShopMoreGetMore shopMoreGetMore;
+
   late final EndpointSubCategory subCategory;
 
   late final EndpointSupport support;
@@ -4601,6 +4760,7 @@ class Client extends _i1.ServerpodClientShared {
     'productRanking': productRanking,
     'referral': referral,
     'refund': refund,
+    'shopMoreGetMore': shopMoreGetMore,
     'subCategory': subCategory,
     'support': support,
     'user': user,

@@ -21,6 +21,10 @@ fields:
   unitPrice: double
   totalPrice: double
   isFreeItem: bool, default=false
+  rewardOfferId: String?
+  rewardOfferName: String?
+  rewardThreshold: double?
+  rewardSource: String?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:
   order_item_order_idx:
