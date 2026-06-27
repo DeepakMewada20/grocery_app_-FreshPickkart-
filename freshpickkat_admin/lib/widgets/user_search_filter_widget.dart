@@ -21,6 +21,7 @@ class UserSearchFilterWidget extends StatefulWidget {
   final bool enableSelection;
   final ValueChanged<List<ActiveUserStatistics>>? onSelectionChanged;
   final bool isMobileLayout;
+  final bool singleSelect;
 
   const UserSearchFilterWidget({
     super.key,
@@ -28,6 +29,7 @@ class UserSearchFilterWidget extends StatefulWidget {
     this.enableSelection = false,
     this.onSelectionChanged,
     this.isMobileLayout = false,
+    this.singleSelect = false,
   });
 
   @override
@@ -84,13 +86,18 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
     return filtered;
   }
 
-  /// Toggle user selection
+  /// Toggle user selection (single-select clears others first)
   void _toggleUserSelection(String userId) {
     setState(() {
-      if (_selectedUserIds.contains(userId)) {
-        _selectedUserIds.remove(userId);
-      } else {
+      if (widget.singleSelect) {
+        _selectedUserIds.clear();
         _selectedUserIds.add(userId);
+      } else {
+        if (_selectedUserIds.contains(userId)) {
+          _selectedUserIds.remove(userId);
+        } else {
+          _selectedUserIds.add(userId);
+        }
       }
       _notifySelectionChanged();
     });
@@ -170,8 +177,8 @@ class UserSearchFilterWidgetState extends State<UserSearchFilterWidget> {
         _buildFilterRow(context),
         SizedBox(height: 16.h),
 
-        // Selection Controls (only if selection enabled)
-        if (widget.enableSelection) ...[
+        // Selection Controls (only if multi-select)
+        if (widget.enableSelection && !widget.singleSelect) ...[
           _buildSelectionControls(context),
           SizedBox(height: 12.h),
         ],

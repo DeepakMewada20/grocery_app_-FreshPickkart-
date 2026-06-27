@@ -18,10 +18,8 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
   final _auth = AuthController.instance;
 
   final _transactions = <FreshPointsTransaction>[];
+  final _expandedIds = <String>{};
   bool _isLoading = true;
-  bool _isLoadingMore = false;
-  String? _nextPageToken;
-  bool _hasMore = true;
   int _balance = 0;
   int _totalEarned = 0;
   int _totalRedeemed = 0;
@@ -33,45 +31,25 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
   }
 
   Future<void> _loadTransactions({bool loadMore = false}) async {
-    if (loadMore) {
-      if (_isLoadingMore || !_hasMore) return;
-      setState(() => _isLoadingMore = true);
-    } else {
-      setState(() => _isLoading = true);
-    }
+    if (loadMore) return;
+    setState(() => _isLoading = true);
 
     try {
       final userId = _auth.currentUser?.uid;
       if (userId == null) return;
 
-      final result = await _client.freshPoints.getMyTransactions(
-        userId,
-        limit: 20,
-        pageToken: loadMore ? _nextPageToken : null,
-      );
+      final balance = await _client.freshPoints.getMyBalance(userId);
 
-      _balance = result['balance'] as int? ?? 0;
-      _totalEarned = result['totalEarned'] as int? ?? 0;
-      _totalRedeemed = result['totalRedeemed'] as int? ?? 0;
-      final txnList = (result['transactions'] as List<dynamic>?)
-              ?.cast<Map<String, dynamic>>()
-              .map((e) => FreshPointsTransaction.fromJson(e))
-              .toList() ??
-          [];
-
-      if (loadMore) {
-        _transactions.addAll(txnList);
-      } else {
-        _transactions.assignAll(txnList);
-      }
-      _nextPageToken = result['nextPageToken'] as String?;
-      _hasMore = _nextPageToken != null && txnList.length >= 20;
-    } catch (_) {
+      _balance = balance.balance;
+      _totalEarned = balance.totalEarned;
+      _totalRedeemed = balance.totalRedeemed;
+      _transactions.assignAll(balance.transactions);
+    } catch (e) {
+      debugPrint('FreshPoints history error: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -97,16 +75,6 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                     final txn = _transactions[i];
                     return _buildTransactionRow(context, cs, txn);
                   }),
-                  if (_isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  if (!_isLoadingMore && _hasMore)
-                    TextButton(
-                      onPressed: () => _loadTransactions(loadMore: true),
-                      child: const Text('Load More'),
-                    ),
                   if (_transactions.isEmpty && !_isLoading)
                     Padding(
                       padding: EdgeInsets.all(32.h),
@@ -223,60 +191,124 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
     );
   }
 
+  String _labelForType(String type) {
+    switch (type) {
+      case 'ADMIN_ADD':
+        return 'Admin Credit';
+      case 'ADMIN_DEDUCT':
+        return 'Admin Deduction';
+      case 'EARNED':
+        return 'Earned via Order';
+      case 'REFERRAL':
+        return 'Referral Reward';
+      case 'REWARD_REVERSAL':
+        return 'Reward Reversal';
+      default:
+        return type;
+    }
+  }
+
   Widget _buildTransactionRow(
     BuildContext context,
     ColorScheme cs,
     FreshPointsTransaction txn,
   ) {
     final isPositive = txn.points > 0;
+    final isAdmin = txn.transactionType == 'ADMIN_ADD' || txn.transactionType == 'ADMIN_DEDUCT';
     final icon = isPositive ? Icons.add_circle_outline : Icons.remove_circle_outline;
     final color = isPositive ? cs.primary : cs.error;
+    final hasLongText = (txn.description?.length ?? 0) > 30;
+    final isExpanded = _expandedIds.contains(txn.id);
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 24),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    txn.description ?? txn.transactionType,
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 14.sp,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    _formatDate(txn.createdAt),
-                    style: TextStyle(
-                      color: cs.onSurfaceVariant,
-                      fontSize: 12.sp,
-                    ),
-                  ),
-                ],
+    return GestureDetector(
+      onTap: hasLongText
+          ? () {
+              setState(() {
+                if (isExpanded) {
+                  _expandedIds.remove(txn.id);
+                } else {
+                  _expandedIds.add(txn.id);
+                }
+              });
+            }
+          : null,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 8.h),
+        child: Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 2.h),
+                child: Icon(icon, color: color, size: 24),
               ),
-            ),
-            Text(
-              '${isPositive ? '+' : ''}${txn.points}',
-              style: TextStyle(
-                color: color,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAdmin && txn.description != null
+                          ? txn.description!
+                          : _labelForType(txn.transactionType),
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontSize: 14.sp,
+                      ),
+                      maxLines: isExpanded ? null : 2,
+                      overflow: isExpanded ? null : TextOverflow.ellipsis,
+                    ),
+                    if (isAdmin && txn.description != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 2.h),
+                        child: Text(
+                          _labelForType(txn.transactionType),
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: isAdmin && txn.description != null ? 0 : 2.h),
+                    Text(
+                      _formatDate(txn.createdAt),
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              SizedBox(width: 16.w),
+              if (hasLongText)
+                Padding(
+                  padding: EdgeInsets.only(top: 2.h),
+                  child: Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              SizedBox(width: 8.w),
+              Padding(
+                padding: EdgeInsets.only(top: 2.h),
+                child: Text(
+                  '${isPositive ? '+' : ''}${txn.points}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

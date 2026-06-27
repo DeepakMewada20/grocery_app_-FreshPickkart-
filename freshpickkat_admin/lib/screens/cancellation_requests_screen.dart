@@ -185,10 +185,13 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
   double _calculateRefund() {
     final reasonData = _parseCancellationReason();
     final originalStatus = reasonData['originalStatus'] ?? '';
+    final cashAmount = widget.order.freshPointsUsed > 0
+        ? widget.order.actualPaymentAmount
+        : widget.order.finalAmount;
     if (originalStatus == 'out_for_delivery') {
-      return widget.order.finalAmount - widget.order.deliveryFee;
+      return cashAmount - widget.order.deliveryFee;
     }
-    return widget.order.finalAmount;
+    return cashAmount;
   }
 
   Future<void> _handleApprove() async {
@@ -431,6 +434,11 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                           'Total',
                           '₹${widget.order.finalAmount.toStringAsFixed(2)}',
                         ),
+                        if (widget.order.freshPointsUsed > 0)
+                          _DetailRow(
+                            'FreshPoints Used',
+                            '${widget.order.freshPointsUsed} pts (-₹${widget.order.freshPointsValue.toStringAsFixed(2)})',
+                          ),
                         _DetailRow(
                           'Delivery Fee',
                           '₹${widget.order.deliveryFee.toStringAsFixed(2)}',
@@ -475,6 +483,11 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
                           'Final Amount',
                           '₹${widget.order.finalAmount.toStringAsFixed(2)}',
                         ),
+                        if (widget.order.freshPointsUsed > 0)
+                          _DetailRow(
+                            'Paid via UPI/Card',
+                            '₹${widget.order.actualPaymentAmount.toStringAsFixed(2)}',
+                          ),
                         _DetailRow(
                           'Delivery Fee',
                           '₹${widget.order.deliveryFee.toStringAsFixed(2)}',

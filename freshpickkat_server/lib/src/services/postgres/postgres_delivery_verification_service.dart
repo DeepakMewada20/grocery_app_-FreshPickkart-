@@ -50,7 +50,8 @@ class PostgresDeliveryVerificationService {
     if (row == null) {
       throw ArgumentError('Order not found: $orderId');
     }
-    if (row.orderStatus != ValidationService.statusOutForDelivery) {
+    if (row.orderStatus != ValidationService.statusOutForDelivery &&
+        row.orderStatus != ValidationService.statusDeliveryPhotoPending) {
       throw StateError(
         'Order status must be "out_for_delivery" to complete photo delivery. '
         'Current status: ${row.orderStatus}',
@@ -77,10 +78,10 @@ class PostgresDeliveryVerificationService {
     final settings = await _settingsService.getOrCreateSettings(session);
 
     // 1. GPS accuracy validation
-    if (settings.gpsRequired && gpsAccuracy > 30) {
+    if (settings.gpsRequired && gpsAccuracy > 100) {
       throw StateError(
         'GPS signal too weak (accuracy: ${gpsAccuracy.toStringAsFixed(0)}m). '
-        'Please move to an open area and retry (minimum 30m accuracy required).',
+        'Please move to an open area and retry (minimum 100m accuracy required).',
       );
     }
 

@@ -24,6 +24,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   ReferralCodeInfo? _info;
   ReferralSettings? _settings;
   List<ReferralActivity> _activities = [];
+  FreshPointsBalance? _fpBalance;
 
   @override
   void initState() {
@@ -40,14 +41,13 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         _client.referral.getMyReferralCodeInfo(uid),
         _client.referral.getMyReferralActivity(uid),
         _client.referral.getSettings(),
-        // _client.referral.hasAcceptedTerms(uid),
+        _client.freshPoints.getMyBalance(uid),
       ]);
       setState(() {
         _info = results[0] as ReferralCodeInfo;
         _activities = results[1] as List<ReferralActivity>;
         _settings = results[2] as ReferralSettings;
-        // _termsAccepted = results[3] as bool;
-        // _termsLoading = false;
+        _fpBalance = results[3] as FreshPointsBalance;
       });
     } catch (_) {
     } finally {
@@ -137,7 +137,12 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   _buildRewardInfo(cs),
                   const SizedBox(height: 12),
                   _buildStatsCard(cs),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  if (_fpBalance != null) ...[
+                    _buildFpBalanceCard(cs),
+                    const SizedBox(height: 12),
+                  ],
+                  const SizedBox(height: 4),
                   _buildPointsHistorySection(cs),
                   const SizedBox(height: 16),
                   // Terms section hidden — terms are served via /referral/terms web page
@@ -328,6 +333,57 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
         Icon(icon, size: 22, color: color),
         const SizedBox(height: 4),
         Text('$value', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  Widget _buildFpBalanceCard(ColorScheme cs) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.monetization_on_outlined, size: 20),
+                ),
+                const SizedBox(width: 10),
+                const Text('FreshPoints',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildFpStat('Balance', '${_fpBalance!.balance}', cs.primary),
+                Container(height: 30, width: 1, color: cs.outlineVariant),
+                _buildFpStat('Earned', '${_fpBalance!.totalEarned}', cs.primary),
+                Container(height: 30, width: 1, color: cs.outlineVariant),
+                _buildFpStat('Redeemed', '${_fpBalance!.totalRedeemed}', cs.error),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFpStat(String label, String value, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(height: 2),
         Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );

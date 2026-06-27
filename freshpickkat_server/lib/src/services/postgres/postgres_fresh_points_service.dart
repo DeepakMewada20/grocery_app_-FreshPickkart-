@@ -130,13 +130,32 @@ class PostgresFreshPointsService {
       offset: offset,
     );
 
+    final user = await AppUserRow.db.findById(session, userId);
+
     final nextToken = rows.length >= limit
         ? encodeCursor({'offset': offset + rows.length})
         : null;
 
     return {
-      'transactions': rows.map(_mapTransaction).toList(),
+      'transactions': rows
+          .map((row) => {
+                'id': row.id.toString(),
+                'userId': row.userId.toString(),
+                'transactionType': row.transactionType,
+                'points': row.points,
+                'balanceBefore': row.balanceBefore,
+                'balanceAfter': row.balanceAfter,
+                'referenceType': row.referenceType,
+                'referenceId': row.referenceId?.toString(),
+                'description': row.description,
+                'createdBy': row.createdBy,
+                'createdAt': row.createdAt.toIso8601String(),
+              })
+          .toList(),
       'nextPageToken': nextToken,
+      'balance': user?.currentFreshPoints ?? 0,
+      'totalEarned': user?.totalEarned ?? 0,
+      'totalRedeemed': user?.totalRedeemed ?? 0,
     };
   }
 

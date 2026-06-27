@@ -45,6 +45,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Complaint? _activeDeliveryComplaint;
   Worker? _ordersWorker;
   Timer? _otpCountdownTimer;
+  bool _showDeliveryPhoto = false;
 
   @override
   void initState() {
@@ -157,30 +158,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return ['placed', 'cancelled'];
     }
     if (currentStatus == 'delivery_otp_pending' ||
-        currentStatus == 'delivered') {
+        currentStatus == 'delivery_photo_pending') {
       return [
         'placed',
         'confirmed',
         'packed',
         'out_for_delivery',
-        'delivery_otp_pending',
+        currentStatus,
         'delivered',
       ];
     }
     return ['placed', 'confirmed', 'packed', 'out_for_delivery', 'delivered'];
-  }
-
-  int _getStatusIndex(String status) {
-    const statusMap = {
-      'placed': 0,
-      'confirmed': 1,
-      'packed': 2,
-      'out_for_delivery': 3,
-      'delivery_otp_pending': 4,
-      'delivered': 5,
-      'cancelled': 1,
-    };
-    return statusMap[status] ?? 0;
   }
 
   String _getStatusLabel(String status) {
@@ -189,7 +177,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       'confirmed': 'Confirmed',
       'packed': 'Packed',
       'out_for_delivery': 'On the Way',
-      'delivery_otp_pending': 'OTP Pending',
+      'delivery_otp_pending': 'Verification',
+      'delivery_photo_pending': 'Verification',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
     };
@@ -224,6 +213,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   padding: EdgeInsets.only(top: 16.h),
                   child: _buildDeliveryOtpCard(order, cs),
                 ),
+              if (order.status == 'delivery_photo_pending')
+                Padding(
+                  padding: EdgeInsets.only(top: 16.h),
+                  child: _buildPhotoPendingCard(order, cs),
+                ),
               if (_showActionsCard(order))
                 Padding(
                   padding: EdgeInsets.only(top: 16.h),
@@ -256,7 +250,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildStatusTimeline(Order order, ColorScheme cs) {
     final timeline = _getStatusTimeline(order.status);
-    final currentIndex = _getStatusIndex(order.status);
+    final currentIndex = timeline.indexOf(order.status);
+    if (currentIndex == -1) return const SizedBox.shrink();
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -711,7 +706,91 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
           SizedBox(height: 12.h),
           Text(
-            'Status: ${order.status == 'delivery_otp_pending' ? 'Waiting for Delivery Confirmation' : order.status}',
+            'Status: ${_getStatusLabel(order.status)}',
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: cs.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoPendingCard(Order order, ColorScheme cs) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.camera_alt_outlined,
+                size: 20.sp,
+                color: cs.primary,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Delivery Verification',
+                style: AppTextStyles.sectionTitle(
+                  context,
+                ).copyWith(fontSize: 16.sp),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Icon(
+                Icons.image_outlined,
+                size: 16.sp,
+                color: cs.onSurface.withValues(alpha: 0.5),
+              ),
+              SizedBox(width: 6.w),
+              Text(
+                'Photo Proof',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: cs.onSurface,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 14.sp,
+                color: cs.onSurface.withValues(alpha: 0.4),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  'The delivery person is verifying delivery with a photo. '
+                  'No action is needed from your side.',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            'Status: ${_getStatusLabel(order.status)}',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w500,
@@ -929,42 +1008,55 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               order.deliveryProofImageUrl != null &&
               order.deliveryProofImageUrl!.isNotEmpty) ...[
             SizedBox(height: 12.h),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
-              child: GestureDetector(
-                onTap: () => _showFullProofImage(order.deliveryProofImageUrl!),
-                child: Image.network(
-                  order.deliveryProofImageUrl!,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+            if (_showDeliveryPhoto) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: GestureDetector(
+                  onTap: () => _showFullProofImage(order.deliveryProofImageUrl!),
+                  child: Image.network(
+                    order.deliveryProofImageUrl!,
                     height: 200,
-                    color: cs.surfaceContainerHighest,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.broken_image,
-                              size: 32, color: cs.onSurfaceVariant),
-                          SizedBox(height: 4),
-                          Text('Image unavailable',
-                              style: TextStyle(color: cs.onSurfaceVariant)),
-                        ],
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 200,
+                      color: cs.surfaceContainerHighest,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image,
+                                size: 32, color: cs.onSurfaceVariant),
+                            SizedBox(height: 4),
+                            Text('Image unavailable',
+                                style: TextStyle(color: cs.onSurfaceVariant)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Tap to view full image',
-              style: TextStyle(
-                fontSize: 12.sp.clamp(10.0, 13.0),
-                color: cs.primary,
+              SizedBox(height: 8.h),
+              Text(
+                'Tap to view full image',
+                style: TextStyle(
+                  fontSize: 12.sp.clamp(10.0, 13.0),
+                  color: cs.primary,
+                ),
               ),
-            ),
+            ] else ...[
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _showDeliveryPhoto = true),
+                icon: const Icon(Icons.image_outlined),
+                label: const Text('Show Photo'),
+              ),
+            ],
           ],
         ],
       ),

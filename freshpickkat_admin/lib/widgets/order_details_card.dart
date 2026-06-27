@@ -136,6 +136,13 @@ class OrderDetailsCard extends StatelessWidget {
           cs,
           color: AdminAppTheme.getSuccessColor(context),
         ),
+      if ((complaint.freshPointsUsed ?? 0) > 0)
+        _buildSummaryRow(
+          'FreshPoints Used (${complaint.freshPointsUsed})',
+          -(complaint.freshPointsValue ?? 0),
+          cs,
+          color: AdminAppTheme.getSuccessColor(context),
+        ),
       const Divider(height: 12),
       _buildSummaryRow(
         'To Pay',
@@ -144,6 +151,14 @@ class OrderDetailsCard extends StatelessWidget {
         bold: true,
         fontSize: 16.sp,
       ),
+      if ((complaint.freshPointsUsed ?? 0) > 0)
+        _buildSummaryRow(
+          'Paid via UPI/Card',
+          complaint.actualPaymentAmount ?? 0,
+          cs,
+          bold: true,
+          fontSize: 16.sp,
+        ),
     ];
   }
 

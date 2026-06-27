@@ -56,8 +56,13 @@ abstract class Complaint implements _i1.SerializableModel {
     this.deliveryDiscountAmount,
     this.freeDeliveryApplied,
     this.finalAmount,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required this.orderItems,
-  });
+  }) : freshPointsUsed = freshPointsUsed ?? 0,
+       freshPointsValue = freshPointsValue ?? 0.0,
+       actualPaymentAmount = actualPaymentAmount ?? 0.0;
 
   factory Complaint({
     required String complaintId,
@@ -100,6 +105,9 @@ abstract class Complaint implements _i1.SerializableModel {
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
     double? finalAmount,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required List<_i2.ComplaintProductItem> orderItems,
   }) = _ComplaintImpl;
 
@@ -173,6 +181,11 @@ abstract class Complaint implements _i1.SerializableModel {
               jsonSerialization['freeDeliveryApplied'],
             ),
       finalAmount: (jsonSerialization['finalAmount'] as num?)?.toDouble(),
+      freshPointsUsed: jsonSerialization['freshPointsUsed'] as int?,
+      freshPointsValue: (jsonSerialization['freshPointsValue'] as num?)
+          ?.toDouble(),
+      actualPaymentAmount: (jsonSerialization['actualPaymentAmount'] as num?)
+          ?.toDouble(),
       orderItems: _i3.Protocol().deserialize<List<_i2.ComplaintProductItem>>(
         jsonSerialization['orderItems'],
       ),
@@ -259,6 +272,12 @@ abstract class Complaint implements _i1.SerializableModel {
 
   double? finalAmount;
 
+  int freshPointsUsed;
+
+  double freshPointsValue;
+
+  double actualPaymentAmount;
+
   List<_i2.ComplaintProductItem> orderItems;
 
   /// Returns a shallow copy of this [Complaint]
@@ -305,6 +324,9 @@ abstract class Complaint implements _i1.SerializableModel {
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
     double? finalAmount,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     List<_i2.ComplaintProductItem>? orderItems,
   });
   @override
@@ -358,6 +380,9 @@ abstract class Complaint implements _i1.SerializableModel {
       if (freeDeliveryApplied != null)
         'freeDeliveryApplied': freeDeliveryApplied,
       if (finalAmount != null) 'finalAmount': finalAmount,
+      'freshPointsUsed': freshPointsUsed,
+      'freshPointsValue': freshPointsValue,
+      'actualPaymentAmount': actualPaymentAmount,
       'orderItems': orderItems.toJson(valueToJson: (v) => v.toJson()),
     };
   }
@@ -412,6 +437,9 @@ class _ComplaintImpl extends Complaint {
     double? deliveryDiscountAmount,
     bool? freeDeliveryApplied,
     double? finalAmount,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     required List<_i2.ComplaintProductItem> orderItems,
   }) : super._(
          complaintId: complaintId,
@@ -454,6 +482,9 @@ class _ComplaintImpl extends Complaint {
          deliveryDiscountAmount: deliveryDiscountAmount,
          freeDeliveryApplied: freeDeliveryApplied,
          finalAmount: finalAmount,
+         freshPointsUsed: freshPointsUsed,
+         freshPointsValue: freshPointsValue,
+         actualPaymentAmount: actualPaymentAmount,
          orderItems: orderItems,
        );
 
@@ -502,6 +533,9 @@ class _ComplaintImpl extends Complaint {
     Object? deliveryDiscountAmount = _Undefined,
     Object? freeDeliveryApplied = _Undefined,
     Object? finalAmount = _Undefined,
+    int? freshPointsUsed,
+    double? freshPointsValue,
+    double? actualPaymentAmount,
     List<_i2.ComplaintProductItem>? orderItems,
   }) {
     return Complaint(
@@ -577,6 +611,9 @@ class _ComplaintImpl extends Complaint {
           ? freeDeliveryApplied
           : this.freeDeliveryApplied,
       finalAmount: finalAmount is double? ? finalAmount : this.finalAmount,
+      freshPointsUsed: freshPointsUsed ?? this.freshPointsUsed,
+      freshPointsValue: freshPointsValue ?? this.freshPointsValue,
+      actualPaymentAmount: actualPaymentAmount ?? this.actualPaymentAmount,
       orderItems:
           orderItems ?? this.orderItems.map((e0) => e0.copyWith()).toList(),
     );

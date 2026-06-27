@@ -751,6 +751,7 @@ class EndpointCart extends _i1.EndpointRef {
     String? appliedCouponCode,
     required bool autoApplyCoupons,
     required String basketMode,
+    required int freshPointsToRedeem,
   }) => caller.callServerEndpoint<_i18.CartHydratedData>(
     'cart',
     'getCartHydratedData',
@@ -760,6 +761,7 @@ class EndpointCart extends _i1.EndpointRef {
       'appliedCouponCode': appliedCouponCode,
       'autoApplyCoupons': autoApplyCoupons,
       'basketMode': basketMode,
+      'freshPointsToRedeem': freshPointsToRedeem,
     },
   );
 }
@@ -2700,6 +2702,34 @@ class EndpointOrder extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> markDeliveryPhotoPending(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<bool>(
+    'order',
+    'markDeliveryPhotoPending',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> cancelDeliveryPhotoPending(
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<bool>(
+    'order',
+    'cancelDeliveryPhotoPending',
+    {
+      'orderId': orderId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<bool> verifyDeliveryOtp(
     String orderId,
     String otp, {
@@ -3371,6 +3401,7 @@ class EndpointPricing extends _i1.EndpointRef {
     String? userId,
     String? appliedCouponCode,
     required bool autoApplyCoupons,
+    required int freshPointsToRedeem,
   }) => caller.callServerEndpoint<_i67.CartPricingResult>(
     'pricing',
     'calculateCartPricing',
@@ -3379,6 +3410,7 @@ class EndpointPricing extends _i1.EndpointRef {
       'userId': userId,
       'appliedCouponCode': appliedCouponCode,
       'autoApplyCoupons': autoApplyCoupons,
+      'freshPointsToRedeem': freshPointsToRedeem,
     },
   );
 

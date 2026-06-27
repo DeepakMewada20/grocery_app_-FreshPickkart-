@@ -27,6 +27,8 @@ import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
 import 'package:freshpickkat_flutter/basket/widgets/confetti_burst_widget.dart';
 import 'package:freshpickkat_flutter/basket/widgets/reward_banner_overlay.dart';
 import 'package:freshpickkat_flutter/basket/widgets/savings_card.dart';
+import 'package:freshpickkat_flutter/controller/auth_controller.dart';
+import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
 class BasketScreen extends StatefulWidget {
   const BasketScreen({super.key});
@@ -37,12 +39,16 @@ class BasketScreen extends StatefulWidget {
 
 class _BasketScreenState extends State<BasketScreen> {
   final networkController = NetworkController.instance;
+  double _redemptionPercentageLimit = 50.0;
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() async {
       await CartController.instance.refreshCartCurrentData();
+      await CartController.instance.fetchCartPricing();
+      await CartController.instance.fetchMaxRedeemablePoints();
+      await _fetchFreshPointsSettings();
       await CartController.instance.fetchBasketSuggestions();
       await CategoryProviderController.instance.fetchCategoriesIfEmpty();
       await ProductProviderController.instance.fetchTrendingIfEmpty();
@@ -134,8 +140,9 @@ class _BasketScreenState extends State<BasketScreen> {
                               }),
                               _buildCartItemsList(context, cartController, cs),
                               const BasketSuggestionsSection(),
-                              const CouponSection(),
-                              _buildBillDetails(cartController, cs),
+                    const CouponSection(),
+                    _buildFreshPointsSection(cartController, cs),
+                    _buildBillDetails(cartController, cs),
                               const SavingsCard(),
                             ],
                           ),
@@ -812,6 +819,15 @@ class _BasketScreenState extends State<BasketScreen> {
                     cs: cs,
                   ),
                 ],
+                if ((cartController.cartPricing.value?.freshPointsDiscount ?? 0) > 0) ...[
+                  SizedBox(height: 12.h),
+                  _buildBillRow(
+                    'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
+                    '-₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
+                    valueColor: Colors.green,
+                    cs: cs,
+                  ),
+                ],
                 SizedBox(height: 12.h),
                 _buildBillRow(
                   showEstimatedDelivery
@@ -882,6 +898,102 @@ class _BasketScreenState extends State<BasketScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _fetchFreshPointsSettings() async {
+    try {
+      final settings = await ServerpodClient().client.freshPoints.getSettings();
+      if (mounted) {
+        setState(() {
+          _redemptionPercentageLimit = settings.redemptionPercentageLimit;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Widget _buildFreshPointsSection(CartController cart, ColorScheme cs) {
+    final balance = AuthController.instance.appUser?.currentFreshPoints ?? 0;
+    if (balance <= 0 && cart.freshPointsToRedeem.value == 0) return const SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () => cart.freshPointsExpanded.toggle(),
+            child: Row(
+              children: [
+                Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 20),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Obx(() => Text(
+                    'FreshPoints Balance: ${cart.freshPointsToRedeem.value > 0 ? '${cart.freshPointsToRedeem.value} pts used' : '$balance pts'}',
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.sp,
+                    ),
+                  )),
+                ),
+                Obx(() => Icon(
+                  cart.freshPointsExpanded.value ? Icons.expand_less : Icons.expand_more,
+                  color: cs.onSurfaceVariant,
+                )),
+              ],
+            ),
+          ),
+          Obx(() {
+            if (!cart.freshPointsExpanded.value) return const SizedBox.shrink();
+            final maxRedeem = cart.maxRedeemablePoints.value;
+            final redeemed = cart.freshPointsToRedeem.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 12.h),
+                Text(
+                  'Redeem up to $maxRedeem pts${_redemptionPercentageLimit > 0 ? ' (max ${_redemptionPercentageLimit.toInt()}% of payable)' : ''}',
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp),
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Text('0', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+                    Expanded(
+                      child: Slider(
+                        value: redeemed.clamp(0, maxRedeem).toDouble(),
+                        min: 0,
+                        max: maxRedeem > 0 ? maxRedeem.toDouble() : 1,
+                        divisions: maxRedeem.clamp(1, 100),
+                        activeColor: Colors.amber.shade700,
+                        onChanged: (v) {
+                          cart.setFreshPointsToRedeem(v.round());
+                        },
+                      ),
+                    ),
+                    Text('$maxRedeem', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+                  ],
+                ),
+                if (redeemed > 0)
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Text(
+                      'Saving ₹${redeemed.toStringAsFixed(0)}',
+                      style: TextStyle(color: Colors.green, fontSize: 12.sp),
+                    ),
+                  ),
+              ],
+            );
+          }),
+        ],
+      ),
     );
   }
 

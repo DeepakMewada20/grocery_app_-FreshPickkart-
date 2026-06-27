@@ -187,6 +187,8 @@ order:
   - rejectCancellationRequest:
   - assignDeliveryPerson:
   - generateDeliveryOtp:
+  - markDeliveryPhotoPending:
+  - cancelDeliveryPhotoPending:
   - verifyDeliveryOtp:
   - resendDeliveryOtp:
   - getActiveDeliveryOtp:

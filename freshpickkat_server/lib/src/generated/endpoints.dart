@@ -1516,6 +1516,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String>(),
               nullable: false,
             ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -1529,6 +1534,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     appliedCouponCode: params['appliedCouponCode'],
                     autoApplyCoupons: params['autoApplyCoupons'],
                     basketMode: params['basketMode'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
       },
@@ -5757,6 +5763,68 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                   ),
         ),
+        'markDeliveryPhotoPending': _i1.MethodConnector(
+          name: 'markDeliveryPhotoPending',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i20.OrderEndpoint)
+                  .markDeliveryPhotoPending(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'cancelDeliveryPhotoPending': _i1.MethodConnector(
+          name: 'cancelDeliveryPhotoPending',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i20.OrderEndpoint)
+                  .cancelDeliveryPhotoPending(
+                    session,
+                    params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
         'verifyDeliveryOtp': _i1.MethodConnector(
           name: 'verifyDeliveryOtp',
           params: {
@@ -7156,6 +7224,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<bool>(),
               nullable: false,
             ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
           },
           call:
               (
@@ -7168,6 +7241,7 @@ class Endpoints extends _i1.EndpointDispatch {
                     userId: params['userId'],
                     appliedCouponCode: params['appliedCouponCode'],
                     autoApplyCoupons: params['autoApplyCoupons'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
         'getApplicableOffers': _i1.MethodConnector(

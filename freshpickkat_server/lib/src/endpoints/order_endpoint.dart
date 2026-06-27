@@ -22,6 +22,7 @@ class OrderEndpoint extends Endpoint {
   static const String statusPacked = 'packed';
   static const String statusOutForDelivery = 'out_for_delivery';
   static const String statusDeliveryOtpPending = 'delivery_otp_pending';
+  static const String statusDeliveryPhotoPending = 'delivery_photo_pending';
   static const String statusDelivered = 'delivered';
   static const String statusCancelled = 'cancelled';
   static const String statusCancelledByUser = 'cancelled_by_user';
@@ -725,6 +726,138 @@ class OrderEndpoint extends Endpoint {
     return true;
   }
 
+  Future<bool> markDeliveryPhotoPending(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.status != statusOutForDelivery) {
+      throw StateError(
+        'Order status must be "out_for_delivery" to start photo delivery. '
+        'Current status: ${order.status}',
+      );
+    }
+
+    final updated = await _orders.updateOrderStatus(
+      session,
+      orderId,
+      statusDeliveryPhotoPending,
+    );
+    if (!updated) {
+      throw StateError('Failed to update order status.');
+    }
+
+    // Set delivery verification method to photo
+    await _orders.setDeliveryVerificationMethod(
+      session,
+      orderId,
+      'photo',
+    );
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'mark_delivery_photo_pending',
+      entityType: 'order',
+      entityId: orderId,
+    );
+
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    if (updatedOrder != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: updatedOrder.userId,
+        status: statusDeliveryPhotoPending,
+      );
+      await RealtimeService().broadcastOrderEvent(
+        session,
+        protocol.OrderRealtimeEvent(
+          eventType: 'status_changed',
+          orderId: orderId,
+          status: statusDeliveryPhotoPending,
+          userId: updatedOrder.userId,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+
+    return true;
+  }
+
+  Future<bool> cancelDeliveryPhotoPending(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.status != statusDeliveryPhotoPending) {
+      throw StateError(
+        'Order status must be "delivery_photo_pending" to cancel photo delivery. '
+        'Current status: ${order.status}',
+      );
+    }
+
+    final updated = await _orders.updateOrderStatus(
+      session,
+      orderId,
+      statusOutForDelivery,
+    );
+    if (!updated) {
+      throw StateError('Failed to update order status.');
+    }
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'cancel_delivery_photo_pending',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {'revertedTo': 'out_for_delivery'},
+    );
+
+    final updatedOrder = await _orders.getOrderById(session, orderId);
+    if (updatedOrder != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: updatedOrder.userId,
+        status: statusOutForDelivery,
+      );
+      await RealtimeService().broadcastOrderEvent(
+        session,
+        protocol.OrderRealtimeEvent(
+          eventType: 'status_changed',
+          orderId: orderId,
+          status: statusOutForDelivery,
+          userId: updatedOrder.userId,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+
+    return true;
+  }
+
   Future<bool> verifyDeliveryOtp(
     Session session,
     String orderId,
@@ -971,9 +1104,10 @@ class OrderEndpoint extends Endpoint {
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
     }
-    if (order.status != statusOutForDelivery) {
+    if (order.status != statusOutForDelivery &&
+        order.status != statusDeliveryPhotoPending) {
       throw StateError(
-        'Order status must be "out_for_delivery" to complete photo delivery. '
+        'Order status must be "out_for_delivery" or "delivery_photo_pending" to complete photo delivery. '
         'Current status: ${order.status}',
       );
     }

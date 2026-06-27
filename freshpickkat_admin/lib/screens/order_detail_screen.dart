@@ -396,11 +396,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         'Delivery Fee Waived',
                         -order.deliveryDiscountAmount,
                       ),
+                    if (order.freshPointsUsed > 0)
+                      _amountRow(
+                        'FreshPoints Used (${order.freshPointsUsed})',
+                        -order.freshPointsValue,
+                      ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.h),
                       child: const Divider(),
                     ),
                     _amountRow('To Pay', order.finalAmount, isBold: true),
+                    if (order.freshPointsUsed > 0)
+                      _amountRow('Paid via UPI/Card', order.actualPaymentAmount, isBold: true),
                   ],
                 ),
               ),
@@ -644,20 +651,56 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           label: 'Photo Delivery',
           color: primaryColor,
           icon: Icons.camera_alt_outlined,
-          isLoading: false,
-          onPressed: () async {
-            final result = await Navigator.push<bool>(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DeliveryPhotoVerificationScreen(order: order),
-              ),
-            );
-            if (result == true && mounted) {
-              setState(
-                () => _order = _order.copyWith(status: 'delivered'),
-              );
-            }
-          },
+          isLoading: _isLoading,
+          onPressed: _isLoading
+              ? null
+              : () async {
+                  setState(() => _isLoading = true);
+                  try {
+                    await _orderController.markDeliveryPhotoPending(order);
+                    if (mounted) {
+                      setState(() {
+                        _order = _order.copyWith(
+                          status: 'delivery_photo_pending',
+                          deliveryVerificationMethod: 'photo',
+                        );
+                      });
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to start photo delivery: $e',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }
+                    if (mounted) setState(() => _isLoading = false);
+                    return;
+                  }
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DeliveryPhotoVerificationScreen(order: order),
+                    ),
+                  );
+                  if (mounted) setState(() => _isLoading = false);
+                  if (result == true && mounted) {
+                    setState(() {
+                      _order = _order.copyWith(
+                        status: 'delivered',
+                        deliveryVerificationMethod: 'photo',
+                        deliveredByRole: 'admin',
+                        deliveryCompletedAt: DateTime.now(),
+                      );
+                    });
+                  }
+                },
         ),
       );
       buttons.add(
@@ -729,6 +772,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     if (order.status == 'delivery_otp_pending') {
       return _buildOtpVerificationSection(context, order);
+    }
+
+    if (order.status == 'delivery_photo_pending') {
+      return _buildPhotoPendingSection(context, order);
     }
 
     if (buttons.isEmpty) {
@@ -882,6 +929,147 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  Widget _buildPhotoPendingSection(BuildContext context, Order order) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: AdminResponsive.cardPadding(context),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.camera_alt_outlined,
+                color: cs.primary,
+                size: 22.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Photo Verification',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16.sp.clamp(14.0, 18.0),
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Photo verification is in progress.',
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14.sp.clamp(12.0, 16.0),
+              color: cs.onSurface,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Please take a photo of the delivery to complete verification.',
+            style: TextStyle(
+              fontSize: 13.sp.clamp(11.0, 15.0),
+              color: cs.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final result = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        DeliveryPhotoVerificationScreen(order: order),
+                  ),
+                );
+                if (result == true && mounted) {
+                  setState(() {
+                    _order = _order.copyWith(
+                      status: 'delivered',
+                      deliveryVerificationMethod: 'photo',
+                      deliveredByRole: 'admin',
+                      deliveryCompletedAt: DateTime.now(),
+                    );
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: cs.primary,
+                foregroundColor: AdminThemeTokens.white,
+                padding: EdgeInsets.symmetric(vertical: 14.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.camera_alt_outlined),
+              label: Text(
+                'Continue Photo Verification',
+                style: AdminTextStyles.button(context)
+                    .copyWith(color: AdminThemeTokens.white),
+              ),
+            ),
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                try {
+                  await _orderController.cancelDeliveryPhotoPending(order);
+                  if (mounted) {
+                    setState(() {
+                      _order = _order.copyWith(
+                        status: 'out_for_delivery',
+                        deliveryVerificationMethod: null,
+                      );
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Photo verification cancelled.'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed: $e'),
+                        backgroundColor:
+                            AdminAppTheme.getErrorColor(context),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(color: AdminAppTheme.getErrorColor(context)),
+                foregroundColor: AdminAppTheme.getErrorColor(context),
+              ),
+              icon: const Icon(Icons.close),
+              label: const Text('Cancel Photo Verification'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildResendOtpButton(BuildContext context, Order order) {
     final bool canResend = _otpResendCountdown <= 0;
     return SizedBox(
@@ -948,7 +1136,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
         );
-        setState(() => _order = _order.copyWith(status: 'delivered'));
+        setState(() {
+          _order = _order.copyWith(
+            status: 'delivered',
+            deliveryVerificationMethod: 'otp',
+            deliveredByRole: 'admin',
+            deliveryCompletedAt: DateTime.now(),
+          );
+        });
       }
     } on ArgumentError {
       if (mounted) {
@@ -1464,10 +1659,19 @@ class _DetailSection extends StatelessWidget {
   }
 }
 
-class _DeliveryProofSection extends StatelessWidget {
+class _DeliveryProofSection extends StatefulWidget {
   const _DeliveryProofSection({required this.order});
 
   final Order order;
+
+  @override
+  State<_DeliveryProofSection> createState() => _DeliveryProofSectionState();
+}
+
+class _DeliveryProofSectionState extends State<_DeliveryProofSection> {
+  bool _showPhoto = false;
+
+  Order get order => widget.order;
 
   @override
   Widget build(BuildContext context) {
@@ -1536,42 +1740,55 @@ class _DeliveryProofSection extends StatelessWidget {
           if (isPhoto && order.deliveryProofImageUrl != null &&
               order.deliveryProofImageUrl!.isNotEmpty) ...[
             SizedBox(height: 12.h),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: GestureDetector(
-                onTap: () => _showFullImage(context, order.deliveryProofImageUrl!),
-                child: Image.network(
-                  order.deliveryProofImageUrl!,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+            if (_showPhoto) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8.r),
+                child: GestureDetector(
+                  onTap: () => _showFullImage(context, order.deliveryProofImageUrl!),
+                  child: Image.network(
+                    order.deliveryProofImageUrl!,
                     height: 200,
-                    color: cs.surfaceContainerHighest,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.broken_image,
-                              size: 32, color: cs.onSurfaceVariant),
-                          SizedBox(height: 4),
-                          Text('Image unavailable',
-                              style: TextStyle(color: cs.onSurfaceVariant)),
-                        ],
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : const SizedBox(
+                          height: 200,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 200,
+                      color: cs.surfaceContainerHighest,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image,
+                                size: 32, color: cs.onSurfaceVariant),
+                            SizedBox(height: 4),
+                            Text('Image unavailable',
+                                style: TextStyle(color: cs.onSurfaceVariant)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Tap to view full image',
-              style: TextStyle(
-                fontSize: 12.sp.clamp(10.0, 13.0),
-                color: cs.primary,
+              SizedBox(height: 8.h),
+              Text(
+                'Tap to view full image',
+                style: TextStyle(
+                  fontSize: 12.sp.clamp(10.0, 13.0),
+                  color: cs.primary,
+                ),
               ),
-            ),
+            ] else ...[
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _showPhoto = true),
+                icon: const Icon(Icons.image_outlined),
+                label: const Text('Show Photo'),
+              ),
+            ],
           ],
         ],
       ),

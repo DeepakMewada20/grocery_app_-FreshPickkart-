@@ -197,6 +197,34 @@ class AdminOrderController extends GetxController {
     });
   }
 
+  Future<bool> markDeliveryPhotoPending(Order order) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.markDeliveryPhotoPending(
+        order.orderId,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<bool> cancelDeliveryPhotoPending(Order order) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.cancelDeliveryPhotoPending(
+        order.orderId,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
   Future<bool> verifyDeliveryOtp(Order order, String otp) async {
     return await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();

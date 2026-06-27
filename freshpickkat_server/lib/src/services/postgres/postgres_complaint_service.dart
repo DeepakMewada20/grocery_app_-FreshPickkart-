@@ -1059,6 +1059,9 @@ class PostgresComplaintService {
       deliveryDiscountAmount: order.deliveryDiscountAmount,
       freeDeliveryApplied: order.freeDeliveryApplied,
       finalAmount: order.finalAmount,
+      freshPointsUsed: order.freshPointsUsed,
+      freshPointsValue: order.freshPointsValue,
+      actualPaymentAmount: order.actualPaymentAmount,
       orderItems: orderItemSnapshots,
     );
   }

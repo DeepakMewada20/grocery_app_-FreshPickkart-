@@ -753,19 +753,32 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs: cs,
             valueColor: order.deliveryFee == 0 ? Colors.green : cs.onSurface,
           ),
+          if (order.freshPointsUsed > 0) ...[
+            SizedBox(height: 8.h),
+            _buildBillRow(
+              'FreshPoints Used (${order.freshPointsUsed})',
+              '-INR ${order.freshPointsValue.formatPrice}',
+              cs: cs,
+              valueColor: Colors.green,
+            ),
+          ],
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  'Total Paid',
+                  order.freshPointsUsed > 0 ? 'Paid via UPI/Card' : 'Total Paid',
                   style: AppTextStyles.receiptLabel(context, total: true),
                 ),
               ),
               SizedBox(width: 12.w),
               AutoSizeText(
-                'INR ${order.finalAmount.formatPrice}',
+                'INR ${
+                  order.freshPointsUsed > 0
+                      ? order.actualPaymentAmount.formatPrice
+                      : order.finalAmount.formatPrice
+                }',
                 textAlign: TextAlign.right,
                 style: TextStyle(
                   fontSize: 20.sp,

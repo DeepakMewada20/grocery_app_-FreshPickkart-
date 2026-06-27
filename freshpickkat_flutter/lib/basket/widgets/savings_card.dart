@@ -64,13 +64,16 @@ class _SavingsCardState extends State<SavingsCard>
       final bogoSavings = cart.bogoDiscountTotal;
       final couponSavings = cart.couponDiscount;
       final deliverySavings = cart.deliveryDiscountAmount;
+      final freshPointsSavings =
+          cart.cartPricing.value?.freshPointsDiscount ?? 0.0;
 
       final totalSavings =
           productSavings +
           comboSavings +
           bogoSavings +
           couponSavings +
-          deliverySavings;
+          deliverySavings +
+          freshPointsSavings;
 
       if (totalSavings <= 0) return const SizedBox.shrink();
 
@@ -130,6 +133,17 @@ class _SavingsCardState extends State<SavingsCard>
             icon: Icons.local_shipping_rounded,
             label: 'Delivery Savings',
             amount: deliverySavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
+      }
+      if (freshPointsSavings > 0) {
+        rows.add(
+          _SavingsRow(
+            icon: Icons.monetization_on_rounded,
+            label: 'FreshPoints Savings',
+            amount: freshPointsSavings,
             accentColor: accentColor,
             cs: cs,
           ),

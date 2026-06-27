@@ -16,6 +16,7 @@ class CartEndpoint extends Endpoint {
     String? appliedCouponCode,
     bool autoApplyCoupons = false,
     String basketMode = 'cart',
+    int freshPointsToRedeem = 0,
   }) async {
     final pricing = await PricingEngine.calculateCartPricing(
       session: session,
@@ -23,6 +24,7 @@ class CartEndpoint extends Endpoint {
       userId: userId,
       appliedCouponCode: appliedCouponCode,
       autoApplyCoupons: autoApplyCoupons,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
 
     final subtotal = pricing.subtotal;

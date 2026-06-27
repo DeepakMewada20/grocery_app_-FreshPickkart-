@@ -40,4 +40,7 @@ fields:
   deliveryDiscountAmount: double?
   freeDeliveryApplied: bool?
   finalAmount: double?
+  freshPointsUsed: int, default=0
+  freshPointsValue: double, default=0
+  actualPaymentAmount: double, default=0
   orderItems: List<ComplaintProductItem>

@@ -11,6 +11,7 @@ class PricingEndpoint extends Endpoint {
     String? userId,
     String? appliedCouponCode,
     bool autoApplyCoupons = true,
+    int freshPointsToRedeem = 0,
   }) async {
     final cartItems = items
         .map(
@@ -30,6 +31,7 @@ class PricingEndpoint extends Endpoint {
       userId: userId,
       appliedCouponCode: appliedCouponCode,
       autoApplyCoupons: autoApplyCoupons,
+      freshPointsToRedeem: freshPointsToRedeem,
     );
   }
 
@@ -42,6 +44,7 @@ class PricingEndpoint extends Endpoint {
       items,
       appliedCouponCode: null,
       autoApplyCoupons: false,
+      freshPointsToRedeem: 0,
     );
     return result.appliedOffers;
   }

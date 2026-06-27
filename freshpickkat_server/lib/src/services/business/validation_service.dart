@@ -10,6 +10,7 @@ class ValidationService {
   static const statusPacked = 'packed';
   static const statusOutForDelivery = 'out_for_delivery';
   static const statusDeliveryOtpPending = 'delivery_otp_pending';
+  static const statusDeliveryPhotoPending = 'delivery_photo_pending';
   static const statusDelivered = 'delivered';
   static const statusCancelled = 'cancelled';
   static const statusCancelledByUser = 'cancelled_by_user';
@@ -207,10 +208,15 @@ class ValidationService {
       },
       statusOutForDelivery: {
         statusDeliveryOtpPending,
+        statusDeliveryPhotoPending,
         statusDelivered,
         statusCancellationRequested,
       },
       statusDeliveryOtpPending: {
+        statusDelivered,
+        statusCancellationRequested,
+      },
+      statusDeliveryPhotoPending: {
         statusDelivered,
         statusCancellationRequested,
       },
@@ -261,6 +267,7 @@ class ValidationService {
       'packed': 'Packed',
       'out_for_delivery': 'Out for Delivery',
       'delivery_otp_pending': 'Delivery OTP Pending',
+      'delivery_photo_pending': 'Delivery Photo Pending',
       'delivered': 'Delivered',
       'cancelled': 'Cancelled',
       'payment_failed': 'Payment Failed',

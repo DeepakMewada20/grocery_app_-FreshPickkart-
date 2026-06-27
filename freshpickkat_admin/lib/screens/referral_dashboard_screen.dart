@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/admin_referral_controller.dart';
-import '../services/admin_session_service.dart';
+import '../theme/admin_app_theme.dart';
 import '../widgets/admin_app_bar.dart';
-import '../widgets/admin_state_view.dart';
 import '../utils/admin_responsive.dart';
+import 'user_picker_screen.dart';
 
 class ReferralDashboardScreen extends StatefulWidget {
   const ReferralDashboardScreen({super.key});
@@ -98,6 +98,8 @@ class _ReferralDashboardScreenState extends State<ReferralDashboardScreen> {
                 const SizedBox(height: 16),
                 if (analytics.topReferrers.isNotEmpty)
                   _buildTopReferrersCard(context, analytics),
+                const SizedBox(height: 16),
+                _buildFreshPointsCard(context),
               ],
               const SizedBox(height: 24),
               _buildReferralsSection(context),
@@ -212,6 +214,62 @@ class _ReferralDashboardScreenState extends State<ReferralDashboardScreen> {
               subtitle: Text('${r.referralCount} referred - ${r.rewardPointsIssued} pts'),
               trailing: Text('${(r.qualificationRate * 100).toStringAsFixed(0)}%'),
             )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openFreshPointsAdjust() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const UserPickerScreen()),
+    );
+  }
+
+  Widget _buildFreshPointsCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AdminAppTheme.getWarningContainerColor(context),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.monetization_on_outlined,
+                color: AdminAppTheme.getWarningColor(context),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'FreshPoints Adjustment',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Manually credit or deduct points for any user',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            FilledButton.tonalIcon(
+              onPressed: _openFreshPointsAdjust,
+              icon: const Icon(Icons.tune, size: 18),
+              label: const Text('Adjust'),
+            ),
           ],
         ),
       ),

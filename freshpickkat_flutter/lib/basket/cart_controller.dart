@@ -136,6 +136,9 @@ class CartController extends GetxController {
   final RxDouble estimatedDeliveryFee = 0.0.obs;
   final Rxn<DeliveryPricingResult> localDeliveryPricing =
       Rxn<DeliveryPricingResult>();
+  final RxInt freshPointsToRedeem = 0.obs;
+  final RxInt maxRedeemablePoints = 0.obs;
+  final RxBool freshPointsExpanded = false.obs;
   bool _isInitialLoading = false;
   String _lastSuggestedCartSnapshot = '';
   String _lastPricingSnapshot = '';
@@ -310,12 +313,31 @@ class CartController extends GetxController {
         appliedCouponCode: appliedCoupon.value?.code,
         autoApplyCoupons: false,
         basketMode: 'cart',
+        freshPointsToRedeem: freshPointsToRedeem.value,
       );
       applyCartHydratedData(hydrated);
     } catch (e) {
       AppLogger.error('Cart', 'HydratedMeta: $e');
       _fallbackToIndividualMetaFetches(items);
     }
+  }
+
+  Future<void> fetchMaxRedeemablePoints() async {
+    final userId = AuthController.instance.currentUser?.uid;
+    if (userId == null) return;
+    try {
+      final payable = totalAmount;
+      maxRedeemablePoints.value = await client.freshPoints.getMaxRedeemable(
+        userId,
+        payable,
+      );
+    } catch (_) {}
+  }
+
+  void setFreshPointsToRedeem(int value) {
+    final clamped = value.clamp(0, maxRedeemablePoints.value);
+    freshPointsToRedeem.value = clamped;
+    _scheduleCartRefresh();
   }
 
   Future<void> _fallbackToIndividualMetaFetches(
@@ -581,6 +603,7 @@ class CartController extends GetxController {
           userId: AuthController.instance.currentUser?.uid,
           appliedCouponCode: appliedCoupon.value?.code,
           autoApplyCoupons: false,
+          freshPointsToRedeem: freshPointsToRedeem.value,
         );
         if (_buildPricingSnapshot() == snapshot) {
           cartPricing.value = result;

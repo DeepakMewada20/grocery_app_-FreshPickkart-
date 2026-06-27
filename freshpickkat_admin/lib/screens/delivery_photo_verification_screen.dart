@@ -137,6 +137,57 @@ class _DeliveryPhotoVerificationScreenState
     }
   }
 
+  Future<void> _retryGps() async {
+    setState(() {
+      _gpsError = null;
+      _step = 2;
+      _isProcessing = true;
+    });
+    final gpsOk = await _captureGps();
+    if (!gpsOk) {
+      setState(() => _isProcessing = false);
+      return;
+    }
+    // GPS success — continue with upload + delivery
+    setState(() => _step = 3);
+    final url = await _uploadImage();
+    if (url == null) {
+      setState(() {
+        _isProcessing = false;
+        _error = 'Failed to upload proof image. Please try again.';
+        _step = 1;
+      });
+      return;
+    }
+    _imageUrl = url;
+    setState(() => _step = 4);
+    try {
+      await _controller.completePhotoDelivery(
+        orderId: widget.order.orderId,
+        imageUrl: url,
+        latitude: _latitude!,
+        longitude: _longitude!,
+        gpsAccuracy: _gpsAccuracy!,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Order delivered successfully!'),
+            backgroundColor: AdminAppTheme.getSuccessColor(context),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      setState(() {
+        _isProcessing = false;
+        _error = 'Delivery verification failed: $e';
+        _step = 1;
+      });
+    }
+  }
+
   Future<bool> _captureGps() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -178,7 +229,7 @@ class _DeliveryPhotoVerificationScreenState
         _gpsAccuracy = position.accuracy;
       });
 
-      if (position.accuracy > 30) {
+      if (position.accuracy > 100) {
         setState(() {
           _gpsError =
               'GPS signal too weak (accuracy: ${position.accuracy.toStringAsFixed(0)}m). '
@@ -308,9 +359,9 @@ class _DeliveryPhotoVerificationScreenState
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _isProcessing ? null : _retakePhoto,
+              onPressed: _isProcessing ? null : _retryGps,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: const Text('Retry GPS'),
             ),
           ],
 
@@ -337,7 +388,7 @@ class _DeliveryPhotoVerificationScreenState
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _isProcessing ? null : _retakePhoto,
+              onPressed: _isProcessing ? null : _confirmPhoto,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),

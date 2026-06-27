@@ -164,6 +164,17 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 10. Verify admin can retry/mark-reviewed auto-refund jobs from payment monitoring screen
 
 ## Recent Fixes
+### Session: FreshPoints Admin Adjustment UI + Admin Profile/Appearance + Delivery Verification Tests + Bug Fixes
+- **Delivery Verification Tests**: Unit + integration tests written and passing for delivery photo verification flow
+- **Auto-refund cron interval**: Changed from 60s to 6 hours (`Duration(hours: 6)`) to reduce DB load
+- **FreshPoints `redemptionPercentageLimit` default**: Fixed from 0.50 to 50.0 (was treating 0.50 as 0.5% instead of 50%); created migration `20260625151653039`
+- **Admin Flutter compilation fixes**: Fixed duplicate `_DetailSection` class in `order_detail_screen.dart`, duplicate `_formatDate` in `order_detail_screen.dart`, and `delivery_settings_screen.dart` import issues
+- **Admin Appearance screen**: Converted from embedded widget to standalone screen with proper `_State` class pattern, menu item, and route registration
+- **Admin Profile screen**: New standalone screen (`profile_screen.dart`) with photo change, username change, password change, email change functionality
+- **Admin username change flow**: Server-side `updateAdminUsername` endpoint in `admin_endpoint.dart`; removed email local-part matching from username change; `profile_screen.dart` updated to use the new endpoint
+- **Firestore removal**: Removed sellers collection write from `admin_auth_service.dart` (we don't use Firestore)
+- **FreshPoints admin adjustment UI**: New `FreshPointsAdjustDialog` widget — tap any user to see their current balance and add/deduct points with reason. Accessible from **Referral Dashboard** → "Adjust FreshPoints" button → `UserPickerDialog` (reuses `UserSearchFilterWidget` with new `singleSelect` mode) → select user → `FreshPointsAdjustDialog`. Button removed from Active Users screen; ActiveUsersController remains reusable
+
 ### Free delivery product suggestions (`basket_suggestion_service.dart`)
 - `_scoreFreeDeliveryProducts()` fetches `isFreeDelivery = true` products via `ProductEndpoint.getProducts(freeDelivery: true, limit: 6)`
 - Phase 2: scores free delivery products not in cart using current delivery fee as savings
