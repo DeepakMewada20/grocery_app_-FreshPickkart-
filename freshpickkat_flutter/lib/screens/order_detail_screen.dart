@@ -1214,20 +1214,70 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
           ),
           ...entry.freeItems.map(
-            (freeItem) => Padding(
-              padding: EdgeInsets.only(top: 4.h),
-              child: AutoSizeText(
-                'FREE: ${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
-                style: TextStyle(
-                  color: Colors.green.shade700,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w600,
+            (freeItem) {
+              final isSmgm = freeItem.rewardSource == 'SHOP_MORE_GET_MORE';
+              return Padding(
+                padding: EdgeInsets.only(top: 4.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSmgm
+                                ? Colors.orange
+                                : Colors.green.shade600,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Text(
+                            isSmgm ? 'REWARD' : 'FREE',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        Expanded(
+                          child: AutoSizeText(
+                            '${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
+                            style: TextStyle(
+                              color: isSmgm
+                                  ? Colors.orange.shade800
+                                  : Colors.green.shade700,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            minFontSize: 9,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isSmgm) ...[
+                      SizedBox(height: 2.h),
+                      Padding(
+                        padding: EdgeInsets.only(left: 2.w),
+                        child: Text(
+                          'Unlocked via ${freeItem.rewardOfferName ?? "Shop More, Get More"}',
+                          style: TextStyle(
+                            color: Colors.orange.shade400,
+                            fontSize: 10.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                minFontSize: 9,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+              );
+            },
           ),
           SizedBox(height: 10.h),
           _buildComplaintControls(item, cs),

@@ -62,6 +62,7 @@ class _SavingsCardState extends State<SavingsCard>
       final productSavings = cart.productDiscountTotal;
       final comboSavings = cart.comboDiscountTotal;
       final bogoSavings = cart.bogoDiscountTotal;
+      final freeGiftSavings = cart.freeGiftSavings;
       final couponSavings = cart.couponDiscount;
       final deliverySavings = cart.deliveryDiscountAmount;
       final freshPointsSavings =
@@ -71,6 +72,7 @@ class _SavingsCardState extends State<SavingsCard>
           productSavings +
           comboSavings +
           bogoSavings +
+          freeGiftSavings +
           couponSavings +
           deliverySavings +
           freshPointsSavings;
@@ -111,6 +113,17 @@ class _SavingsCardState extends State<SavingsCard>
             icon: Icons.card_giftcard_rounded,
             label: 'BOGO Savings',
             amount: bogoSavings,
+            accentColor: accentColor,
+            cs: cs,
+          ),
+        );
+      }
+      if (freeGiftSavings > 0) {
+        rows.add(
+          _SavingsRow(
+            icon: Icons.celebration_rounded,
+            label: 'Free Gift Savings',
+            amount: freeGiftSavings,
             accentColor: accentColor,
             cs: cs,
           ),

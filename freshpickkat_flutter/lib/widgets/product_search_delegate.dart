@@ -327,6 +327,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       (label: 'BOGO', value: 'bogo'),
       (label: 'Combo', value: 'combo'),
       (label: 'Free Delivery', value: 'free_delivery'),
+      (label: 'Free Gift', value: 'free_gift'),
       (label: 'Up to 40% OFF', value: 'discount_40'),
       (label: 'Trending', value: 'trending'),
       (label: 'Best Seller', value: 'best_seller'),

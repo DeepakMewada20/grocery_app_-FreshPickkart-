@@ -232,6 +232,9 @@ class PostgresOfferSearchService {
       case 'free_delivery':
       case 'free delivery':
         return 'AND is_free_delivery = TRUE';
+      case 'free_gift':
+      case 'free gift':
+        return 'AND smgm.id IS NOT NULL';
       default:
         return '';
     }
@@ -244,16 +247,27 @@ class PostgresOfferSearchService {
         AND bo.status = 'active'
         AND NOW() BETWEEN bo."startsAt" AND bo."endsAt"
         ''';
+      case 'free_gift':
+      case 'free gift':
+        return '''
+        AND smgm.status = 'active'
+        AND NOW() BETWEEN smgm."startsAt" AND smgm."endsAt"
+        ''';
       default:
         return '';
     }
   }
 
   String _extraJoinForType(String offerType) {
-    if (offerType == 'bogo') {
-      return 'JOIN bogo_offer bo ON bo."triggerProductId" = p.id';
+    switch (offerType) {
+      case 'bogo':
+        return 'JOIN bogo_offer bo ON bo."triggerProductId" = p.id';
+      case 'free_gift':
+      case 'free gift':
+        return 'JOIN shop_more_get_more_offer smgm ON smgm."freeProductId" = p.id';
+      default:
+        return '';
     }
-    return '';
   }
 
   String _sortExpressionForType(String offerType) {
@@ -266,6 +280,9 @@ class PostgresOfferSearchService {
         return 'p."createdAt"';
       case 'bogo':
         return 'bo."createdAt"';
+      case 'free_gift':
+      case 'free gift':
+        return 'smgm."minimumOrderAmount"';
       default:
         return 'p."createdAt"';
     }
@@ -287,6 +304,9 @@ class PostgresOfferSearchService {
         return 'trending_score DESC, most_purchase_count DESC, product_id DESC';
       case 'bogo':
         return 'sort_value DESC, product_id DESC';
+      case 'free_gift':
+      case 'free gift':
+        return 'sort_value ASC, product_id ASC';
       default:
         return 'product_name ASC, product_id ASC';
     }

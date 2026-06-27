@@ -4,6 +4,7 @@ import '../../endpoints/bogo_endpoint.dart';
 import '../../endpoints/category_endpoint.dart';
 import '../../endpoints/combo_offer_endpoint.dart';
 import '../../endpoints/product_endpoint.dart';
+import '../../endpoints/shop_more_get_more_endpoint.dart';
 import '../../generated/protocol.dart';
 import '../delivery/delivery_engine.dart';
 import '../bogo/bogo_eligibility.dart';
@@ -76,6 +77,9 @@ class BasketSuggestionService {
   static List<Coupon>? _cachedCoupons;
   static DateTime? _cachedCouponsAt;
 
+  static List<ShopMoreGetMoreOffer>? _cachedSmgmOffers;
+  static DateTime? _cachedSmgmAt;
+
   static T? _firstWhereOrNull<T>(
     Iterable<T> values,
     bool Function(T item) test,
@@ -140,6 +144,7 @@ class BasketSuggestionService {
       freeDelivery: true,
       limit: 6,
     );
+    final smgmOffers = await _getSmgmOffers(session);
 
     // ── 2. Build all individual scored suggestions ──────────────────────────
     final scored = <_Scored>[];
@@ -196,6 +201,14 @@ class BasketSuggestionService {
             deliveryConfig: deliveryConfig,
           );
     scored.addAll(freeDeliveryScored);
+
+    final smgmScored = _scoreSmgmSuggestions(
+      cartItems: normalizedItems,
+      smgmOffers: smgmOffers,
+      cartTotal: cartTotal ?? 0,
+      productMap: productMap,
+    );
+    scored.addAll(smgmScored);
 
     // ── 3. Build combination suggestions ────────────────────────────────────
     final upgradedBaseItems = <_Scored>{};
@@ -311,6 +324,7 @@ class BasketSuggestionService {
       normalizedUserId == null || normalizedUserId.isEmpty
           ? Future.value(const <Order>[])
           : _getRecentOrders(session, normalizedUserId),
+      _getSmgmOffers(session),
     ]);
 
     final bestSellers = futures[0] as List<Product>;
@@ -322,6 +336,7 @@ class BasketSuggestionService {
     final coupons = futures[6] as List<Coupon>;
     final freeDeliveryProducts = futures[7] as List<Product>;
     final recentOrders = futures[8] as List<Order>;
+    final smgmOffers = futures[9] as List<ShopMoreGetMoreOffer>;
 
     final productPool = <Product>[
       ...bestSellers,
@@ -374,6 +389,15 @@ class BasketSuggestionService {
       deliveryConfig: deliveryConfig,
     );
     scored.addAll(emptyFreeDeliveryScored);
+
+    scored.addAll(
+      _scoreSmgmSuggestions(
+        cartItems: const [],
+        smgmOffers: smgmOffers,
+        cartTotal: 0,
+        productMap: productMap,
+      ),
+    );
 
     scored.addAll(
       _scoreEmptyOfferSuggestions(
@@ -449,6 +473,11 @@ class BasketSuggestionService {
     // 5. Coupon
     if (item.suggestion.type == 'coupon' || action?.type == 'coupon') {
       return 'coupon';
+    }
+
+    // 5b. SMGM Reward
+    if (item.suggestion.type == 'smgm_reward') {
+      return 'smgm_reward';
     }
 
     // 6. Combined
@@ -601,6 +630,8 @@ class BasketSuggestionService {
         return suggestion.title ?? action?.label ?? 'BOGO deal';
       case 'category':
         return suggestion.title ?? action?.label ?? 'Category pick';
+      case 'smgm_reward':
+        return suggestion.title ?? 'Free Gift';
       case 'product':
         return suggestion.title ?? action?.label ?? 'Popular product';
       case 'combined':
@@ -622,6 +653,8 @@ class BasketSuggestionService {
       case 'delivery':
         return suggestion.subtitle ??
             'Add a little more to unlock cheaper delivery';
+      case 'smgm_reward':
+        return suggestion.subtitle ?? 'Unlock a free gift with your order';
       case 'combo':
       case 'bogo':
         return suggestion.subtitle ?? 'Best value picks from active offers';
@@ -640,6 +673,7 @@ class BasketSuggestionService {
     switch (type) {
       case 'reorder':
         return 0;
+      case 'smgm_reward':
       case 'coupon':
         return 1;
       case 'delivery':
@@ -671,6 +705,7 @@ class BasketSuggestionService {
       'combined' => 15.0,
       'combo' => 12.0,
       'bogo' => 12.0,
+      'smgm_reward' => 18.0,
       'product' => 8.0,
       'category' => 5.0,
       _ => 0.0,
@@ -2243,6 +2278,201 @@ class BasketSuggestionService {
   // ─────────────────────────────────────────────────────────────────────────
   // Combination generator
   // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Scorer: Shop More, Get More
+  // ─────────────────────────────────────────────────────────────────────────
+  static List<_Scored> _scoreSmgmSuggestions({
+    required List<CartItemInput> cartItems,
+    required List<ShopMoreGetMoreOffer> smgmOffers,
+    required double cartTotal,
+    required Map<String, Product> productMap,
+  }) {
+    if (smgmOffers.isEmpty) return const [];
+
+    final results = <_Scored>[];
+    final activeOffers = smgmOffers
+        .where((o) => o.isActive)
+        .toList()
+      ..sort((a, b) => b.minimumOrderAmount.compareTo(a.minimumOrderAmount));
+
+    // Find the best unlocked reward (highest threshold ≤ cart total)
+    ShopMoreGetMoreOffer? unlockedReward;
+    for (final offer in activeOffers) {
+      if (cartTotal >= offer.minimumOrderAmount) {
+        unlockedReward = offer;
+        break;
+      }
+    }
+
+    // Find the next unlockable reward
+    ShopMoreGetMoreOffer? nextTier;
+    for (final offer in activeOffers) {
+      if (cartTotal < offer.minimumOrderAmount) {
+        nextTier = offer;
+        break;
+      }
+    }
+
+    // Check if the unlocked reward product is already in cart
+    final cartProductIds = cartItems.map((item) => item.productId).toSet();
+    final rewardAlreadyInCart = unlockedReward != null &&
+        cartProductIds.contains(unlockedReward.freeProductId);
+
+    // A. Reward already unlocked but not in cart — suggest adding it
+    if (unlockedReward != null && !rewardAlreadyInCart) {
+      final rewardProduct = productMap[unlockedReward.freeProductId];
+      final rewardPrice = rewardProduct?.price ?? 0;
+      final action = _primaryAction(
+        type: 'product',
+        label: 'Claim Free Gift',
+        ctaLabel: 'Add FREE ${rewardProduct?.productName ?? ''}',
+        productId: unlockedReward.freeProductId,
+        variantId: unlockedReward.freeVariantId,
+        benefit: rewardPrice,
+        extraSpend: 0,
+      );
+      results.add(
+        _Scored(
+          extraSpend: 0,
+          totalBenefit: rewardPrice,
+          score: _scoreFromComponents(
+            type: 'smgm_reward',
+            conversionProbability: 48,
+            userRelevance: 30,
+            profitImpact: (rewardPrice * 1.8).clamp(10, 30),
+            urgency: 22,
+          ),
+          suggestion: BasketSuggestion(
+            message:
+                'You unlocked FREE ${rewardProduct?.productName ?? ""}! Add it now.',
+            type: 'smgm_reward',
+            priority: 0,
+            actions: [action],
+            savingAmount: rewardPrice,
+          ),
+        ),
+      );
+    }
+
+    // B. Not yet at threshold — suggest next tier
+    if (nextTier != null) {
+      final remaining = nextTier.minimumOrderAmount - cartTotal;
+      final rewardProduct = productMap[nextTier.freeProductId];
+      final rewardPrice = rewardProduct?.price ?? 0;
+      final action = _primaryAction(
+        type: 'product',
+        label: 'Unlock Free Gift',
+        ctaLabel: 'Add ₹${remaining.toStringAsFixed(0)} more',
+        productId: nextTier.freeProductId,
+        variantId: nextTier.freeVariantId,
+        benefit: rewardPrice,
+        extraSpend: remaining,
+      );
+      results.add(
+        _Scored(
+          extraSpend: remaining,
+          totalBenefit: rewardPrice,
+          score: _scoreFromComponents(
+            type: 'smgm_reward',
+            conversionProbability: 35,
+            userRelevance: 26,
+            profitImpact: (rewardPrice * 1.8).clamp(10, 30),
+            urgency: remaining <= 50 ? 24 : 16,
+          ),
+          suggestion: BasketSuggestion(
+            message:
+                'Add ₹${remaining.toStringAsFixed(0)} more for FREE ${rewardProduct?.productName ?? "gift"}',
+            type: 'smgm_reward',
+            priority: 0,
+            actions: [action],
+            progressCurrent: cartTotal,
+            progressTarget: nextTier.minimumOrderAmount,
+            progressRemaining: remaining,
+            savingAmount: rewardPrice,
+          ),
+        ),
+      );
+
+      // C. Higher tier suggestion (next after already unlocked)
+      if (unlockedReward != null && rewardAlreadyInCart) {
+        final nextRemaining = nextTier.minimumOrderAmount - cartTotal;
+        final nextProduct = productMap[nextTier.freeProductId];
+        final nextPrice = nextProduct?.price ?? 0;
+        final nextAction = _primaryAction(
+          type: 'product',
+          label: 'Next Reward',
+          ctaLabel: 'Spend ₹${nextRemaining.toStringAsFixed(0)} more',
+          productId: nextTier.freeProductId,
+          variantId: nextTier.freeVariantId,
+          benefit: nextPrice,
+          extraSpend: nextRemaining,
+        );
+        results.add(
+          _Scored(
+            extraSpend: nextRemaining,
+            totalBenefit: nextPrice,
+            score: _scoreFromComponents(
+              type: 'smgm_reward',
+              conversionProbability: 28,
+              userRelevance: 22,
+              profitImpact: (nextPrice * 1.8).clamp(10, 30),
+              urgency: nextRemaining <= 50 ? 20 : 14,
+            ),
+            suggestion: BasketSuggestion(
+              message:
+                  'Next reward: FREE ${nextProduct?.productName ?? "gift"} at ₹${nextTier.minimumOrderAmount.toStringAsFixed(0)}',
+              type: 'smgm_reward',
+              priority: 0,
+              actions: [nextAction],
+              progressCurrent: cartTotal,
+              progressTarget: nextTier.minimumOrderAmount,
+              progressRemaining: nextRemaining,
+              savingAmount: nextPrice,
+            ),
+          ),
+        );
+      }
+    }
+
+    // D. Empty cart / low cart — general "start unlocking" suggestion
+    if (cartTotal <= 0 && activeOffers.isNotEmpty) {
+      final firstTier = activeOffers.last;
+      final rewardProduct = productMap[firstTier.freeProductId];
+      results.add(
+        _Scored(
+          extraSpend: firstTier.minimumOrderAmount,
+          totalBenefit: rewardProduct?.price ?? 0,
+          score: _scoreFromComponents(
+            type: 'smgm_reward',
+            conversionProbability: 24,
+            userRelevance: 18,
+            profitImpact: (rewardProduct?.price ?? 0 * 1.5).clamp(8, 22),
+            urgency: 12,
+          ),
+          suggestion: BasketSuggestion(
+            message:
+                'Shop for ₹${firstTier.minimumOrderAmount.toStringAsFixed(0)} to unlock a free gift!',
+            type: 'smgm_reward',
+            priority: 0,
+            actions: [
+              _primaryAction(
+                type: 'product',
+                label: 'Start Shopping',
+                ctaLabel: 'Browse',
+                benefit: rewardProduct?.price ?? 0,
+                extraSpend: firstTier.minimumOrderAmount,
+              ),
+            ],
+            progressTarget: firstTier.minimumOrderAmount,
+            savingAmount: rewardProduct?.price ?? 0,
+          ),
+        ),
+      );
+    }
+
+    return results;
+  }
+
   static List<_Scored> _buildCombinations({
     required double cartTotal,
     required List<Coupon> coupons,
@@ -2402,6 +2632,21 @@ class BasketSuggestionService {
     final offers = await ComboOfferEndpoint().getActiveComboOffers(session);
     _cachedComboOffers = offers;
     _cachedComboAt = DateTime.now();
+    return offers;
+  }
+
+  static Future<List<ShopMoreGetMoreOffer>> _getSmgmOffers(
+    Session session,
+  ) async {
+    if (_cachedSmgmOffers != null &&
+        _cachedSmgmAt != null &&
+        DateTime.now().difference(_cachedSmgmAt!) < _cacheTtl) {
+      return _cachedSmgmOffers!;
+    }
+    final offers =
+        await ShopMoreGetMoreEndpoint().getActiveOffers(session);
+    _cachedSmgmOffers = offers;
+    _cachedSmgmAt = DateTime.now();
     return offers;
   }
 

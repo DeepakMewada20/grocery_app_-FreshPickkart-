@@ -111,10 +111,12 @@ class AdminEndpoint extends Endpoint {
     final results = await Future.wait([
       _adminService.getDashboardStats(session),
       _adminService.getAnalytics(session),
+      _adminService.getSmgmAnalytics(session),
     ]);
     return protocol.AdminDashboardHydrated(
       stats: results[0] as protocol.AdminDashboardStats,
       analytics: results[1] as protocol.AdminAnalytics,
+      smgmAnalytics: results[2] as protocol.SmgmAnalytics,
     );
   }
 

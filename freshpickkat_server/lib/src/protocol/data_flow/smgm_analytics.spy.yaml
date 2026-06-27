@@ -1,0 +1,7 @@
+class: SmgmAnalytics
+fields:
+  totalOffers: int
+  activeOffers: int
+  totalRewardsGiven: int
+  totalRewardValue: double
+  totalOrdersWithSmgm: int

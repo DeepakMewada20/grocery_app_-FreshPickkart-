@@ -26,6 +26,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
     this.bogoFreeProductIds,
     this.comboOfferIds,
     bool? isFreeDelivery,
+    this.shopMoreGetMoreOfferId,
+    this.shopMoreGetMoreMinAmount,
   }) : isFreeDelivery = isFreeDelivery ?? false;
 
   factory ProductVariant({
@@ -40,6 +42,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? isFreeDelivery,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
   }) = _ProductVariantImpl;
 
   factory ProductVariant.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -67,6 +71,10 @@ abstract class ProductVariant implements _i1.SerializableModel {
       isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
+      shopMoreGetMoreOfferId:
+          jsonSerialization['shopMoreGetMoreOfferId'] as String?,
+      shopMoreGetMoreMinAmount:
+          (jsonSerialization['shopMoreGetMoreMinAmount'] as num?)?.toDouble(),
     );
   }
 
@@ -92,6 +100,10 @@ abstract class ProductVariant implements _i1.SerializableModel {
 
   bool isFreeDelivery;
 
+  String? shopMoreGetMoreOfferId;
+
+  double? shopMoreGetMoreMinAmount;
+
   /// Returns a shallow copy of this [ProductVariant]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -107,6 +119,8 @@ abstract class ProductVariant implements _i1.SerializableModel {
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? isFreeDelivery,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -125,6 +139,10 @@ abstract class ProductVariant implements _i1.SerializableModel {
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
       if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
       'isFreeDelivery': isFreeDelivery,
+      if (shopMoreGetMoreOfferId != null)
+        'shopMoreGetMoreOfferId': shopMoreGetMoreOfferId,
+      if (shopMoreGetMoreMinAmount != null)
+        'shopMoreGetMoreMinAmount': shopMoreGetMoreMinAmount,
     };
   }
 
@@ -149,6 +167,8 @@ class _ProductVariantImpl extends ProductVariant {
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? isFreeDelivery,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
   }) : super._(
          variantId: variantId,
          quantityValue: quantityValue,
@@ -161,6 +181,8 @@ class _ProductVariantImpl extends ProductVariant {
          bogoFreeProductIds: bogoFreeProductIds,
          comboOfferIds: comboOfferIds,
          isFreeDelivery: isFreeDelivery,
+         shopMoreGetMoreOfferId: shopMoreGetMoreOfferId,
+         shopMoreGetMoreMinAmount: shopMoreGetMoreMinAmount,
        );
 
   /// Returns a shallow copy of this [ProductVariant]
@@ -179,6 +201,8 @@ class _ProductVariantImpl extends ProductVariant {
     Object? bogoFreeProductIds = _Undefined,
     Object? comboOfferIds = _Undefined,
     bool? isFreeDelivery,
+    Object? shopMoreGetMoreOfferId = _Undefined,
+    Object? shopMoreGetMoreMinAmount = _Undefined,
   }) {
     return ProductVariant(
       variantId: variantId ?? this.variantId,
@@ -198,6 +222,12 @@ class _ProductVariantImpl extends ProductVariant {
           ? comboOfferIds
           : this.comboOfferIds?.map((e0) => e0).toList(),
       isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
+      shopMoreGetMoreOfferId: shopMoreGetMoreOfferId is String?
+          ? shopMoreGetMoreOfferId
+          : this.shopMoreGetMoreOfferId,
+      shopMoreGetMoreMinAmount: shopMoreGetMoreMinAmount is double?
+          ? shopMoreGetMoreMinAmount
+          : this.shopMoreGetMoreMinAmount,
     );
   }
 }

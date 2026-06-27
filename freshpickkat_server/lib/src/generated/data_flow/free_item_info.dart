@@ -25,6 +25,7 @@ abstract class FreeItemInfo
     this.rewardOfferId,
     this.rewardOfferName,
     this.rewardThreshold,
+    this.rewardValue,
   });
 
   factory FreeItemInfo({
@@ -38,6 +39,7 @@ abstract class FreeItemInfo
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? rewardValue,
   }) = _FreeItemInfoImpl;
 
   factory FreeItemInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -53,6 +55,7 @@ abstract class FreeItemInfo
       rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
       rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
           ?.toDouble(),
+      rewardValue: (jsonSerialization['rewardValue'] as num?)?.toDouble(),
     );
   }
 
@@ -76,6 +79,8 @@ abstract class FreeItemInfo
 
   double? rewardThreshold;
 
+  double? rewardValue;
+
   /// Returns a shallow copy of this [FreeItemInfo]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -90,6 +95,7 @@ abstract class FreeItemInfo
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? rewardValue,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -105,6 +111,7 @@ abstract class FreeItemInfo
       if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (rewardValue != null) 'rewardValue': rewardValue,
     };
   }
 
@@ -122,6 +129,7 @@ abstract class FreeItemInfo
       if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (rewardValue != null) 'rewardValue': rewardValue,
     };
   }
 
@@ -145,6 +153,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? rewardValue,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -156,6 +165,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
          rewardOfferId: rewardOfferId,
          rewardOfferName: rewardOfferName,
          rewardThreshold: rewardThreshold,
+         rewardValue: rewardValue,
        );
 
   /// Returns a shallow copy of this [FreeItemInfo]
@@ -173,6 +183,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     Object? rewardOfferId = _Undefined,
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
+    Object? rewardValue = _Undefined,
   }) {
     return FreeItemInfo(
       productId: productId ?? this.productId,
@@ -193,6 +204,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
       rewardThreshold: rewardThreshold is double?
           ? rewardThreshold
           : this.rewardThreshold,
+      rewardValue: rewardValue is double? ? rewardValue : this.rewardValue,
     );
   }
 }

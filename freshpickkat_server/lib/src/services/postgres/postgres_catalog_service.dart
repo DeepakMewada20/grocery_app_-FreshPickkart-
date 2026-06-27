@@ -445,6 +445,11 @@ class PostgresCatalogService {
               session,
               where: (t) => t.productId.inSet(productIds),
             ),
+            ShopMoreGetMoreOfferRow.db.find(
+              session,
+              where: (t) =>
+                  t.freeProductId.inSet(productIds) & t.status.equals('active'),
+            ),
           ]
           as List<Future<dynamic>>,
     );
@@ -453,6 +458,7 @@ class PostgresCatalogService {
     final variants = batch1[1] as List<ProductVariantRow>;
     final bogoOfferRows = batch1[2] as List<BogoOfferRow>;
     final comboItemRows = batch1[3] as List<ComboOfferItemRow>;
+    final smgmRows = batch1[4] as List<ShopMoreGetMoreOfferRow>;
 
     final productById = {
       for (final product in products) product.id!.toString(): product,
@@ -640,6 +646,18 @@ class PostgresCatalogService {
       }
     }
 
+    // Build SMGM map: productId → {offerId, minAmount}
+    final smgmByProduct = <String, Map<String, dynamic>>{};
+    for (final smgm in smgmRows) {
+      if (now.isBefore(smgm.startsAt) || now.isAfter(smgm.endsAt)) continue;
+      final productId = smgm.freeProductId.toString();
+      if (!productIds.contains(smgm.freeProductId)) continue;
+      smgmByProduct[productId] = {
+        'offerId': smgm.id?.toString() ?? '',
+        'minAmount': smgm.minimumOrderAmount,
+      };
+    }
+
     final hydrated = <Product>[];
     for (final productId in orderedProductIds) {
       final productRow = productById[productId];
@@ -711,6 +729,10 @@ class PostgresCatalogService {
               quantityUnit: variant.quantityUnit,
               freeDeliverySources: freeDeliverySources,
             ),
+            shopMoreGetMoreOfferId:
+                smgmByProduct[productId]?['offerId'] as String?,
+            shopMoreGetMoreMinAmount:
+                smgmByProduct[productId]?['minAmount'] as double?,
           );
         },
       ).toList();
@@ -806,6 +828,10 @@ class PostgresCatalogService {
           hasCategoryOffer: categoryOfferByCategory.containsKey(
             productRow.categoryId.toString(),
           ),
+          shopMoreGetMoreOfferId:
+              smgmByProduct[productId]?['offerId'] as String?,
+          shopMoreGetMoreMinAmount:
+              smgmByProduct[productId]?['minAmount'] as double?,
           variants: mappedVariants.isEmpty ? null : mappedVariants,
         ),
       );
@@ -866,6 +892,8 @@ class PostgresCatalogService {
             bogoFreeProductIds: variant.bogoFreeProductIds,
             isFreeDelivery: variant.isFreeDelivery,
             comboOfferIds: variant.comboOfferIds,
+            shopMoreGetMoreOfferId: variant.shopMoreGetMoreOfferId,
+            shopMoreGetMoreMinAmount: variant.shopMoreGetMoreMinAmount,
           ),
         );
       }

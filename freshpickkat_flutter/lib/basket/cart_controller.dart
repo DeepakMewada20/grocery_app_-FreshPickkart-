@@ -1125,11 +1125,22 @@ class CartController extends GetxController {
     return cartPricing.value?.categoryOfferDiscount ?? 0;
   }
 
+  double get freeGiftSavings {
+    final freeItems = cartPricing.value?.freeItems ?? [];
+    return freeItems
+        .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+        .fold<double>(
+          0,
+          (sum, item) => sum + (item.rewardValue ?? 0) * item.quantity,
+        );
+  }
+
   double get totalSavings {
     return productDiscountTotal +
         comboDiscountTotal +
         bogoDiscountTotal +
-        categoryOfferDiscountTotal;
+        categoryOfferDiscountTotal +
+        freeGiftSavings;
   }
 
   double get deliveryFee {

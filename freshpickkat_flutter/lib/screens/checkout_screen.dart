@@ -1537,6 +1537,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     }
 
+    // Add SMGM free items
+    final smgmFreeItems =
+        (cartController.cartPricing.value?.freeItems ?? [])
+            .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+            .toList();
+    for (final freeItem in smgmFreeItems) {
+      items.add(
+        OrderItem(
+          productId: freeItem.productId,
+          variantId: freeItem.variantId,
+          productName: freeItem.productName,
+          productImage: '',
+          quantity: freeItem.quantity,
+          unitPrice: 0,
+          totalPrice: 0,
+          isFreeItem: true,
+          rewardOfferId: freeItem.rewardOfferId,
+          rewardOfferName: freeItem.rewardOfferName,
+          rewardThreshold: freeItem.rewardThreshold,
+          rewardSource: freeItem.rewardSource,
+        ),
+      );
+    }
+
     for (final group in cartController.comboGroups) {
       for (final item in group.items) {
         items.add(
@@ -2366,6 +2390,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     }
 
+    final smgmFreeItems =
+        (cartController.cartPricing.value?.freeItems ?? [])
+            .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+            .toList();
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -2390,6 +2419,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             ...bogoItems.map(
               (item) => _buildBogoCheckoutCard(item, cs),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (smgmFreeItems.isNotEmpty) ...[
+            _buildSectionLabel('Free Gifts', cs,
+                badgeColor: Colors.orange),
+            SizedBox(height: 8.h),
+            ...smgmFreeItems.map(
+              (item) => _buildSmgmCheckoutItem(item, cs),
             ),
             SizedBox(height: 12.h),
           ],
@@ -2593,6 +2631,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _buildSmgmCheckoutItem(FreeItemInfo item, ColorScheme cs) {
+    final offerTheme =
+        Theme.of(Get.context!).extension<AppOfferTheme>() ??
+        AppOfferTheme.fallback(Theme.of(Get.context!).brightness);
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.all(10.w),
+      decoration: BoxDecoration(
+        color: offerTheme.badgeSoft,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: offerTheme.badgeBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+            decoration: BoxDecoration(
+              color: offerTheme.badge,
+              borderRadius: BorderRadius.circular(4.r),
+            ),
+            child: Text(
+              'FREE',
+              style: TextStyle(
+                color: offerTheme.onBadge,
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${item.productName} x${item.quantity}',
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (item.rewardOfferName != null &&
+                    item.rewardOfferName!.isNotEmpty)
+                  Text(
+                    'Unlocked via ${item.rewardOfferName}',
+                    style: TextStyle(
+                      color: offerTheme.badge.withValues(alpha: 0.8),
+                      fontSize: 10.sp,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (item.rewardValue != null && item.rewardValue! > 0)
+            Text(
+              '₹${item.rewardValue!.formatPrice}',
+              style: TextStyle(
+                color: offerTheme.badge,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTotalItemCount(int totalCount, ColorScheme cs) {
     return Container(
       width: double.infinity,
@@ -2787,6 +2893,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _buildBillRow(
               'BOGO Savings',
               '-₹${cartController.bogoDiscountTotal.formatPrice}',
+              valueColor: Colors.green,
+              cs: cs,
+            ),
+          ],
+          if (cartController.freeGiftSavings > 0) ...[
+            SizedBox(height: 8.h),
+            _buildBillRow(
+              'Free Gift Savings',
+              '-₹${cartController.freeGiftSavings.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),

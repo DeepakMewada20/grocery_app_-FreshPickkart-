@@ -416,15 +416,28 @@ class PricingEngine {
     );
     if (smgmOffer != null) {
       String smgmProductName = '';
+      double smgmRewardValue = 0;
       if (productMap.containsKey(smgmOffer.freeProductId)) {
-        smgmProductName =
-            productMap[smgmOffer.freeProductId]?.productName ?? '';
+        final p = productMap[smgmOffer.freeProductId]!;
+        smgmProductName = p.productName ?? '';
+        smgmRewardValue = p.price;
       } else {
         try {
           final parsedPid = tryParseUuid(smgmOffer.freeProductId);
           if (parsedPid != null) {
             final pRow = await ProductRow.db.findById(session, parsedPid);
             smgmProductName = pRow?.name ?? '';
+            if (pRow != null) {
+              final pVariants = await ProductVariantRow.db.find(
+                session,
+                where: (t) =>
+                    t.productId.equals(pRow.id!) & t.status.equals('active'),
+                limit: 1,
+              );
+              smgmRewardValue = pVariants.isNotEmpty
+                  ? pVariants.first.salePrice
+                  : 0.0;
+            }
           }
         } catch (_) {}
       }
@@ -440,6 +453,7 @@ class PricingEngine {
           rewardOfferId: smgmOffer.offerId,
           rewardOfferName: smgmOffer.name,
           rewardThreshold: smgmOffer.minimumOrderAmount,
+          rewardValue: smgmRewardValue,
         ),
       );
       appliedOffersList.add(

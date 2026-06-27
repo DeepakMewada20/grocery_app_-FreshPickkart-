@@ -10,3 +10,4 @@ fields:
   rewardOfferId: String?
   rewardOfferName: String?
   rewardThreshold: double?
+  rewardValue: double?

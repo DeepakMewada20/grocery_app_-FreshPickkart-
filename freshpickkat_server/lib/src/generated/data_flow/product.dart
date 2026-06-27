@@ -45,6 +45,8 @@ abstract class Product
     this.bogoFreeProductIds,
     this.comboOfferIds,
     bool? hasCategoryOffer,
+    this.shopMoreGetMoreOfferId,
+    this.shopMoreGetMoreMinAmount,
     this.variants,
   }) : isFreeDelivery = isFreeDelivery ?? false,
        hasCategoryOffer = hasCategoryOffer ?? false;
@@ -78,6 +80,8 @@ abstract class Product
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? hasCategoryOffer,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
     List<_i2.ProductVariant>? variants,
   }) = _ProductImpl;
 
@@ -129,6 +133,10 @@ abstract class Product
           : _i1.BoolJsonExtension.fromJson(
               jsonSerialization['hasCategoryOffer'],
             ),
+      shopMoreGetMoreOfferId:
+          jsonSerialization['shopMoreGetMoreOfferId'] as String?,
+      shopMoreGetMoreMinAmount:
+          (jsonSerialization['shopMoreGetMoreMinAmount'] as num?)?.toDouble(),
       variants: jsonSerialization['variants'] == null
           ? null
           : _i3.Protocol().deserialize<List<_i2.ProductVariant>>(
@@ -193,6 +201,10 @@ abstract class Product
 
   bool hasCategoryOffer;
 
+  String? shopMoreGetMoreOfferId;
+
+  double? shopMoreGetMoreMinAmount;
+
   List<_i2.ProductVariant>? variants;
 
   /// Returns a shallow copy of this [Product]
@@ -227,6 +239,8 @@ abstract class Product
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? hasCategoryOffer,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
     List<_i2.ProductVariant>? variants,
   });
   @override
@@ -263,6 +277,10 @@ abstract class Product
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
       if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
       'hasCategoryOffer': hasCategoryOffer,
+      if (shopMoreGetMoreOfferId != null)
+        'shopMoreGetMoreOfferId': shopMoreGetMoreOfferId,
+      if (shopMoreGetMoreMinAmount != null)
+        'shopMoreGetMoreMinAmount': shopMoreGetMoreMinAmount,
       if (variants != null)
         'variants': variants?.toJson(valueToJson: (v) => v.toJson()),
     };
@@ -302,6 +320,10 @@ abstract class Product
         'bogoFreeProductIds': bogoFreeProductIds?.toJson(),
       if (comboOfferIds != null) 'comboOfferIds': comboOfferIds?.toJson(),
       'hasCategoryOffer': hasCategoryOffer,
+      if (shopMoreGetMoreOfferId != null)
+        'shopMoreGetMoreOfferId': shopMoreGetMoreOfferId,
+      if (shopMoreGetMoreMinAmount != null)
+        'shopMoreGetMoreMinAmount': shopMoreGetMoreMinAmount,
       if (variants != null)
         'variants': variants?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
     };
@@ -345,6 +367,8 @@ class _ProductImpl extends Product {
     List<String>? bogoFreeProductIds,
     List<String>? comboOfferIds,
     bool? hasCategoryOffer,
+    String? shopMoreGetMoreOfferId,
+    double? shopMoreGetMoreMinAmount,
     List<_i2.ProductVariant>? variants,
   }) : super._(
          productId: productId,
@@ -375,6 +399,8 @@ class _ProductImpl extends Product {
          bogoFreeProductIds: bogoFreeProductIds,
          comboOfferIds: comboOfferIds,
          hasCategoryOffer: hasCategoryOffer,
+         shopMoreGetMoreOfferId: shopMoreGetMoreOfferId,
+         shopMoreGetMoreMinAmount: shopMoreGetMoreMinAmount,
          variants: variants,
        );
 
@@ -411,6 +437,8 @@ class _ProductImpl extends Product {
     Object? bogoFreeProductIds = _Undefined,
     Object? comboOfferIds = _Undefined,
     bool? hasCategoryOffer,
+    Object? shopMoreGetMoreOfferId = _Undefined,
+    Object? shopMoreGetMoreMinAmount = _Undefined,
     Object? variants = _Undefined,
   }) {
     return Product(
@@ -454,6 +482,12 @@ class _ProductImpl extends Product {
           ? comboOfferIds
           : this.comboOfferIds?.map((e0) => e0).toList(),
       hasCategoryOffer: hasCategoryOffer ?? this.hasCategoryOffer,
+      shopMoreGetMoreOfferId: shopMoreGetMoreOfferId is String?
+          ? shopMoreGetMoreOfferId
+          : this.shopMoreGetMoreOfferId,
+      shopMoreGetMoreMinAmount: shopMoreGetMoreMinAmount is double?
+          ? shopMoreGetMoreMinAmount
+          : this.shopMoreGetMoreMinAmount,
       variants: variants is List<_i2.ProductVariant>?
           ? variants
           : this.variants?.map((e0) => e0.copyWith()).toList(),

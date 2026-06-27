@@ -11,3 +11,5 @@ fields:
   bogoFreeProductIds: List<String>?
   comboOfferIds: List<String>?
   isFreeDelivery: bool, default=false
+  shopMoreGetMoreOfferId: String?
+  shopMoreGetMoreMinAmount: double?

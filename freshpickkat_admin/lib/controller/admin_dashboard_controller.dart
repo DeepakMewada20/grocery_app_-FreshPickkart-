@@ -19,6 +19,7 @@ class AdminDashboardController extends GetxController {
 
   final Rx<AdminDashboardStats?> stats = Rx<AdminDashboardStats?>(null);
   final Rx<AdminAnalytics?> analytics = Rx<AdminAnalytics?>(null);
+  final Rx<SmgmAnalytics?> smgmAnalytics = Rx<SmgmAnalytics?>(null);
   final RxBool isLoading = false.obs;
   final RxnString error = RxnString(null);
 
@@ -44,6 +45,7 @@ class AdminDashboardController extends GetxController {
 
       stats.value = hydrated.stats;
       analytics.value = hydrated.analytics;
+      smgmAnalytics.value = hydrated.smgmAnalytics;
     } on NoInternetException {
       networkController.showError(onRetry: loadDashboard);
     } on NetworkException {

@@ -10,9 +10,14 @@ bool isBogoProduct(Product product) {
       (product.bogoFreeProductIds?.isNotEmpty ?? false);
 }
 
+bool isSmgmProduct(Product product) {
+  return product.shopMoreGetMoreOfferId?.isNotEmpty == true;
+}
+
 bool hasProductOffer(Product product) {
   if (isBogoProduct(product)) return true;
   if (product.isFreeDelivery) return true;
+  if (isSmgmProduct(product)) return true;
   return _resolveOfferValue(product) > 0;
 }
 
@@ -22,6 +27,10 @@ String buildProductOfferLabel(Product product) {
   }
   if (product.isFreeDelivery) {
     return 'FREE DELIVERY';
+  }
+  if (isSmgmProduct(product)) {
+    final minAmount = product.shopMoreGetMoreMinAmount ?? 0;
+    return 'FREE @ ₹${minAmount.toStringAsFixed(0)}+';
   }
 
   final percentValue = _resolveOfferValue(product);
@@ -47,6 +56,10 @@ String buildProductOfferLabelCard(Product product) {
   }
   if (product.isFreeDelivery) {
     return 'FREE DELIVERY';
+  }
+  if (isSmgmProduct(product)) {
+    final minAmount = product.shopMoreGetMoreMinAmount ?? 0;
+    return 'FREE @ ₹${minAmount.toStringAsFixed(0)}+';
   }
 
   final percentValue = _resolveOfferValue(product);

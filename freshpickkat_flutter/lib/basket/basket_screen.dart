@@ -27,6 +27,7 @@ import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
 import 'package:freshpickkat_flutter/basket/widgets/confetti_burst_widget.dart';
 import 'package:freshpickkat_flutter/basket/widgets/reward_banner_overlay.dart';
 import 'package:freshpickkat_flutter/basket/widgets/savings_card.dart';
+import 'package:freshpickkat_flutter/basket/widgets/reward_progress_card.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
@@ -139,6 +140,7 @@ class _BasketScreenState extends State<BasketScreen> {
                                 );
                               }),
                               _buildCartItemsList(context, cartController, cs),
+                              const RewardProgressCard(),
                               const BasketSuggestionsSection(),
                     const CouponSection(),
                     _buildFreshPointsSection(cartController, cs),
@@ -177,8 +179,89 @@ class _BasketScreenState extends State<BasketScreen> {
         ...cartController.comboGroups.map(
           (group) => _buildComboGroupCard(cartController, group, cs),
         ),
+        ..._buildSmgmFreeItems(context, cartController, cs),
       ],
     );
+  }
+
+  List<Widget> _buildSmgmFreeItems(
+    BuildContext context,
+    CartController cartController,
+    ColorScheme cs,
+  ) {
+    final freeItems = cartController.cartPricing.value?.freeItems ?? [];
+    final smgmItems = freeItems
+        .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+        .toList();
+    if (smgmItems.isEmpty) return const [];
+
+    final offerTheme =
+        Theme.of(context).extension<AppOfferTheme>() ??
+        AppOfferTheme.fallback(Theme.of(context).brightness);
+
+    return smgmItems.map((freeItem) {
+      return Container(
+        margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: offerTheme.badgeSoft,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: offerTheme.badgeBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: offerTheme.badge,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                'FREE',
+                style: TextStyle(
+                  color: offerTheme.onBadge,
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    freeItem.productName,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'x${freeItem.quantity}  •  Unlocked via Shop More, Get More',
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                      fontSize: 11.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (freeItem.rewardValue != null && freeItem.rewardValue! > 0)
+              Text(
+                '₹${freeItem.rewardValue!.toStringAsFixed(0)}',
+                style: TextStyle(
+                  color: offerTheme.badge,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   Widget _buildRegularCartItem(

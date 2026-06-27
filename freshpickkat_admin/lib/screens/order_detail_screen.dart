@@ -1277,6 +1277,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   List<Widget> _buildGroupedOrderItemWidgets(
     AdminGroupedOrderSections groupedItems,
   ) {
+    final smgmItems = groupedItems.individualItems
+        .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+        .toList();
+    final otherItems = groupedItems.individualItems
+        .where((item) => item.rewardSource != 'SHOP_MORE_GET_MORE')
+        .toList();
+
     return [
       if (groupedItems.bogoGroups.isNotEmpty) ...[
         _orderItemSectionTitle('BOGO Offers'),
@@ -1286,11 +1293,77 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _orderItemSectionTitle('Combo Offers'),
         ...groupedItems.comboGroups.map(_buildComboOrderGroup),
       ],
-      if (groupedItems.individualItems.isNotEmpty) ...[
+      if (smgmItems.isNotEmpty) ...[
+        _orderItemSectionTitle('Reward Items (Shop More, Get More)'),
+        ...smgmItems.map(_buildSmgmRewardItem),
+      ],
+      if (otherItems.isNotEmpty) ...[
         _orderItemSectionTitle('Individual Items'),
-        ...groupedItems.individualItems.map(_buildOrderItemCard),
+        ...otherItems.map(_buildOrderItemCard),
       ],
     ];
+  }
+
+  Widget _buildSmgmRewardItem(OrderItem item) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  'REWARD',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.sp.clamp(8.0, 11.0),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  '${item.productName} x${item.quantity}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.sp.clamp(12.0, 16.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'Offer: ${item.rewardOfferName ?? "Shop More, Get More"}',
+            style: TextStyle(
+              fontSize: 12.sp.clamp(10.0, 13.0),
+              color: Colors.orange.shade800,
+            ),
+          ),
+          if (item.rewardThreshold != null && item.rewardThreshold! > 0)
+            Text(
+              'Threshold: ₹${item.rewardThreshold!.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: 12.sp.clamp(10.0, 13.0),
+                color: Colors.grey.shade600,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _orderItemSectionTitle(String title) {

@@ -5,6 +5,7 @@ import '../../generated/protocol.dart'
         AdminAuditLogRow,
         AppUserRow,
         CustomerOrderRow,
+        OrderItemRow,
         ProductRow,
         ProductVariantRow;
 import '../../generated/protocol.dart' as protocol;
@@ -358,6 +359,42 @@ class PostgresAdminService {
       cancellationRate: cancellationRate,
       lowStockCount: lowStockCount,
       topProducts: topProducts,
+    );
+  }
+
+  Future<protocol.SmgmAnalytics> getSmgmAnalytics(Session session) async {
+    final totalOffers = await protocol.ShopMoreGetMoreOfferRow.db.count(session);
+    final activeOffers = await protocol.ShopMoreGetMoreOfferRow.db.count(
+      session,
+      where: (t) => t.status.equals('active'),
+    );
+
+    final smgmOrderItems = await OrderItemRow.db.find(
+      session,
+      where: (t) => t.rewardSource.equals('SHOP_MORE_GET_MORE'),
+    );
+
+    final totalRewardsGiven = smgmOrderItems.fold<int>(
+      0,
+      (sum, item) => sum + (item.quantity ?? 0),
+    );
+    final totalRewardValue = smgmOrderItems.fold<double>(
+      0,
+      (sum, item) => sum + (item.unitPrice ?? 0) * (item.quantity ?? 0),
+    );
+
+    final orderIds = smgmOrderItems
+        .map((item) => item.orderId)
+        .whereType<UuidValue>()
+        .toSet();
+    final totalOrdersWithSmgm = orderIds.length;
+
+    return protocol.SmgmAnalytics(
+      totalOffers: totalOffers,
+      activeOffers: activeOffers,
+      totalRewardsGiven: totalRewardsGiven,
+      totalRewardValue: totalRewardValue,
+      totalOrdersWithSmgm: totalOrdersWithSmgm,
     );
   }
 

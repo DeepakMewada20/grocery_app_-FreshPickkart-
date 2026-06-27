@@ -635,6 +635,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ],
                           ),
                         ),
+                      if (isSmgmProduct(displayProduct))
+                        Container(
+                          margin: EdgeInsets.only(top: 12.h),
+                          padding: EdgeInsets.all(14.w),
+                          decoration: BoxDecoration(
+                            color: offerTheme.badgeSoft,
+                            borderRadius: BorderRadius.circular(18.r),
+                            border: Border.all(color: offerTheme.badgeBorder),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.card_giftcard_rounded,
+                                    color: offerTheme.badge,
+                                    size: 20.r,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Expanded(
+                                    child: Text(
+                                      'Get this product FREE on orders above ₹${displayProduct.shopMoreGetMoreMinAmount?.toStringAsFixed(0) ?? "0"}.',
+                                      style: TextStyle(
+                                        color: offerTheme.badge,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Unlock this free gift when your cart reaches ₹${displayProduct.shopMoreGetMoreMinAmount?.toStringAsFixed(0) ?? "0"}. Add more items to qualify!',
+                                style: TextStyle(
+                                  color: offerTheme.badge.withValues(alpha: 0.8),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       SizedBox(height: 4.h),
                       const Text(
                         '(Inclusive of all taxes)',

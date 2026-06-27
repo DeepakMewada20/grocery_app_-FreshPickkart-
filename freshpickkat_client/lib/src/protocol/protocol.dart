@@ -124,56 +124,57 @@ import 'data_flow/refund_record.dart' as _i111;
 import 'data_flow/register_fcm_token_request.dart' as _i112;
 import 'data_flow/shop_more_get_more_offer.dart' as _i113;
 import 'data_flow/shop_more_get_more_offer_page.dart' as _i114;
-import 'data_flow/sub_category.dart' as _i115;
-import 'data_flow/support_issue.dart' as _i116;
-import 'data_flow/top_referrer_entry.dart' as _i117;
+import 'data_flow/smgm_analytics.dart' as _i115;
+import 'data_flow/sub_category.dart' as _i116;
+import 'data_flow/support_issue.dart' as _i117;
+import 'data_flow/top_referrer_entry.dart' as _i118;
 import 'package:freshpickkat_client/src/protocol/data_flow/app_user.dart'
-    as _i118;
-import 'package:freshpickkat_client/src/protocol/data_flow/admin_audit_log_entry.dart'
     as _i119;
-import 'package:freshpickkat_client/src/protocol/data_flow/active_user_statistics.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_audit_log_entry.dart'
     as _i120;
-import 'package:freshpickkat_client/src/protocol/data_flow/banner.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/active_user_statistics.dart'
     as _i121;
-import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/banner.dart'
     as _i122;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item_input.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/bogo_offer.dart'
     as _i123;
-import 'package:freshpickkat_client/src/protocol/data_flow/category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item_input.dart'
     as _i124;
-import 'package:freshpickkat_client/src/protocol/data_flow/category_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/category.dart'
     as _i125;
-import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/category_offer.dart'
     as _i126;
-import 'package:freshpickkat_client/src/protocol/data_flow/coupon.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/combo_offer.dart'
     as _i127;
-import 'package:freshpickkat_client/src/protocol/data_flow/coupon_display.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon.dart'
     as _i128;
-import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/coupon_display.dart'
     as _i129;
-import 'package:freshpickkat_client/src/protocol/data_flow/admin_notification_preference.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/delivery_rule.dart'
     as _i130;
-import 'package:freshpickkat_client/src/protocol/data_flow/order.dart' as _i131;
+import 'package:freshpickkat_client/src/protocol/data_flow/admin_notification_preference.dart'
+    as _i131;
+import 'package:freshpickkat_client/src/protocol/data_flow/order.dart' as _i132;
 import 'package:freshpickkat_client/src/protocol/data_flow/applied_offer_info.dart'
-    as _i132;
-import 'package:freshpickkat_client/src/protocol/data_flow/product.dart'
     as _i133;
-import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product.dart'
     as _i134;
-import 'package:freshpickkat_client/src/protocol/data_flow/referral_activity.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/product_ranking_item.dart'
     as _i135;
-import 'package:freshpickkat_client/src/protocol/data_flow/shop_more_get_more_offer.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/referral_activity.dart'
     as _i136;
-import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/shop_more_get_more_offer.dart'
     as _i137;
-import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/sub_category.dart'
     as _i138;
-import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/support_issue.dart'
     as _i139;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:freshpickkat_client/src/protocol/data_flow/cart_item.dart'
     as _i140;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i141;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i142;
 export 'data_flow/active_user_statistics.dart';
 export 'data_flow/address.dart';
 export 'data_flow/admin_analytics.dart';
@@ -287,6 +288,7 @@ export 'data_flow/refund_record.dart';
 export 'data_flow/register_fcm_token_request.dart';
 export 'data_flow/shop_more_get_more_offer.dart';
 export 'data_flow/shop_more_get_more_offer_page.dart';
+export 'data_flow/smgm_analytics.dart';
 export 'data_flow/sub_category.dart';
 export 'data_flow/support_issue.dart';
 export 'data_flow/top_referrer_entry.dart';
@@ -665,14 +667,17 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i114.ShopMoreGetMoreOfferPage) {
       return _i114.ShopMoreGetMoreOfferPage.fromJson(data) as T;
     }
-    if (t == _i115.SubCategory) {
-      return _i115.SubCategory.fromJson(data) as T;
+    if (t == _i115.SmgmAnalytics) {
+      return _i115.SmgmAnalytics.fromJson(data) as T;
     }
-    if (t == _i116.SupportIssue) {
-      return _i116.SupportIssue.fromJson(data) as T;
+    if (t == _i116.SubCategory) {
+      return _i116.SubCategory.fromJson(data) as T;
     }
-    if (t == _i117.TopReferrerEntry) {
-      return _i117.TopReferrerEntry.fromJson(data) as T;
+    if (t == _i117.SupportIssue) {
+      return _i117.SupportIssue.fromJson(data) as T;
+    }
+    if (t == _i118.TopReferrerEntry) {
+      return _i118.TopReferrerEntry.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.ActiveUserStatistics?>()) {
       return (data != null ? _i2.ActiveUserStatistics.fromJson(data) : null)
@@ -1077,14 +1082,17 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == _i1.getType<_i115.SubCategory?>()) {
-      return (data != null ? _i115.SubCategory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i115.SmgmAnalytics?>()) {
+      return (data != null ? _i115.SmgmAnalytics.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i116.SupportIssue?>()) {
-      return (data != null ? _i116.SupportIssue.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i116.SubCategory?>()) {
+      return (data != null ? _i116.SubCategory.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i117.TopReferrerEntry?>()) {
-      return (data != null ? _i117.TopReferrerEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i117.SupportIssue?>()) {
+      return (data != null ? _i117.SupportIssue.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i118.TopReferrerEntry?>()) {
+      return (data != null ? _i118.TopReferrerEntry.fromJson(data) : null) as T;
     }
     if (t == List<_i10.AdminTopProduct>) {
       return (data as List)
@@ -1224,9 +1232,9 @@ class Protocol extends _i1.SerializationManager {
       return (data as List).map((e) => deserialize<_i36.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i115.SubCategory>) {
+    if (t == List<_i116.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i115.SubCategory>(e))
+              .map((e) => deserialize<_i116.SubCategory>(e))
               .toList()
           as T;
     }
@@ -1358,9 +1366,9 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i117.TopReferrerEntry>) {
+    if (t == List<_i118.TopReferrerEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i117.TopReferrerEntry>(e))
+              .map((e) => deserialize<_i118.TopReferrerEntry>(e))
               .toList()
           as T;
     }
@@ -1376,75 +1384,75 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i118.AppUser>) {
-      return (data as List).map((e) => deserialize<_i118.AppUser>(e)).toList()
+    if (t == List<_i119.AppUser>) {
+      return (data as List).map((e) => deserialize<_i119.AppUser>(e)).toList()
           as T;
     }
-    if (t == List<_i119.AdminAuditLogEntry>) {
+    if (t == List<_i120.AdminAuditLogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i119.AdminAuditLogEntry>(e))
+              .map((e) => deserialize<_i120.AdminAuditLogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<_i120.ActiveUserStatistics>) {
+    if (t == List<_i121.ActiveUserStatistics>) {
       return (data as List)
-              .map((e) => deserialize<_i120.ActiveUserStatistics>(e))
+              .map((e) => deserialize<_i121.ActiveUserStatistics>(e))
               .toList()
           as T;
     }
-    if (t == List<_i121.Banner>) {
-      return (data as List).map((e) => deserialize<_i121.Banner>(e)).toList()
+    if (t == List<_i122.Banner>) {
+      return (data as List).map((e) => deserialize<_i122.Banner>(e)).toList()
           as T;
     }
-    if (t == List<_i122.BogoOffer>) {
-      return (data as List).map((e) => deserialize<_i122.BogoOffer>(e)).toList()
+    if (t == List<_i123.BogoOffer>) {
+      return (data as List).map((e) => deserialize<_i123.BogoOffer>(e)).toList()
           as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i123.CartItemInput>) {
+    if (t == List<_i124.CartItemInput>) {
       return (data as List)
-              .map((e) => deserialize<_i123.CartItemInput>(e))
+              .map((e) => deserialize<_i124.CartItemInput>(e))
               .toList()
           as T;
     }
-    if (t == List<_i124.Category>) {
-      return (data as List).map((e) => deserialize<_i124.Category>(e)).toList()
+    if (t == List<_i125.Category>) {
+      return (data as List).map((e) => deserialize<_i125.Category>(e)).toList()
           as T;
     }
-    if (t == List<_i125.CategoryOffer>) {
+    if (t == List<_i126.CategoryOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i125.CategoryOffer>(e))
+              .map((e) => deserialize<_i126.CategoryOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i126.ComboOffer>) {
+    if (t == List<_i127.ComboOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i126.ComboOffer>(e))
+              .map((e) => deserialize<_i127.ComboOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i127.Coupon>) {
-      return (data as List).map((e) => deserialize<_i127.Coupon>(e)).toList()
+    if (t == List<_i128.Coupon>) {
+      return (data as List).map((e) => deserialize<_i128.Coupon>(e)).toList()
           as T;
     }
-    if (t == List<_i128.CouponDisplay>) {
+    if (t == List<_i129.CouponDisplay>) {
       return (data as List)
-              .map((e) => deserialize<_i128.CouponDisplay>(e))
+              .map((e) => deserialize<_i129.CouponDisplay>(e))
               .toList()
           as T;
     }
-    if (t == List<_i129.DeliveryRule>) {
+    if (t == List<_i130.DeliveryRule>) {
       return (data as List)
-              .map((e) => deserialize<_i129.DeliveryRule>(e))
+              .map((e) => deserialize<_i130.DeliveryRule>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i123.CartItemInput>?>()) {
+    if (t == _i1.getType<List<_i124.CartItemInput>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i123.CartItemInput>(e))
+                    .map((e) => deserialize<_i124.CartItemInput>(e))
                     .toList()
               : null)
           as T;
@@ -1455,14 +1463,14 @@ class Protocol extends _i1.SerializationManager {
           )
           as T;
     }
-    if (t == List<_i130.AdminNotificationPreference>) {
+    if (t == List<_i131.AdminNotificationPreference>) {
       return (data as List)
-              .map((e) => deserialize<_i130.AdminNotificationPreference>(e))
+              .map((e) => deserialize<_i131.AdminNotificationPreference>(e))
               .toList()
           as T;
     }
-    if (t == List<_i131.Order>) {
-      return (data as List).map((e) => deserialize<_i131.Order>(e)).toList()
+    if (t == List<_i132.Order>) {
+      return (data as List).map((e) => deserialize<_i132.Order>(e)).toList()
           as T;
     }
     if (t == _i1.getType<Map<String, dynamic>?>()) {
@@ -1481,14 +1489,14 @@ class Protocol extends _i1.SerializationManager {
     if (t == List<double>) {
       return (data as List).map((e) => deserialize<double>(e)).toList() as T;
     }
-    if (t == List<_i132.AppliedOfferInfo>) {
+    if (t == List<_i133.AppliedOfferInfo>) {
       return (data as List)
-              .map((e) => deserialize<_i132.AppliedOfferInfo>(e))
+              .map((e) => deserialize<_i133.AppliedOfferInfo>(e))
               .toList()
           as T;
     }
-    if (t == List<_i133.Product>) {
-      return (data as List).map((e) => deserialize<_i133.Product>(e)).toList()
+    if (t == List<_i134.Product>) {
+      return (data as List).map((e) => deserialize<_i134.Product>(e)).toList()
           as T;
     }
     if (t == _i1.getType<List<String>?>()) {
@@ -1497,45 +1505,45 @@ class Protocol extends _i1.SerializationManager {
               : null)
           as T;
     }
-    if (t == List<_i134.ProductRankingItem>) {
+    if (t == List<_i135.ProductRankingItem>) {
       return (data as List)
-              .map((e) => deserialize<_i134.ProductRankingItem>(e))
+              .map((e) => deserialize<_i135.ProductRankingItem>(e))
               .toList()
           as T;
     }
-    if (t == List<_i135.ReferralActivity>) {
+    if (t == List<_i136.ReferralActivity>) {
       return (data as List)
-              .map((e) => deserialize<_i135.ReferralActivity>(e))
+              .map((e) => deserialize<_i136.ReferralActivity>(e))
               .toList()
           as T;
     }
-    if (t == List<_i136.ShopMoreGetMoreOffer>) {
+    if (t == List<_i137.ShopMoreGetMoreOffer>) {
       return (data as List)
-              .map((e) => deserialize<_i136.ShopMoreGetMoreOffer>(e))
+              .map((e) => deserialize<_i137.ShopMoreGetMoreOffer>(e))
               .toList()
           as T;
     }
-    if (t == List<_i137.SubCategory>) {
+    if (t == List<_i138.SubCategory>) {
       return (data as List)
-              .map((e) => deserialize<_i137.SubCategory>(e))
+              .map((e) => deserialize<_i138.SubCategory>(e))
               .toList()
           as T;
     }
-    if (t == List<_i138.SupportIssue>) {
+    if (t == List<_i139.SupportIssue>) {
       return (data as List)
-              .map((e) => deserialize<_i138.SupportIssue>(e))
+              .map((e) => deserialize<_i139.SupportIssue>(e))
               .toList()
           as T;
     }
-    if (t == List<_i139.CartItem>) {
-      return (data as List).map((e) => deserialize<_i139.CartItem>(e)).toList()
+    if (t == List<_i140.CartItem>) {
+      return (data as List).map((e) => deserialize<_i140.CartItem>(e)).toList()
           as T;
     }
-    try {
-      return _i140.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i141.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i142.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -1655,9 +1663,10 @@ class Protocol extends _i1.SerializationManager {
       _i112.RegisterFcmTokenRequest => 'RegisterFcmTokenRequest',
       _i113.ShopMoreGetMoreOffer => 'ShopMoreGetMoreOffer',
       _i114.ShopMoreGetMoreOfferPage => 'ShopMoreGetMoreOfferPage',
-      _i115.SubCategory => 'SubCategory',
-      _i116.SupportIssue => 'SupportIssue',
-      _i117.TopReferrerEntry => 'TopReferrerEntry',
+      _i115.SmgmAnalytics => 'SmgmAnalytics',
+      _i116.SubCategory => 'SubCategory',
+      _i117.SupportIssue => 'SupportIssue',
+      _i118.TopReferrerEntry => 'TopReferrerEntry',
       _ => null,
     };
   }
@@ -1901,18 +1910,20 @@ class Protocol extends _i1.SerializationManager {
         return 'ShopMoreGetMoreOffer';
       case _i114.ShopMoreGetMoreOfferPage():
         return 'ShopMoreGetMoreOfferPage';
-      case _i115.SubCategory():
+      case _i115.SmgmAnalytics():
+        return 'SmgmAnalytics';
+      case _i116.SubCategory():
         return 'SubCategory';
-      case _i116.SupportIssue():
+      case _i117.SupportIssue():
         return 'SupportIssue';
-      case _i117.TopReferrerEntry():
+      case _i118.TopReferrerEntry():
         return 'TopReferrerEntry';
     }
-    className = _i140.Protocol().getClassNameForObject(data);
+    className = _i141.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i141.Protocol().getClassNameForObject(data);
+    className = _i142.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -2264,22 +2275,25 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ShopMoreGetMoreOfferPage') {
       return deserialize<_i114.ShopMoreGetMoreOfferPage>(data['data']);
     }
+    if (dataClassName == 'SmgmAnalytics') {
+      return deserialize<_i115.SmgmAnalytics>(data['data']);
+    }
     if (dataClassName == 'SubCategory') {
-      return deserialize<_i115.SubCategory>(data['data']);
+      return deserialize<_i116.SubCategory>(data['data']);
     }
     if (dataClassName == 'SupportIssue') {
-      return deserialize<_i116.SupportIssue>(data['data']);
+      return deserialize<_i117.SupportIssue>(data['data']);
     }
     if (dataClassName == 'TopReferrerEntry') {
-      return deserialize<_i117.TopReferrerEntry>(data['data']);
+      return deserialize<_i118.TopReferrerEntry>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i140.Protocol().deserializeByClassName(data);
+      return _i141.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i141.Protocol().deserializeByClassName(data);
+      return _i142.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -2294,10 +2308,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i140.Protocol().mapRecordToJson(record);
+      return _i141.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i141.Protocol().mapRecordToJson(record);
+      return _i142.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

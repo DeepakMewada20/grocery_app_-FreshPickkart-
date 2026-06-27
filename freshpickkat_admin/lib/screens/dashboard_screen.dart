@@ -76,6 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         final topProducts = analytics.topProducts;
+        final smgm = _controller.smgmAnalytics.value;
 
         return RefreshIndicator(
           onRefresh: _controller.loadDashboard,
@@ -166,6 +167,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             );
                           },
                         ),
+                        if (smgm != null) ...[
+                          SizedBox(height: 16.h),
+                          Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            child: Padding(
+                              padding: AdminResponsive.cardPadding(context),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Shop More, Get More',
+                                    style: AdminTextStyles.sectionTitle(context),
+                                  ),
+                                  SizedBox(height: 16.h),
+                                  _analyticsRow(
+                                    'Total Offers',
+                                    '${smgm.totalOffers}',
+                                    Icons.card_giftcard_outlined,
+                                    AdminAppTheme.getPurpleColor(context),
+                                  ),
+                                  const Divider(height: 24),
+                                  _analyticsRow(
+                                    'Active Offers',
+                                    '${smgm.activeOffers}',
+                                    Icons.check_circle_outline,
+                                    AdminAppTheme.getSuccessColor(context),
+                                  ),
+                                  const Divider(height: 24),
+                                  _analyticsRow(
+                                    'Rewards Given',
+                                    '${smgm.totalRewardsGiven}',
+                                    Icons.celebration_outlined,
+                                    AdminAppTheme.getInfoColor(context),
+                                  ),
+                                  const Divider(height: 24),
+                                  _analyticsRow(
+                                    'Reward Value',
+                                    _asCurrency(smgm.totalRewardValue),
+                                    Icons.currency_rupee_outlined,
+                                    AdminAppTheme.getWarningColor(context),
+                                  ),
+                                  const Divider(height: 24),
+                                  _analyticsRow(
+                                    'Orders with SMGM',
+                                    '${smgm.totalOrdersWithSmgm}',
+                                    Icons.shopping_bag_outlined,
+                                    AdminAppTheme.getIndigoColor(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                         SizedBox(height: 16.h),
                         Card(
                           elevation: 2,

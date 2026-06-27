@@ -28,4 +28,6 @@ fields:
     bogoFreeProductIds: List<String>?
     comboOfferIds: List<String>?
     hasCategoryOffer: bool, default=false
+    shopMoreGetMoreOfferId: String?
+    shopMoreGetMoreMinAmount: double?
     variants: List<ProductVariant>?
