@@ -13,5 +13,5 @@ fields:
   originalUnitPrice: double?
   rewardValue: double?
   isRewardProduct: bool, default=false
-  quantityEditable: bool, default=true
-  priceEditable: bool, default=true
+  quantityEditable: bool, default=false
+  priceEditable: bool, default=false

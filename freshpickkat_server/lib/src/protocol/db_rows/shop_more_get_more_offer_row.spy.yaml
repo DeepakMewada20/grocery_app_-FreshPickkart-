@@ -8,7 +8,6 @@ fields:
   freeProductId: UuidValue
   freeVariantId: UuidValue?
   freeQuantity: int, default=1
-  priority: int, default=0
   startsAt: DateTime
   endsAt: DateTime
   status: String, default='active'

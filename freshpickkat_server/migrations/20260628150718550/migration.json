@@ -1,0 +1,48 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "shop_more_get_more_offer",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "priority"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"priority\" of table \"shop_more_get_more_offer\" will be dropped.",
+            "table": "shop_more_get_more_offer",
+            "columns": [
+              "priority"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"priority\" of table \"shop_more_get_more_offer\" will be dropped.",
+      "table": "shop_more_get_more_offer",
+      "columns": [
+        "priority"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

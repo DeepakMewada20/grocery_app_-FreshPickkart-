@@ -986,17 +986,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(width: 16.w),
-                Icon(Icons.low_priority,
-                    size: 16, color: AdminAppTheme.getTextSecondaryColor(context)),
-                SizedBox(width: 4.w),
-                Text(
-                  'Priority: ${offer.priority}',
-                  style: TextStyle(
-                    color: AdminAppTheme.getTextSecondaryColor(context),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+
               ],
             ),
             const SizedBox(height: 6),

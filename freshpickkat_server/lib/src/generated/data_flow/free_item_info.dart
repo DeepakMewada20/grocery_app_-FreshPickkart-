@@ -31,8 +31,8 @@ abstract class FreeItemInfo
     bool? quantityEditable,
     bool? priceEditable,
   }) : isRewardProduct = isRewardProduct ?? false,
-       quantityEditable = quantityEditable ?? true,
-       priceEditable = priceEditable ?? true;
+       quantityEditable = quantityEditable ?? false,
+       priceEditable = priceEditable ?? false;
 
   factory FreeItemInfo({
     required String productId,

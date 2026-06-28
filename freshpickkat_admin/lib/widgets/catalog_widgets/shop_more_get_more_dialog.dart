@@ -45,7 +45,6 @@ class ShopMoreGetMoreDialog extends StatefulWidget {
 
 class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
   final _minAmountController = TextEditingController();
-  final _priorityController = TextEditingController();
   final _productController = AdminProductController.instance;
 
   bool _isSubmitting = false;
@@ -104,7 +103,6 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
     final offer = widget.offer;
     if (offer != null) {
       _minAmountController.text = offer.minimumOrderAmount.toStringAsFixed(0);
-      _priorityController.text = offer.priority.toString();
       _startDate = offer.startDate;
       _endDate = offer.endDate;
 
@@ -115,11 +113,8 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       if (_selectedProduct != null && offer.freeVariantId != null) {
         _selectedVariantId = offer.freeVariantId;
       }
-    } else {
-      _priorityController.text = '0';
     }
     _minAmountController.addListener(_onFieldChanged);
-    _priorityController.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -136,7 +131,6 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
   @override
   void dispose() {
     _minAmountController.dispose();
-    _priorityController.dispose();
     super.dispose();
   }
 
@@ -205,7 +199,6 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       freeProductId: _selectedProduct!.productId!,
       freeVariantId: _selectedVariantId,
       freeQuantity: 1,
-      priority: int.tryParse(_priorityController.text.trim()) ?? 0,
       startDate: _startDate,
       endDate: _endDate,
       isActive: widget.offer?.isActive ?? true,
@@ -289,54 +282,6 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
               helperText: 'Cart value must reach this amount',
             ),
             enabled: !_isSubmitting,
-          ),
-          SizedBox(height: 14.h),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-                  decoration: BoxDecoration(
-                    color: AdminAppTheme.getSubtleSurfaceColor(context),
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(color: AdminAppTheme.getBorderColor(context)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Free Quantity',
-                        style: AdminTextStyles.caption(context).copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AdminAppTheme.getTextSecondaryColor(context),
-                        ),
-                      ),
-                      SizedBox(height: 3.h),
-                      Text(
-                        '1',
-                        style: AdminTextStyles.cardTitle(context).copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: TextField(
-                  controller: _priorityController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Priority',
-                    border: OutlineInputBorder(),
-                    helperText: 'Higher = shown first',
-                  ),
-                  enabled: !_isSubmitting,
-                ),
-              ),
-            ],
           ),
           SizedBox(height: 14.h),
           InkWell(

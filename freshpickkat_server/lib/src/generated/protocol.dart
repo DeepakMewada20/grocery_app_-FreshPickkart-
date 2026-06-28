@@ -6910,13 +6910,6 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '1',
         ),
         _i2.ColumnDefinition(
-          name: 'priority',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-          columnDefault: '0',
-        ),
-        _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,

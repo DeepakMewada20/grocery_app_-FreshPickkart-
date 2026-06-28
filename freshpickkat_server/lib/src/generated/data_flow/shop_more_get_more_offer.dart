@@ -21,7 +21,6 @@ abstract class ShopMoreGetMoreOffer
     required this.freeProductId,
     this.freeVariantId,
     required this.freeQuantity,
-    required this.priority,
     required this.startDate,
     required this.endDate,
     required this.isActive,
@@ -39,7 +38,6 @@ abstract class ShopMoreGetMoreOffer
     required String freeProductId,
     String? freeVariantId,
     required int freeQuantity,
-    required int priority,
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
@@ -61,7 +59,6 @@ abstract class ShopMoreGetMoreOffer
       freeProductId: jsonSerialization['freeProductId'] as String,
       freeVariantId: jsonSerialization['freeVariantId'] as String?,
       freeQuantity: jsonSerialization['freeQuantity'] as int,
-      priority: jsonSerialization['priority'] as int,
       startDate: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['startDate'],
       ),
@@ -89,8 +86,6 @@ abstract class ShopMoreGetMoreOffer
 
   int freeQuantity;
 
-  int priority;
-
   DateTime startDate;
 
   DateTime endDate;
@@ -117,7 +112,6 @@ abstract class ShopMoreGetMoreOffer
     String? freeProductId,
     String? freeVariantId,
     int? freeQuantity,
-    int? priority,
     DateTime? startDate,
     DateTime? endDate,
     bool? isActive,
@@ -137,7 +131,6 @@ abstract class ShopMoreGetMoreOffer
       'freeProductId': freeProductId,
       if (freeVariantId != null) 'freeVariantId': freeVariantId,
       'freeQuantity': freeQuantity,
-      'priority': priority,
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
       'isActive': isActive,
@@ -159,7 +152,6 @@ abstract class ShopMoreGetMoreOffer
       'freeProductId': freeProductId,
       if (freeVariantId != null) 'freeVariantId': freeVariantId,
       'freeQuantity': freeQuantity,
-      'priority': priority,
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
       'isActive': isActive,
@@ -187,7 +179,6 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     required String freeProductId,
     String? freeVariantId,
     required int freeQuantity,
-    required int priority,
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
@@ -203,7 +194,6 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
          freeProductId: freeProductId,
          freeVariantId: freeVariantId,
          freeQuantity: freeQuantity,
-         priority: priority,
          startDate: startDate,
          endDate: endDate,
          isActive: isActive,
@@ -225,7 +215,6 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     String? freeProductId,
     Object? freeVariantId = _Undefined,
     int? freeQuantity,
-    int? priority,
     DateTime? startDate,
     DateTime? endDate,
     bool? isActive,
@@ -244,7 +233,6 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
           ? freeVariantId
           : this.freeVariantId,
       freeQuantity: freeQuantity ?? this.freeQuantity,
-      priority: priority ?? this.priority,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       isActive: isActive ?? this.isActive,

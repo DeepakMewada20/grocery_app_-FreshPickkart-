@@ -6,7 +6,6 @@ fields:
   freeProductId: String
   freeVariantId: String?
   freeQuantity: int
-  priority: int
   startDate: DateTime
   endDate: DateTime
   isActive: bool

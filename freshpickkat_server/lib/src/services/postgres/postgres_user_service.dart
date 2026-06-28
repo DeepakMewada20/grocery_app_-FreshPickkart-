@@ -128,7 +128,9 @@ class PostgresUserService {
       activeOnly: true,
     );
     if (user?.id == null) return false;
-    final sanitizedCart = await _sanitizeCartBogoSelections(session, cart);
+    final sanitizedCart = _sanitizeCartSmgmItems(
+      await _sanitizeCartBogoSelections(session, cart),
+    );
 
     await session.db.transaction<void>((transaction) async {
       await _replaceCart(
@@ -213,6 +215,14 @@ class PostgresUserService {
           if (valid) return item;
           return item.copyWith(bogoFreeProductId: null);
         })
+        .toList(growable: false);
+  }
+
+  List<CartItem> _sanitizeCartSmgmItems(List<CartItem> cart) {
+    final hasSmgm = cart.any((item) => item.shopMoreGetMoreOfferId != null);
+    if (!hasSmgm) return cart;
+    return cart
+        .map((item) => item.copyWith(shopMoreGetMoreOfferId: null))
         .toList(growable: false);
   }
 

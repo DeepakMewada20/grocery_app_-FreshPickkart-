@@ -21,7 +21,6 @@ abstract class ShopMoreGetMoreOfferRow
     required this.freeProductId,
     this.freeVariantId,
     int? freeQuantity,
-    int? priority,
     required this.startsAt,
     required this.endsAt,
     String? status,
@@ -34,7 +33,6 @@ abstract class ShopMoreGetMoreOfferRow
     DateTime? updatedAt,
   }) : minimumOrderAmount = minimumOrderAmount ?? 0.0,
        freeQuantity = freeQuantity ?? 1,
-       priority = priority ?? 0,
        status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -46,7 +44,6 @@ abstract class ShopMoreGetMoreOfferRow
     required _i1.UuidValue freeProductId,
     _i1.UuidValue? freeVariantId,
     int? freeQuantity,
-    int? priority,
     required DateTime startsAt,
     required DateTime endsAt,
     String? status,
@@ -78,7 +75,6 @@ abstract class ShopMoreGetMoreOfferRow
               jsonSerialization['freeVariantId'],
             ),
       freeQuantity: jsonSerialization['freeQuantity'] as int?,
-      priority: jsonSerialization['priority'] as int?,
       startsAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['startsAt'],
       ),
@@ -119,8 +115,6 @@ abstract class ShopMoreGetMoreOfferRow
 
   int freeQuantity;
 
-  int priority;
-
   DateTime startsAt;
 
   DateTime endsAt;
@@ -154,7 +148,6 @@ abstract class ShopMoreGetMoreOfferRow
     _i1.UuidValue? freeProductId,
     _i1.UuidValue? freeVariantId,
     int? freeQuantity,
-    int? priority,
     DateTime? startsAt,
     DateTime? endsAt,
     String? status,
@@ -176,7 +169,6 @@ abstract class ShopMoreGetMoreOfferRow
       'freeProductId': freeProductId.toJson(),
       if (freeVariantId != null) 'freeVariantId': freeVariantId?.toJson(),
       'freeQuantity': freeQuantity,
-      'priority': priority,
       'startsAt': startsAt.toJson(),
       'endsAt': endsAt.toJson(),
       'status': status,
@@ -235,7 +227,6 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     required _i1.UuidValue freeProductId,
     _i1.UuidValue? freeVariantId,
     int? freeQuantity,
-    int? priority,
     required DateTime startsAt,
     required DateTime endsAt,
     String? status,
@@ -253,7 +244,6 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
          freeProductId: freeProductId,
          freeVariantId: freeVariantId,
          freeQuantity: freeQuantity,
-         priority: priority,
          startsAt: startsAt,
          endsAt: endsAt,
          status: status,
@@ -277,7 +267,6 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     _i1.UuidValue? freeProductId,
     Object? freeVariantId = _Undefined,
     int? freeQuantity,
-    int? priority,
     DateTime? startsAt,
     DateTime? endsAt,
     String? status,
@@ -298,7 +287,6 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
           ? freeVariantId
           : this.freeVariantId,
       freeQuantity: freeQuantity ?? this.freeQuantity,
-      priority: priority ?? this.priority,
       startsAt: startsAt ?? this.startsAt,
       endsAt: endsAt ?? this.endsAt,
       status: status ?? this.status,
@@ -348,11 +336,6 @@ class ShopMoreGetMoreOfferRowUpdateTable
 
   _i1.ColumnValue<int, int> freeQuantity(int value) => _i1.ColumnValue(
     table.freeQuantity,
-    value,
-  );
-
-  _i1.ColumnValue<int, int> priority(int value) => _i1.ColumnValue(
-    table.priority,
     value,
   );
 
@@ -438,11 +421,6 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
-    priority = _i1.ColumnInt(
-      'priority',
-      this,
-      hasDefault: true,
-    );
     startsAt = _i1.ColumnDateTime(
       'startsAt',
       this,
@@ -500,8 +478,6 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt freeQuantity;
 
-  late final _i1.ColumnInt priority;
-
   late final _i1.ColumnDateTime startsAt;
 
   late final _i1.ColumnDateTime endsAt;
@@ -530,7 +506,6 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
     freeProductId,
     freeVariantId,
     freeQuantity,
-    priority,
     startsAt,
     endsAt,
     status,

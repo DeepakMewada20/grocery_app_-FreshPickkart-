@@ -30,8 +30,8 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     bool? quantityEditable,
     bool? priceEditable,
   }) : isRewardProduct = isRewardProduct ?? false,
-       quantityEditable = quantityEditable ?? true,
-       priceEditable = priceEditable ?? true;
+       quantityEditable = quantityEditable ?? false,
+       priceEditable = priceEditable ?? false;
 
   factory FreeItemInfo({
     required String productId,

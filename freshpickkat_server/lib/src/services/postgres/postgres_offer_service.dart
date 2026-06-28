@@ -771,7 +771,6 @@ class PostgresOfferService {
             ),
             freeVariantId: tryParseUuid(offer.freeVariantId),
             freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
-            priority: offer.priority,
             startsAt: offer.startDate.toUtc(),
             endsAt: offer.endDate.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
@@ -794,7 +793,6 @@ class PostgresOfferService {
             ),
             freeVariantId: tryParseUuid(offer.freeVariantId),
             freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
-            priority: offer.priority,
             startsAt: offer.startDate.toUtc(),
             endsAt: offer.endDate.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
@@ -924,8 +922,6 @@ class PostgresOfferService {
   }) async {
     final offers = await getAllShopMoreGetMoreOffers(session);
     offers.sort((a, b) {
-      final priorityCompare = b.priority.compareTo(a.priority);
-      if (priorityCompare != 0) return priorityCompare;
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
@@ -1036,7 +1032,6 @@ class PostgresOfferService {
         freeProductId: row.freeProductId.toString(),
         freeVariantId: row.freeVariantId?.toString(),
         freeQuantity: row.freeQuantity,
-        priority: row.priority,
         startDate: row.startsAt,
         endDate: row.endsAt,
         isActive: row.status == 'active',
