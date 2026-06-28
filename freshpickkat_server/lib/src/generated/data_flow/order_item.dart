@@ -31,6 +31,11 @@ abstract class OrderItem
     required this.unitPrice,
     required this.totalPrice,
     required this.isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    this.originalUnitPrice,
+    this.rewardValue,
     this.triggerProductId,
     this.comboId,
     this.comboName,
@@ -41,7 +46,9 @@ abstract class OrderItem
     this.rewardOfferName,
     this.rewardThreshold,
     this.rewardSource,
-  });
+  }) : isRewardProduct = isRewardProduct ?? false,
+       quantityEditable = quantityEditable ?? true,
+       priceEditable = priceEditable ?? true;
 
   factory OrderItem({
     String? orderItemId,
@@ -60,6 +67,11 @@ abstract class OrderItem
     required double unitPrice,
     required double totalPrice,
     required bool isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? triggerProductId,
     String? comboId,
     String? comboName,
@@ -93,6 +105,22 @@ abstract class OrderItem
       isFreeItem: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['isFreeItem'],
       ),
+      isRewardProduct: jsonSerialization['isRewardProduct'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['isRewardProduct'],
+            ),
+      quantityEditable: jsonSerialization['quantityEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['quantityEditable'],
+            ),
+      priceEditable: jsonSerialization['priceEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['priceEditable']),
+      originalUnitPrice: (jsonSerialization['originalUnitPrice'] as num?)
+          ?.toDouble(),
+      rewardValue: (jsonSerialization['rewardValue'] as num?)?.toDouble(),
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
       comboId: jsonSerialization['comboId'] as String?,
       comboName: jsonSerialization['comboName'] as String?,
@@ -140,6 +168,16 @@ abstract class OrderItem
 
   bool isFreeItem;
 
+  bool isRewardProduct;
+
+  bool quantityEditable;
+
+  bool priceEditable;
+
+  double? originalUnitPrice;
+
+  double? rewardValue;
+
   String? triggerProductId;
 
   String? comboId;
@@ -180,6 +218,11 @@ abstract class OrderItem
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? triggerProductId,
     String? comboId,
     String? comboName,
@@ -212,6 +255,11 @@ abstract class OrderItem
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
+      'isRewardProduct': isRewardProduct,
+      'quantityEditable': quantityEditable,
+      'priceEditable': priceEditable,
+      if (originalUnitPrice != null) 'originalUnitPrice': originalUnitPrice,
+      if (rewardValue != null) 'rewardValue': rewardValue,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
       if (comboId != null) 'comboId': comboId,
       if (comboName != null) 'comboName': comboName,
@@ -246,6 +294,11 @@ abstract class OrderItem
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
+      'isRewardProduct': isRewardProduct,
+      'quantityEditable': quantityEditable,
+      'priceEditable': priceEditable,
+      if (originalUnitPrice != null) 'originalUnitPrice': originalUnitPrice,
+      if (rewardValue != null) 'rewardValue': rewardValue,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
       if (comboId != null) 'comboId': comboId,
       if (comboName != null) 'comboName': comboName,
@@ -285,6 +338,11 @@ class _OrderItemImpl extends OrderItem {
     required double unitPrice,
     required double totalPrice,
     required bool isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? triggerProductId,
     String? comboId,
     String? comboName,
@@ -312,6 +370,11 @@ class _OrderItemImpl extends OrderItem {
          unitPrice: unitPrice,
          totalPrice: totalPrice,
          isFreeItem: isFreeItem,
+         isRewardProduct: isRewardProduct,
+         quantityEditable: quantityEditable,
+         priceEditable: priceEditable,
+         originalUnitPrice: originalUnitPrice,
+         rewardValue: rewardValue,
          triggerProductId: triggerProductId,
          comboId: comboId,
          comboName: comboName,
@@ -345,6 +408,11 @@ class _OrderItemImpl extends OrderItem {
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    Object? originalUnitPrice = _Undefined,
+    Object? rewardValue = _Undefined,
     Object? triggerProductId = _Undefined,
     Object? comboId = _Undefined,
     Object? comboName = _Undefined,
@@ -377,6 +445,13 @@ class _OrderItemImpl extends OrderItem {
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
       isFreeItem: isFreeItem ?? this.isFreeItem,
+      isRewardProduct: isRewardProduct ?? this.isRewardProduct,
+      quantityEditable: quantityEditable ?? this.quantityEditable,
+      priceEditable: priceEditable ?? this.priceEditable,
+      originalUnitPrice: originalUnitPrice is double?
+          ? originalUnitPrice
+          : this.originalUnitPrice,
+      rewardValue: rewardValue is double? ? rewardValue : this.rewardValue,
       triggerProductId: triggerProductId is String?
           ? triggerProductId
           : this.triggerProductId,

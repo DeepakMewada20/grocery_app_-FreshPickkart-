@@ -228,6 +228,53 @@ class VariantOfferExclusivityService {
 
   /// Validates that saving a Shop More, Get More offer wouldn't violate
   /// exclusivity (the reward product shouldn't already be in another offer).
+  /// Validates SMGM input fields before upsert.
+  /// Returns an error message or null if valid.
+  static Future<String?> validateShopMoreGetMoreInput(
+    Session session,
+    ShopMoreGetMoreOffer offer, {
+    String? existingOfferId,
+  }) async {
+    // B1: Threshold must be > 0
+    if (offer.minimumOrderAmount <= 0) {
+      return 'Minimum order amount must be greater than 0.';
+    }
+
+    // B2: Free quantity must be > 0
+    if (offer.freeQuantity <= 0) {
+      return 'Free quantity must be greater than 0.';
+    }
+
+    // B3: Reward product must exist and be active
+    final parsedProductId = tryParseUuid(offer.freeProductId);
+    if (parsedProductId == null) {
+      return 'Invalid reward product ID.';
+    }
+    final productRow = await ProductRow.db.findById(session, parsedProductId);
+    if (productRow == null) {
+      return 'Reward product not found.';
+    }
+    if (productRow.status != 'active') {
+      return 'Reward product is not active.';
+    }
+
+    // B4: No duplicate threshold for same product (same minimumOrderAmount + freeProductId)
+    final existingOffers = await ShopMoreGetMoreOfferRow.db.find(
+      session,
+      where: (t) =>
+          t.status.equals('active') &
+          t.freeProductId.equals(parsedProductId) &
+          t.minimumOrderAmount.equals(offer.minimumOrderAmount),
+    );
+    for (final r in existingOffers) {
+      if (existingOfferId == null || r.id.toString() != existingOfferId) {
+        return 'An active offer with the same reward product and minimum order amount already exists.';
+      }
+    }
+
+    return null;
+  }
+
   static Future<String?> validateShopMoreGetMoreSave(
     Session session,
     ShopMoreGetMoreOffer offer, {

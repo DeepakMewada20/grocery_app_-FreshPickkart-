@@ -31,6 +31,17 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       idToken: idToken,
     );
 
+    // Phase B: Input validation (threshold, quantity, product, duplicates)
+    final inputErr =
+        await VariantOfferExclusivityService.validateShopMoreGetMoreInput(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
+    if (inputErr != null) {
+      return protocol.OfferMutationResult(success: false, message: inputErr);
+    }
+
     final exclusivityErr =
         await VariantOfferExclusivityService.validateShopMoreGetMoreSave(
           session,
@@ -65,7 +76,11 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       );
     }
 
-    final result = await _offers.upsertShopMoreGetMoreOffer(session, offer);
+    final result = await _offers.upsertShopMoreGetMoreOffer(
+      session,
+      offer,
+      updatedBy: actor.id.toString(),
+    );
     if (result) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
@@ -95,11 +110,22 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
     String idToken, {
     protocol.NotificationDraft? notificationDraft,
   }) async {
-    await _adminGuard.ensureAdminSeller(
+    final actor = await _adminGuard.ensureAdminSeller(
       session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
+
+    // Phase B: Input validation (threshold, quantity, product, duplicates)
+    final inputErr =
+        await VariantOfferExclusivityService.validateShopMoreGetMoreInput(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
+    if (inputErr != null) {
+      throw Exception(inputErr);
+    }
 
     final exclusivityErr =
         await VariantOfferExclusivityService.validateShopMoreGetMoreSave(
@@ -111,7 +137,11 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       throw Exception(exclusivityErr);
     }
 
-    final result = await _offers.upsertShopMoreGetMoreOffer(session, offer);
+    final result = await _offers.upsertShopMoreGetMoreOffer(
+      session,
+      offer,
+      updatedBy: actor.id.toString(),
+    );
     if (result) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
@@ -211,7 +241,7 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
     String idToken,
   ) async {
     try {
-      await _adminGuard.ensureAdminSeller(
+      final actor = await _adminGuard.ensureAdminSeller(
         session,
         firebaseUid: firebaseUid,
         idToken: idToken,
@@ -220,6 +250,7 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
         session,
         offerId,
         isActive,
+        actorId: actor.id.toString(),
       );
     } catch (error) {
       session.log(

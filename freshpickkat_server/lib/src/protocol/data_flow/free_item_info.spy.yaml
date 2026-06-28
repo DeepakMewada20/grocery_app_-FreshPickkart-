@@ -10,4 +10,8 @@ fields:
   rewardOfferId: String?
   rewardOfferName: String?
   rewardThreshold: double?
+  originalUnitPrice: double?
   rewardValue: double?
+  isRewardProduct: bool, default=false
+  quantityEditable: bool, default=true
+  priceEditable: bool, default=true

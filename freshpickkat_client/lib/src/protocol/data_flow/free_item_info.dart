@@ -24,8 +24,14 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     this.rewardOfferId,
     this.rewardOfferName,
     this.rewardThreshold,
+    this.originalUnitPrice,
     this.rewardValue,
-  });
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+  }) : isRewardProduct = isRewardProduct ?? false,
+       quantityEditable = quantityEditable ?? true,
+       priceEditable = priceEditable ?? true;
 
   factory FreeItemInfo({
     required String productId,
@@ -38,7 +44,11 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? originalUnitPrice,
     double? rewardValue,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
   }) = _FreeItemInfoImpl;
 
   factory FreeItemInfo.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -54,7 +64,22 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
       rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
           ?.toDouble(),
+      originalUnitPrice: (jsonSerialization['originalUnitPrice'] as num?)
+          ?.toDouble(),
       rewardValue: (jsonSerialization['rewardValue'] as num?)?.toDouble(),
+      isRewardProduct: jsonSerialization['isRewardProduct'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['isRewardProduct'],
+            ),
+      quantityEditable: jsonSerialization['quantityEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['quantityEditable'],
+            ),
+      priceEditable: jsonSerialization['priceEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['priceEditable']),
     );
   }
 
@@ -78,7 +103,15 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
 
   double? rewardThreshold;
 
+  double? originalUnitPrice;
+
   double? rewardValue;
+
+  bool isRewardProduct;
+
+  bool quantityEditable;
+
+  bool priceEditable;
 
   /// Returns a shallow copy of this [FreeItemInfo]
   /// with some or all fields replaced by the given arguments.
@@ -94,7 +127,11 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? originalUnitPrice,
     double? rewardValue,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -110,7 +147,11 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
+      if (originalUnitPrice != null) 'originalUnitPrice': originalUnitPrice,
       if (rewardValue != null) 'rewardValue': rewardValue,
+      'isRewardProduct': isRewardProduct,
+      'quantityEditable': quantityEditable,
+      'priceEditable': priceEditable,
     };
   }
 
@@ -134,7 +175,11 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
+    double? originalUnitPrice,
     double? rewardValue,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
   }) : super._(
          productId: productId,
          productName: productName,
@@ -146,7 +191,11 @@ class _FreeItemInfoImpl extends FreeItemInfo {
          rewardOfferId: rewardOfferId,
          rewardOfferName: rewardOfferName,
          rewardThreshold: rewardThreshold,
+         originalUnitPrice: originalUnitPrice,
          rewardValue: rewardValue,
+         isRewardProduct: isRewardProduct,
+         quantityEditable: quantityEditable,
+         priceEditable: priceEditable,
        );
 
   /// Returns a shallow copy of this [FreeItemInfo]
@@ -164,7 +213,11 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     Object? rewardOfferId = _Undefined,
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
+    Object? originalUnitPrice = _Undefined,
     Object? rewardValue = _Undefined,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
   }) {
     return FreeItemInfo(
       productId: productId ?? this.productId,
@@ -185,7 +238,13 @@ class _FreeItemInfoImpl extends FreeItemInfo {
       rewardThreshold: rewardThreshold is double?
           ? rewardThreshold
           : this.rewardThreshold,
+      originalUnitPrice: originalUnitPrice is double?
+          ? originalUnitPrice
+          : this.originalUnitPrice,
       rewardValue: rewardValue is double? ? rewardValue : this.rewardValue,
+      isRewardProduct: isRewardProduct ?? this.isRewardProduct,
+      quantityEditable: quantityEditable ?? this.quantityEditable,
+      priceEditable: priceEditable ?? this.priceEditable,
     );
   }
 }

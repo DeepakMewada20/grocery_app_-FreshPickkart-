@@ -398,6 +398,45 @@ class PostgresAdminService {
     );
   }
 
+  /// C3: Basic abuse tracking — returns SMGM reward stats for a user.
+  Future<Map<String, int>> getUserSmgmStats(
+    Session session,
+    String userId,
+  ) async {
+    final parsedUserId = tryParseUuid(userId);
+    if (parsedUserId == null) return {};
+
+    final orders = await CustomerOrderRow.db.find(
+      session,
+      where: (t) => t.userId.equals(parsedUserId),
+    );
+    if (orders.isEmpty) {
+      return {'totalRewards': 0, 'totalQuantity': 0, 'totalValue': 0};
+    }
+
+    final orderIds = orders.map((o) => o.id!).toSet();
+    final items = await OrderItemRow.db.find(
+      session,
+      where: (t) =>
+          t.orderId.inSet(orderIds) &
+          t.rewardSource.equals('SHOP_MORE_GET_MORE'),
+    );
+
+    return {
+      'totalRewards': items.length,
+      'totalQuantity': items.fold<int>(
+        0,
+        (sum, i) => sum + (i.quantity ?? 0),
+      ),
+      'totalValue': items.fold<int>(
+        0,
+        (sum, i) =>
+            sum +
+            ((i.unitPrice ?? 0) * (i.quantity ?? 0)).toInt(),
+      ),
+    };
+  }
+
   Future<List<protocol.AdminAuditLogEntry>> getAuditLogs(
     Session session, {
     int limit = 50,

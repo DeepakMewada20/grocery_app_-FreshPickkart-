@@ -27,6 +27,9 @@ abstract class ShopMoreGetMoreOfferRow
     String? status,
     this.deactivatedAt,
     this.createdBy,
+    this.updatedBy,
+    this.activatedBy,
+    this.deactivatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : minimumOrderAmount = minimumOrderAmount ?? 0.0,
@@ -49,6 +52,9 @@ abstract class ShopMoreGetMoreOfferRow
     String? status,
     DateTime? deactivatedAt,
     String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ShopMoreGetMoreOfferRowImpl;
@@ -84,6 +90,9 @@ abstract class ShopMoreGetMoreOfferRow
               jsonSerialization['deactivatedAt'],
             ),
       createdBy: jsonSerialization['createdBy'] as String?,
+      updatedBy: jsonSerialization['updatedBy'] as String?,
+      activatedBy: jsonSerialization['activatedBy'] as String?,
+      deactivatedBy: jsonSerialization['deactivatedBy'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -122,6 +131,12 @@ abstract class ShopMoreGetMoreOfferRow
 
   String? createdBy;
 
+  String? updatedBy;
+
+  String? activatedBy;
+
+  String? deactivatedBy;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -145,6 +160,9 @@ abstract class ShopMoreGetMoreOfferRow
     String? status,
     DateTime? deactivatedAt,
     String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -164,6 +182,9 @@ abstract class ShopMoreGetMoreOfferRow
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       if (createdBy != null) 'createdBy': createdBy,
+      if (updatedBy != null) 'updatedBy': updatedBy,
+      if (activatedBy != null) 'activatedBy': activatedBy,
+      if (deactivatedBy != null) 'deactivatedBy': deactivatedBy,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -220,6 +241,9 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     String? status,
     DateTime? deactivatedAt,
     String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -235,6 +259,9 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
          status: status,
          deactivatedAt: deactivatedAt,
          createdBy: createdBy,
+         updatedBy: updatedBy,
+         activatedBy: activatedBy,
+         deactivatedBy: deactivatedBy,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -256,6 +283,9 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     String? status,
     Object? deactivatedAt = _Undefined,
     Object? createdBy = _Undefined,
+    Object? updatedBy = _Undefined,
+    Object? activatedBy = _Undefined,
+    Object? deactivatedBy = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -276,6 +306,11 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
           ? deactivatedAt
           : this.deactivatedAt,
       createdBy: createdBy is String? ? createdBy : this.createdBy,
+      updatedBy: updatedBy is String? ? updatedBy : this.updatedBy,
+      activatedBy: activatedBy is String? ? activatedBy : this.activatedBy,
+      deactivatedBy: deactivatedBy is String?
+          ? deactivatedBy
+          : this.deactivatedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -348,6 +383,22 @@ class ShopMoreGetMoreOfferRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<String, String> updatedBy(String? value) => _i1.ColumnValue(
+    table.updatedBy,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> activatedBy(String? value) => _i1.ColumnValue(
+    table.activatedBy,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> deactivatedBy(String? value) =>
+      _i1.ColumnValue(
+        table.deactivatedBy,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -413,6 +464,18 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
       'createdBy',
       this,
     );
+    updatedBy = _i1.ColumnString(
+      'updatedBy',
+      this,
+    );
+    activatedBy = _i1.ColumnString(
+      'activatedBy',
+      this,
+    );
+    deactivatedBy = _i1.ColumnString(
+      'deactivatedBy',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -449,6 +512,12 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString createdBy;
 
+  late final _i1.ColumnString updatedBy;
+
+  late final _i1.ColumnString activatedBy;
+
+  late final _i1.ColumnString deactivatedBy;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -467,6 +536,9 @@ class ShopMoreGetMoreOfferRowTable extends _i1.Table<_i1.UuidValue?> {
     status,
     deactivatedAt,
     createdBy,
+    updatedBy,
+    activatedBy,
+    deactivatedBy,
     createdAt,
     updatedAt,
   ];

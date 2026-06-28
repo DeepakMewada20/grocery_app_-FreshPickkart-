@@ -34,12 +34,20 @@ abstract class OrderItemRow
     required this.unitPrice,
     required this.totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    this.originalUnitPrice,
+    this.rewardValue,
     this.rewardOfferId,
     this.rewardOfferName,
     this.rewardThreshold,
     this.rewardSource,
     DateTime? createdAt,
   }) : isFreeItem = isFreeItem ?? false,
+       isRewardProduct = isRewardProduct ?? false,
+       quantityEditable = quantityEditable ?? true,
+       priceEditable = priceEditable ?? true,
        createdAt = createdAt ?? DateTime.now();
 
   factory OrderItemRow({
@@ -62,6 +70,11 @@ abstract class OrderItemRow
     required double unitPrice,
     required double totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
@@ -115,6 +128,22 @@ abstract class OrderItemRow
       isFreeItem: jsonSerialization['isFreeItem'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeItem']),
+      isRewardProduct: jsonSerialization['isRewardProduct'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['isRewardProduct'],
+            ),
+      quantityEditable: jsonSerialization['quantityEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['quantityEditable'],
+            ),
+      priceEditable: jsonSerialization['priceEditable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['priceEditable']),
+      originalUnitPrice: (jsonSerialization['originalUnitPrice'] as num?)
+          ?.toDouble(),
+      rewardValue: (jsonSerialization['rewardValue'] as num?)?.toDouble(),
       rewardOfferId: jsonSerialization['rewardOfferId'] as String?,
       rewardOfferName: jsonSerialization['rewardOfferName'] as String?,
       rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
@@ -169,6 +198,16 @@ abstract class OrderItemRow
 
   bool isFreeItem;
 
+  bool isRewardProduct;
+
+  bool quantityEditable;
+
+  bool priceEditable;
+
+  double? originalUnitPrice;
+
+  double? rewardValue;
+
   String? rewardOfferId;
 
   String? rewardOfferName;
@@ -205,6 +244,11 @@ abstract class OrderItemRow
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
@@ -241,6 +285,11 @@ abstract class OrderItemRow
       'unitPrice': unitPrice,
       'totalPrice': totalPrice,
       'isFreeItem': isFreeItem,
+      'isRewardProduct': isRewardProduct,
+      'quantityEditable': quantityEditable,
+      'priceEditable': priceEditable,
+      if (originalUnitPrice != null) 'originalUnitPrice': originalUnitPrice,
+      if (rewardValue != null) 'rewardValue': rewardValue,
       if (rewardOfferId != null) 'rewardOfferId': rewardOfferId,
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
@@ -307,6 +356,11 @@ class _OrderItemRowImpl extends OrderItemRow {
     required double unitPrice,
     required double totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    double? originalUnitPrice,
+    double? rewardValue,
     String? rewardOfferId,
     String? rewardOfferName,
     double? rewardThreshold,
@@ -332,6 +386,11 @@ class _OrderItemRowImpl extends OrderItemRow {
          unitPrice: unitPrice,
          totalPrice: totalPrice,
          isFreeItem: isFreeItem,
+         isRewardProduct: isRewardProduct,
+         quantityEditable: quantityEditable,
+         priceEditable: priceEditable,
+         originalUnitPrice: originalUnitPrice,
+         rewardValue: rewardValue,
          rewardOfferId: rewardOfferId,
          rewardOfferName: rewardOfferName,
          rewardThreshold: rewardThreshold,
@@ -363,6 +422,11 @@ class _OrderItemRowImpl extends OrderItemRow {
     double? unitPrice,
     double? totalPrice,
     bool? isFreeItem,
+    bool? isRewardProduct,
+    bool? quantityEditable,
+    bool? priceEditable,
+    Object? originalUnitPrice = _Undefined,
+    Object? rewardValue = _Undefined,
     Object? rewardOfferId = _Undefined,
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
@@ -407,6 +471,13 @@ class _OrderItemRowImpl extends OrderItemRow {
       unitPrice: unitPrice ?? this.unitPrice,
       totalPrice: totalPrice ?? this.totalPrice,
       isFreeItem: isFreeItem ?? this.isFreeItem,
+      isRewardProduct: isRewardProduct ?? this.isRewardProduct,
+      quantityEditable: quantityEditable ?? this.quantityEditable,
+      priceEditable: priceEditable ?? this.priceEditable,
+      originalUnitPrice: originalUnitPrice is double?
+          ? originalUnitPrice
+          : this.originalUnitPrice,
+      rewardValue: rewardValue is double? ? rewardValue : this.rewardValue,
       rewardOfferId: rewardOfferId is String?
           ? rewardOfferId
           : this.rewardOfferId,
@@ -531,6 +602,32 @@ class OrderItemRowUpdateTable extends _i1.UpdateTable<OrderItemRowTable> {
     value,
   );
 
+  _i1.ColumnValue<bool, bool> isRewardProduct(bool value) => _i1.ColumnValue(
+    table.isRewardProduct,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> quantityEditable(bool value) => _i1.ColumnValue(
+    table.quantityEditable,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> priceEditable(bool value) => _i1.ColumnValue(
+    table.priceEditable,
+    value,
+  );
+
+  _i1.ColumnValue<double, double> originalUnitPrice(double? value) =>
+      _i1.ColumnValue(
+        table.originalUnitPrice,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> rewardValue(double? value) => _i1.ColumnValue(
+    table.rewardValue,
+    value,
+  );
+
   _i1.ColumnValue<String, String> rewardOfferId(String? value) =>
       _i1.ColumnValue(
         table.rewardOfferId,
@@ -638,6 +735,29 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    isRewardProduct = _i1.ColumnBool(
+      'isRewardProduct',
+      this,
+      hasDefault: true,
+    );
+    quantityEditable = _i1.ColumnBool(
+      'quantityEditable',
+      this,
+      hasDefault: true,
+    );
+    priceEditable = _i1.ColumnBool(
+      'priceEditable',
+      this,
+      hasDefault: true,
+    );
+    originalUnitPrice = _i1.ColumnDouble(
+      'originalUnitPrice',
+      this,
+    );
+    rewardValue = _i1.ColumnDouble(
+      'rewardValue',
+      this,
+    );
     rewardOfferId = _i1.ColumnString(
       'rewardOfferId',
       this,
@@ -699,6 +819,16 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnBool isFreeItem;
 
+  late final _i1.ColumnBool isRewardProduct;
+
+  late final _i1.ColumnBool quantityEditable;
+
+  late final _i1.ColumnBool priceEditable;
+
+  late final _i1.ColumnDouble originalUnitPrice;
+
+  late final _i1.ColumnDouble rewardValue;
+
   late final _i1.ColumnString rewardOfferId;
 
   late final _i1.ColumnString rewardOfferName;
@@ -730,6 +860,11 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     unitPrice,
     totalPrice,
     isFreeItem,
+    isRewardProduct,
+    quantityEditable,
+    priceEditable,
+    originalUnitPrice,
+    rewardValue,
     rewardOfferId,
     rewardOfferName,
     rewardThreshold,

@@ -744,8 +744,9 @@ class PostgresOfferService {
 
   Future<bool> upsertShopMoreGetMoreOffer(
     Session session,
-    ShopMoreGetMoreOffer offer,
-  ) async {
+    ShopMoreGetMoreOffer offer, {
+    String? updatedBy,
+  }) async {
     return session.db.transaction<bool>((transaction) async {
       ShopMoreGetMoreOfferRow? row;
       final providedId = tryParseUuid(offer.offerId);
@@ -775,6 +776,7 @@ class PostgresOfferService {
             endsAt: offer.endDate.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
             deactivatedAt: offer.isActive ? null : now,
+            createdBy: updatedBy,
             createdAt: now,
             updatedAt: now,
           ),
@@ -797,6 +799,7 @@ class PostgresOfferService {
             endsAt: offer.endDate.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
             deactivatedAt: offer.isActive ? null : now,
+            updatedBy: updatedBy,
             updatedAt: now,
           ),
           transaction: transaction,
@@ -868,8 +871,9 @@ class PostgresOfferService {
   Future<bool> setShopMoreGetMoreOfferActive(
     Session session,
     String offerId,
-    bool isActive,
-  ) async {
+    bool isActive, {
+    String? actorId,
+  }) async {
     final parsedId = tryParseUuid(offerId);
     if (parsedId == null) return false;
 
@@ -882,6 +886,8 @@ class PostgresOfferService {
       row.copyWith(
         status: isActive ? 'active' : 'inactive',
         deactivatedAt: isActive ? null : now,
+        activatedBy: isActive ? actorId : null,
+        deactivatedBy: isActive ? null : actorId,
         updatedAt: now,
       ),
     );
@@ -970,7 +976,25 @@ class PostgresOfferService {
       if (productId == null) continue;
 
       final product = await ProductRow.db.findById(session, productId);
-      if (product == null || product.status != 'active') continue;
+      if (product == null || product.status != 'active') {
+        session.log(
+          'SMGM reward product unavailable: offer="${offer.name}" '
+          'productId=${offer.freeProductId} product=$product status=${product?.status}',
+          level: LogLevel.warning,
+        );
+        continue;
+      }
+
+      // Numeric stock check: ensure enough stock for the reward quantity
+      if (product.stock == null || product.stock! < offer.freeQuantity) {
+        session.log(
+          'SMGM reward stock insufficient: offer="${offer.name}" '
+          'product="${product.name}" stock=${product.stock} '
+          'required=${offer.freeQuantity}',
+          level: LogLevel.warning,
+        );
+        continue;
+      }
 
       if (offer.freeVariantId != null && offer.freeVariantId!.isNotEmpty) {
         final variantId = tryParseUuid(offer.freeVariantId);
@@ -993,6 +1017,11 @@ class PostgresOfferService {
       return offer;
     }
 
+    session.log(
+      'SMGM no applicable offer: eligibleAmount=$eligibleAmount '
+      'eligibleCount=${eligible.length} totalOffers=${offers.length}',
+      level: LogLevel.debug,
+    );
     return null;
   }
 
@@ -1011,6 +1040,10 @@ class PostgresOfferService {
         startDate: row.startsAt,
         endDate: row.endsAt,
         isActive: row.status == 'active',
+        createdBy: row.createdBy,
+        updatedBy: row.updatedBy,
+        activatedBy: row.activatedBy,
+        deactivatedBy: row.deactivatedBy,
         createdAt: row.createdAt,
       );
     }).toList();

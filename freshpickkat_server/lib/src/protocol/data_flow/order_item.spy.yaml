@@ -16,6 +16,11 @@ fields:
   unitPrice: double
   totalPrice: double
   isFreeItem: bool
+  isRewardProduct: bool, default=false
+  quantityEditable: bool, default=true
+  priceEditable: bool, default=true
+  originalUnitPrice: double?
+  rewardValue: double?
   triggerProductId: String?
   comboId: String?
   comboName: String?

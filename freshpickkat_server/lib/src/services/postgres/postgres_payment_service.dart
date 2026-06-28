@@ -1573,6 +1573,26 @@ class PostgresPaymentService {
         'pack': 1.0,
       };
 
+      // D3: Pre-validate SMGM reward stock before deduction
+      for (final item in orderItems.where(
+        (i) => i.rewardSource == 'SHOP_MORE_GET_MORE',
+      )) {
+        final rp = await ProductRow.db.findById(
+          session,
+          item.productId,
+          transaction: transaction,
+        );
+        if (rp != null && rp.stock != null && rp.stock! < (item.quantity ?? 1)) {
+          session.log(
+            'SMGM reward stock insufficient at payment: '
+            'product="${rp.name}" stock=${rp.stock} '
+            'required=${item.quantity} orderId=$orderId '
+            'rewardOfferId=${item.rewardOfferId}',
+            level: LogLevel.error,
+          );
+        }
+      }
+
       for (final item in orderItems) {
         final product = await ProductRow.db.findById(
           session,

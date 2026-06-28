@@ -10,4 +10,8 @@ fields:
   startDate: DateTime
   endDate: DateTime
   isActive: bool
+  createdBy: String?
+  updatedBy: String?
+  activatedBy: String?
+  deactivatedBy: String?
   createdAt: DateTime

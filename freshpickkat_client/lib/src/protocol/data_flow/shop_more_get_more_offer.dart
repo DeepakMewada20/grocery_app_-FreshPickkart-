@@ -24,6 +24,10 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
     required this.startDate,
     required this.endDate,
     required this.isActive,
+    this.createdBy,
+    this.updatedBy,
+    this.activatedBy,
+    this.deactivatedBy,
     required this.createdAt,
   });
 
@@ -38,6 +42,10 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
+    String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     required DateTime createdAt,
   }) = _ShopMoreGetMoreOfferImpl;
 
@@ -58,6 +66,10 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
       ),
       endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
+      createdBy: jsonSerialization['createdBy'] as String?,
+      updatedBy: jsonSerialization['updatedBy'] as String?,
+      activatedBy: jsonSerialization['activatedBy'] as String?,
+      deactivatedBy: jsonSerialization['deactivatedBy'] as String?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdAt'],
       ),
@@ -84,6 +96,14 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
 
   bool isActive;
 
+  String? createdBy;
+
+  String? updatedBy;
+
+  String? activatedBy;
+
+  String? deactivatedBy;
+
   DateTime createdAt;
 
   /// Returns a shallow copy of this [ShopMoreGetMoreOffer]
@@ -100,6 +120,10 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
     DateTime? startDate,
     DateTime? endDate,
     bool? isActive,
+    String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     DateTime? createdAt,
   });
   @override
@@ -116,6 +140,10 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
       'startDate': startDate.toJson(),
       'endDate': endDate.toJson(),
       'isActive': isActive,
+      if (createdBy != null) 'createdBy': createdBy,
+      if (updatedBy != null) 'updatedBy': updatedBy,
+      if (activatedBy != null) 'activatedBy': activatedBy,
+      if (deactivatedBy != null) 'deactivatedBy': deactivatedBy,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -140,6 +168,10 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
+    String? createdBy,
+    String? updatedBy,
+    String? activatedBy,
+    String? deactivatedBy,
     required DateTime createdAt,
   }) : super._(
          offerId: offerId,
@@ -152,6 +184,10 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
          startDate: startDate,
          endDate: endDate,
          isActive: isActive,
+         createdBy: createdBy,
+         updatedBy: updatedBy,
+         activatedBy: activatedBy,
+         deactivatedBy: deactivatedBy,
          createdAt: createdAt,
        );
 
@@ -170,6 +206,10 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     DateTime? startDate,
     DateTime? endDate,
     bool? isActive,
+    Object? createdBy = _Undefined,
+    Object? updatedBy = _Undefined,
+    Object? activatedBy = _Undefined,
+    Object? deactivatedBy = _Undefined,
     DateTime? createdAt,
   }) {
     return ShopMoreGetMoreOffer(
@@ -185,6 +225,12 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       isActive: isActive ?? this.isActive,
+      createdBy: createdBy is String? ? createdBy : this.createdBy,
+      updatedBy: updatedBy is String? ? updatedBy : this.updatedBy,
+      activatedBy: activatedBy is String? ? activatedBy : this.activatedBy,
+      deactivatedBy: deactivatedBy is String?
+          ? deactivatedBy
+          : this.deactivatedBy,
       createdAt: createdAt ?? this.createdAt,
     );
   }

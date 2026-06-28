@@ -441,6 +441,15 @@ class PricingEngine {
           }
         } catch (_) {}
       }
+
+      session.log(
+        'SMGM reward granted: offer="${smgmOffer.name}" '
+        'product="$smgmProductName" qty=${smgmOffer.freeQuantity} '
+        'value=$smgmRewardValue threshold=${smgmOffer.minimumOrderAmount} '
+        'eligibleAmount=$effectiveSubtotal',
+        level: LogLevel.info,
+      );
+
       freeItemsList.add(
         FreeItemInfo(
           productId: smgmOffer.freeProductId,
@@ -453,7 +462,11 @@ class PricingEngine {
           rewardOfferId: smgmOffer.offerId,
           rewardOfferName: smgmOffer.name,
           rewardThreshold: smgmOffer.minimumOrderAmount,
+          originalUnitPrice: smgmRewardValue,
           rewardValue: smgmRewardValue,
+          isRewardProduct: true,
+          quantityEditable: false,
+          priceEditable: false,
         ),
       );
       appliedOffersList.add(

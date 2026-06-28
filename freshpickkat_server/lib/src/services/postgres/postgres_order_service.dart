@@ -62,13 +62,58 @@ class PostgresOrderService {
       }
     }
 
+    // ── Phase A1: Server-authoritative SMGM item reconciliation ──
+    // Remove any client-supplied SMGM items; rebuild from server pricing.freeItems
+    final nonSmgmClientItems = order.items
+        .where(
+          (item) =>
+              !(item.isFreeItem && item.rewardSource == 'SHOP_MORE_GET_MORE'),
+        )
+        .toList();
+
+    final serverSmgmItems = pricing.freeItems
+        .where((fi) => fi.rewardSource == 'SHOP_MORE_GET_MORE')
+        .map((fi) => OrderItem(
+              productId: fi.productId,
+              variantId: fi.variantId,
+              productName: fi.productName,
+              productImage: '',
+              quantity: fi.quantity,
+              unitPrice: 0,
+              totalPrice: 0,
+              isFreeItem: true,
+              isRewardProduct: true,
+              quantityEditable: false,
+              priceEditable: false,
+              originalUnitPrice: fi.originalUnitPrice ?? fi.rewardValue,
+              rewardValue: fi.rewardValue,
+              rewardOfferId: fi.rewardOfferId,
+              rewardOfferName: fi.rewardOfferName,
+              rewardThreshold: fi.rewardThreshold,
+              rewardSource: fi.rewardSource,
+            ))
+        .toList();
+
+    final reconciledItems = [...nonSmgmClientItems, ...serverSmgmItems];
+
+    if (serverSmgmItems.isNotEmpty) {
+      final smgmInfo = serverSmgmItems.map(
+        (i) => '${i.productName} x${i.quantity} (offer=${i.rewardOfferName})',
+      );
+      session.log(
+        'SMGM reconciliation: replaced ${order.items.length - nonSmgmClientItems.length} '
+        'client items with ${serverSmgmItems.length} server items [$smgmInfo]',
+        level: LogLevel.info,
+      );
+    }
+
     final itemSnapshots = await SnapshotBuilder.instance.buildFromOrderItems(
       session,
-      items: order.items,
+      items: reconciledItems,
       bogoOfferIdsByFreeItem: bogoOfferIdsByFreeItem,
     );
 
-    final itemPrices = await _calculateItemPrices(session, order.items);
+    final itemPrices = await _calculateItemPrices(session, reconciledItems);
     final serverMrpTotal = _calculateServerMrpTotal(itemPrices, order.items);
     // --- END PHASE 5 ---
 
@@ -210,7 +255,7 @@ class PostgresOrderService {
           transaction: transaction,
         );
 
-        final orderItemRows = order.items.map((item) {
+        final orderItemRows = reconciledItems.map((item) {
           final productId = parseUuid(item.productId, fieldName: 'productId');
           final bogoOfferId = item.isFreeItem
               ? tryParseUuid(bogoOfferIdsByFreeItem[_orderFreeItemKey(item)])
@@ -240,6 +285,11 @@ class PostgresOrderService {
             unitPrice: serverUnitPrice,
             totalPrice: serverTotalPrice,
             isFreeItem: item.isFreeItem,
+            isRewardProduct: item.isRewardProduct,
+            quantityEditable: item.quantityEditable,
+            priceEditable: item.priceEditable,
+            originalUnitPrice: item.originalUnitPrice,
+            rewardValue: item.rewardValue,
             rewardOfferId: item.rewardOfferId,
             rewardOfferName: item.rewardOfferName,
             rewardThreshold: item.rewardThreshold,

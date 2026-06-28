@@ -143,6 +143,11 @@ class SnapshotBuilder {
           'rewardOfferId': item.rewardOfferId ?? '',
           'rewardOfferName': item.rewardOfferName ?? '',
           'rewardThreshold': item.rewardThreshold ?? 0,
+          'rewardProductId': item.productId,
+          'rewardVariantId': item.variantId ?? '',
+          'rewardQuantity': item.quantity,
+          'rewardValue': item.rewardValue ?? 0,
+          'rewardSource': item.rewardSource ?? 'SHOP_MORE_GET_MORE',
         });
       }
 

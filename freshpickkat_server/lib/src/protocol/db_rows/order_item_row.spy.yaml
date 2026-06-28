@@ -21,6 +21,11 @@ fields:
   unitPrice: double
   totalPrice: double
   isFreeItem: bool, default=false
+  isRewardProduct: bool, default=false
+  quantityEditable: bool, default=true
+  priceEditable: bool, default=true
+  originalUnitPrice: double?
+  rewardValue: double?
   rewardOfferId: String?
   rewardOfferName: String?
   rewardThreshold: double?
