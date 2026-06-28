@@ -17,6 +17,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_coupons_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offers_tab.dart';
 import 'package:freshpickkat_admin/widgets/catalog_widgets/offers_dashboard_tab.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/shop_more_get_more_dialog.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,8 +27,6 @@ import 'combo_offers_screen.dart';
 import 'category_offers_screen.dart';
 import 'free_delivery_screen.dart';
 import 'banners_screen.dart';
-import 'shop_more_get_more_screen.dart';
-
 class OffersScreen extends StatefulWidget {
   const OffersScreen({super.key});
 
@@ -238,12 +237,12 @@ class _OffersScreenState extends State<OffersScreen>
             controller: _categoryOfferController,
           );
           break;
-        case 'shop_more_get_more':
+        case 'add_free_gift':
           if (!mounted) return;
-          await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => const ShopMoreGetMoreScreen(),
-            ),
+          await showShopMoreGetMoreDialog(
+            context: overlayContext,
+            onSave: (offer) async =>
+                _shopMoreGetMoreController.upsertOffer(offer),
           );
           break;
       }
@@ -339,6 +338,7 @@ class _OffersScreenState extends State<OffersScreen>
                       bottom: AdminResponsive.bottomInset(context),
                       child: _OfferFabMenu(
                         isExpanded: _isOfferFabExpanded,
+                        offerTypeFilter: _offerTypeFilter,
                         onToggle: _toggleOfferFab,
                         onSelected: _handleOfferCreationAction,
                       ),
@@ -381,11 +381,13 @@ class _OffersScreenState extends State<OffersScreen>
 class _OfferFabMenu extends StatefulWidget {
   const _OfferFabMenu({
     required this.isExpanded,
+    required this.offerTypeFilter,
     required this.onToggle,
     required this.onSelected,
   });
 
   final bool isExpanded;
+  final String offerTypeFilter;
   final VoidCallback onToggle;
   final ValueChanged<String> onSelected;
 
@@ -439,10 +441,20 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
 
   @override
   Widget build(BuildContext context) {
-    final smgmAnimation = _segment(3, 4);
-    final categoryAnimation = _segment(2, 4);
-    final comboAnimation = _segment(1, 4);
-    final bogoAnimation = _segment(0, 4);
+    if (widget.offerTypeFilter == 'free_gift') {
+      return FloatingActionButton.extended(
+        heroTag: 'smgm_add_fab',
+        onPressed: () => widget.onSelected('add_free_gift'),
+        icon: const Icon(Icons.redeem),
+        label: const Text('Add Free Gift Offer'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: AdminThemeTokens.white,
+      );
+    }
+
+    final categoryAnimation = _segment(2, 3);
+    final comboAnimation = _segment(1, 3);
+    final bogoAnimation = _segment(0, 3);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -455,16 +467,6 @@ class _OfferFabMenuState extends State<_OfferFabMenu>
             builder: (context, _) => Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _OfferFabAnimatedAction(
-                  animation: smgmAnimation,
-                  child: _OfferFabAction(
-                    icon: Icons.shopping_bag_outlined,
-                    label: 'Shop More, Get More',
-                    color: AdminThemeTokens.tonePurple,
-                    onTap: () => widget.onSelected('shop_more_get_more'),
-                  ),
-                ),
-                SizedBox(height: _controller.value == 0 ? 0 : 10),
                 _OfferFabAnimatedAction(
                   animation: categoryAnimation,
                   child: _OfferFabAction(

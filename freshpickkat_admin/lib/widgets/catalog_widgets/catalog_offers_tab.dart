@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
+import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_shop_more_get_more_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
@@ -18,6 +19,7 @@ import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_offer_helpers
 import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_shared_widgets.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
+import 'package:freshpickkat_admin/widgets/catalog_widgets/shop_more_get_more_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -57,11 +59,14 @@ class CatalogOffersTab extends StatefulWidget {
 
 class _CatalogOffersTabState extends State<CatalogOffersTab> {
   AdminBogoController get _bogoController => AdminBogoController.instance;
+  AdminShopMoreGetMoreController get _smgmController =>
+      AdminShopMoreGetMoreController.instance;
 
   bool _handleScrollNotification(ScrollNotification notification) {
     final isProductBackedFilter =
         widget.offerTypeFilter != 'combo_offer' &&
-        widget.offerTypeFilter != 'category_offer';
+        widget.offerTypeFilter != 'category_offer' &&
+        widget.offerTypeFilter != 'free_gift';
     if (!isProductBackedFilter) return false;
     if (notification.metrics.pixels <
         notification.metrics.maxScrollExtent - 240) {
@@ -843,6 +848,301 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     );
   }
 
+  Product? _findProductById(String productId, List<Product> products) {
+    for (final p in products) {
+      if (p.productId == productId) return p;
+    }
+    return null;
+  }
+
+  Widget _buildSmgmOfferCard(
+    ShopMoreGetMoreOffer offer,
+    List<Product> products,
+  ) {
+    final freeProduct = _findProductById(offer.freeProductId, products);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offer.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          CatalogInlineBadge(
+                            label: 'Free Gift',
+                            color: AdminThemeTokens.tonePurple,
+                          ),
+                          CatalogInlineBadge(
+                            label: offer.isActive ? 'Active' : 'Inactive',
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                  splashRadius: 18,
+                  icon: Icon(Icons.more_vert),
+                  onSelected: (value) async {
+                    switch (value) {
+                      case 'toggle':
+                        await _toggleSmgmOffer(offer);
+                        break;
+                      case 'edit':
+                        await _editSmgmOffer(offer);
+                        break;
+                      case 'remove':
+                        await _removeSmgmOffer(offer);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Row(
+                        children: [
+                          Icon(
+                            offer.isActive
+                                ? Icons.toggle_on
+                                : Icons.toggle_off_outlined,
+                            color: offer.isActive
+                                ? AdminAppTheme.getSuccessColor(context)
+                                : AdminAppTheme.getErrorColor(context),
+                          ),
+                          SizedBox(width: 8),
+                          Text(offer.isActive ? 'Active' : 'Inactive'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'remove',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: AdminAppTheme.getErrorColor(context),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Remove Offer',
+                            style: TextStyle(
+                              color: AdminAppTheme.getErrorColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.monetization_on_outlined,
+                    size: 16, color: AdminAppTheme.getTextSecondaryColor(context)),
+                SizedBox(width: 4.w),
+                Text(
+                  'Min order: ₹${offer.minimumOrderAmount.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: 16.w),
+                Icon(Icons.low_priority,
+                    size: 16, color: AdminAppTheme.getTextSecondaryColor(context)),
+                SizedBox(width: 4.w),
+                Text(
+                  'Priority: ${offer.priority}',
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.date_range,
+                    size: 16, color: AdminAppTheme.getTextSecondaryColor(context)),
+                SizedBox(width: 4.w),
+                Text(
+                  '${offer.startDate.day}/${offer.startDate.month}/${offer.startDate.year} - ${offer.endDate.day}/${offer.endDate.month}/${offer.endDate.year}',
+                  style: TextStyle(
+                    color: AdminAppTheme.getTextSecondaryColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            if (freeProduct != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(10.r),
+                decoration: BoxDecoration(
+                  color: AdminThemeTokens.tonePurple.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AdminThemeTokens.tonePurple.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        freeProduct.imageUrl,
+                        width: 42.r,
+                        height: 42.r,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
+                          width: 42.r,
+                          height: 42.r,
+                          color: AdminAppTheme.getTextSecondaryColor(context)
+                              .withValues(alpha: 0.15),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.image_not_supported,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            freeProduct.productName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${offer.freeQuantity}x • ${freeProduct.quantity}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AdminAppTheme.getTextSecondaryColor(
+                                context,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleSmgmOffer(ShopMoreGetMoreOffer offer) async {
+    final offerId = offer.offerId;
+    if (offerId == null || offerId.isEmpty) return;
+    final success = await _smgmController.setOfferActive(
+      offerId,
+      !offer.isActive,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Free gift offer ${offer.isActive ? 'deactivated' : 'activated'}'
+              : 'Failed to update offer status',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editSmgmOffer(ShopMoreGetMoreOffer offer) async {
+    final saved = await showShopMoreGetMoreDialog(
+      context: context,
+      offer: offer,
+      onSave: (updated) async => _smgmController.upsertOffer(updated),
+    );
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Free gift offer updated successfully'),
+        ),
+      );
+      await widget.onRefresh();
+    }
+  }
+
+  Future<void> _removeSmgmOffer(ShopMoreGetMoreOffer offer) async {
+    final offerId = offer.offerId;
+    if (offerId == null || offerId.isEmpty) return;
+    final confirmed = await showConfirmActionDialog(
+      context: context,
+      title: 'Remove Offer',
+      content: 'Remove free gift offer "${offer.name}"?',
+      confirmLabel: 'Remove',
+      onConfirm: () => _smgmController.deleteOffer(offerId),
+    );
+    if (confirmed != true || !mounted) return;
+    showUndoSnackBar(
+      context,
+      message: 'Free gift offer removed',
+      onUndo: () {
+        _smgmController.setOfferActive(offerId, true);
+      },
+    );
+  }
+
   _OfferCardActionType _primaryActionTypeFor(
     Product product,
     List<BogoOffer> bogoOffers,
@@ -1338,6 +1638,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       final visibleCategoryOffers = categoryOffers
           .where((offer) => _categoryOfferMatchesFilters(offer, products))
           .toList();
+      final smgmOffers = _smgmController.offers;
+      final visibleSmgmOffers = filterCatalogSmgmOffers(
+        smgmOffers,
+        widget.offerSearchQuery,
+      );
+
       final bogoCount = bogoOffers.length;
       final activeBogoOfferCount = bogoOffers
           .where((offer) => offer.isActive)
@@ -1386,11 +1692,18 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       }).length;
       final inactiveComboOfferCount =
           totalComboOfferCount - activeComboOfferCount;
+      final totalSmgmOfferCount = smgmOffers.length;
+      final activeSmgmOfferCount =
+          smgmOffers.where((offer) => offer.isActive).length;
+      final inactiveSmgmOfferCount =
+          totalSmgmOfferCount - activeSmgmOfferCount;
+
       final allOfferCount =
           directOfferCount +
           bogoOffers.length +
           categoryOffers.length +
-          comboOffers.length;
+          comboOffers.length +
+          totalSmgmOfferCount;
       final liveOfferCount =
           liveDirectOfferCount +
           liveBogoOfferCount +
@@ -1465,6 +1778,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                         '$activeComboOfferCount active · $inactiveComboOfferCount off',
                   ),
                   CatalogOfferTypeFilterItem(
+                    value: 'free_gift',
+                    label: 'Free Gift',
+                    count: '$totalSmgmOfferCount',
+                    icon: Icons.redeem,
+                    accentColor: AdminThemeTokens.tonePurple,
+                    subtitle:
+                        '$activeSmgmOfferCount active · $inactiveSmgmOfferCount off',
+                  ),
+                  CatalogOfferTypeFilterItem(
                     value: 'percentage',
                     label: 'Percentage',
                     count: '$percentageCount',
@@ -1506,21 +1828,25 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      widget.offerTypeFilter == 'combo_offer'
-                          ? 'Combo Offers'
-                          : widget.offerTypeFilter == 'category_offer'
-                          ? 'Category Offers'
-                          : 'Products by Offer',
-                      style: AdminTextStyles.sectionTitle(context),
-                    ),
-                  ),
-                  Text(
+                  child: Text(
                     widget.offerTypeFilter == 'combo_offer'
-                        ? '${visibleComboOffers.length} items'
+                        ? 'Combo Offers'
                         : widget.offerTypeFilter == 'category_offer'
-                        ? '${visibleCategoryOffers.length} items'
-                        : '${visibleProducts.length} items',
+                        ? 'Category Offers'
+                        : widget.offerTypeFilter == 'free_gift'
+                        ? 'Free Gift Offers'
+                        : 'Products by Offer',
+                    style: AdminTextStyles.sectionTitle(context),
+                  ),
+                ),
+                Text(
+                  widget.offerTypeFilter == 'combo_offer'
+                      ? '${visibleComboOffers.length} items'
+                      : widget.offerTypeFilter == 'category_offer'
+                      ? '${visibleCategoryOffers.length} items'
+                      : widget.offerTypeFilter == 'free_gift'
+                      ? '${visibleSmgmOffers.length} items'
+                      : '${visibleProducts.length} items',
                     style: TextStyle(
                       color: AdminAppTheme.getTextSecondaryColor(context),
                     ),
@@ -1553,6 +1879,20 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               else if (widget.offerTypeFilter == 'category_offer')
                 ...visibleCategoryOffers.map(
                   (offer) => _buildCategoryOfferCard(offer, products),
+                )
+              else if (widget.offerTypeFilter == 'free_gift' &&
+                  visibleSmgmOffers.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No free gift offers matched the selected filters',
+                    ),
+                  ),
+                )
+              else if (widget.offerTypeFilter == 'free_gift')
+                ...visibleSmgmOffers.map(
+                  (offer) => _buildSmgmOfferCard(offer, products),
                 )
               else if (visibleProducts.isEmpty)
                 const Card(
@@ -1801,6 +2141,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                 }),
               if (widget.offerTypeFilter != 'combo_offer' &&
                   widget.offerTypeFilter != 'category_offer' &&
+                  widget.offerTypeFilter != 'free_gift' &&
                   widget.productController.isLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),

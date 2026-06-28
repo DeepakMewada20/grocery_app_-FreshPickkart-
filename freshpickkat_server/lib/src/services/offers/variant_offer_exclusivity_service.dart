@@ -240,9 +240,9 @@ class VariantOfferExclusivityService {
       return 'Minimum order amount must be greater than 0.';
     }
 
-    // B2: Free quantity must be > 0
-    if (offer.freeQuantity <= 0) {
-      return 'Free quantity must be greater than 0.';
+    // B2: Free quantity must be exactly 1
+    if (offer.freeQuantity != 1) {
+      return 'Free quantity must be exactly 1.';
     }
 
     // B3: Reward product must exist and be active

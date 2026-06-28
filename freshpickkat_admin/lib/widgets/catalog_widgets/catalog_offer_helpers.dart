@@ -233,6 +233,18 @@ bool _hasCatalogLiveComboOffer(
   });
 }
 
+List<ShopMoreGetMoreOffer> filterCatalogSmgmOffers(
+  List<ShopMoreGetMoreOffer> offers,
+  String query,
+) {
+  final normalized = query.toLowerCase().trim();
+  if (normalized.isEmpty) return offers;
+  return offers.where((offer) {
+    return offer.name.toLowerCase().contains(normalized) ||
+        offer.freeProductId.toLowerCase().contains(normalized);
+  }).toList();
+}
+
 double catalogFlatDiscountValue(Product product) {
   final directValue = product.discountValue ?? 0;
   if (directValue > 0) return directValue;
