@@ -649,7 +649,10 @@ class PostgresCatalogService {
     // Build SMGM map: productId → {offerId, minAmount}
     final smgmByProduct = <String, Map<String, dynamic>>{};
     for (final smgm in smgmRows) {
-      if (now.isBefore(smgm.startsAt) || now.isAfter(smgm.endsAt)) continue;
+      final startsAt = smgm.startsAt;
+      final endsAt = smgm.endsAt;
+      if (startsAt != null && now.isBefore(startsAt)) continue;
+      if (endsAt != null && now.isAfter(endsAt)) continue;
       final productId = smgm.freeProductId.toString();
       if (!productIds.contains(smgm.freeProductId)) continue;
       smgmByProduct[productId] = {

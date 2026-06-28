@@ -996,7 +996,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     size: 16, color: AdminAppTheme.getTextSecondaryColor(context)),
                 SizedBox(width: 4.w),
                 Text(
-                  '${offer.startDate.day}/${offer.startDate.month}/${offer.startDate.year} - ${offer.endDate.day}/${offer.endDate.month}/${offer.endDate.year}',
+                  offer.startDate != null && offer.endDate != null
+                      ? '${offer.startDate!.day}/${offer.startDate!.month}/${offer.startDate!.year} - ${offer.endDate!.day}/${offer.endDate!.month}/${offer.endDate!.year}'
+                      : 'No expiry',
                   style: TextStyle(
                     color: AdminAppTheme.getTextSecondaryColor(context),
                     fontWeight: FontWeight.w600,

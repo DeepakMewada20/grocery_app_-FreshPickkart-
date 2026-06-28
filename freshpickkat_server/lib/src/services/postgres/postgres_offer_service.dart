@@ -771,8 +771,8 @@ class PostgresOfferService {
             ),
             freeVariantId: tryParseUuid(offer.freeVariantId),
             freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
-            startsAt: offer.startDate.toUtc(),
-            endsAt: offer.endDate.toUtc(),
+            startsAt: offer.startDate?.toUtc(),
+            endsAt: offer.endDate?.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
             deactivatedAt: offer.isActive ? null : now,
             createdBy: updatedBy,
@@ -793,8 +793,8 @@ class PostgresOfferService {
             ),
             freeVariantId: tryParseUuid(offer.freeVariantId),
             freeQuantity: offer.freeQuantity <= 0 ? 1 : offer.freeQuantity,
-            startsAt: offer.startDate.toUtc(),
-            endsAt: offer.endDate.toUtc(),
+            startsAt: offer.startDate?.toUtc(),
+            endsAt: offer.endDate?.toUtc(),
             status: offer.isActive ? 'active' : 'inactive',
             deactivatedAt: offer.isActive ? null : now,
             updatedBy: updatedBy,
@@ -1392,8 +1392,10 @@ class PostgresOfferService {
     return true;
   }
 
-  bool _isWithinWindow(DateTime now, DateTime startsAt, DateTime endsAt) {
-    return !now.isBefore(startsAt) && !now.isAfter(endsAt);
+  bool _isWithinWindow(DateTime now, DateTime? startsAt, DateTime? endsAt) {
+    if (startsAt != null && now.isBefore(startsAt)) return false;
+    if (endsAt != null && now.isAfter(endsAt)) return false;
+    return true;
   }
 
   int _normalizeFreeQuantity(int? quantity) {

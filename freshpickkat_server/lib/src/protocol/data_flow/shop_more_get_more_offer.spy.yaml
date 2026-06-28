@@ -6,8 +6,8 @@ fields:
   freeProductId: String
   freeVariantId: String?
   freeQuantity: int
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   isActive: bool
   createdBy: String?
   updatedBy: String?

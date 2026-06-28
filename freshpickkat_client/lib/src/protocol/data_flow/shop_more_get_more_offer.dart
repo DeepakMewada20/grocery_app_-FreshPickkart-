@@ -20,8 +20,8 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
     required this.freeProductId,
     this.freeVariantId,
     required this.freeQuantity,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.isActive,
     this.createdBy,
     this.updatedBy,
@@ -37,8 +37,8 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
     required String freeProductId,
     String? freeVariantId,
     required int freeQuantity,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     String? createdBy,
     String? updatedBy,
@@ -58,10 +58,12 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
       freeProductId: jsonSerialization['freeProductId'] as String,
       freeVariantId: jsonSerialization['freeVariantId'] as String?,
       freeQuantity: jsonSerialization['freeQuantity'] as int,
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       createdBy: jsonSerialization['createdBy'] as String?,
       updatedBy: jsonSerialization['updatedBy'] as String?,
@@ -85,9 +87,9 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
 
   int freeQuantity;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   bool isActive;
 
@@ -130,8 +132,8 @@ abstract class ShopMoreGetMoreOffer implements _i1.SerializableModel {
       'freeProductId': freeProductId,
       if (freeVariantId != null) 'freeVariantId': freeVariantId,
       'freeQuantity': freeQuantity,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'isActive': isActive,
       if (createdBy != null) 'createdBy': createdBy,
       if (updatedBy != null) 'updatedBy': updatedBy,
@@ -157,8 +159,8 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     required String freeProductId,
     String? freeVariantId,
     required int freeQuantity,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     String? createdBy,
     String? updatedBy,
@@ -193,8 +195,8 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
     String? freeProductId,
     Object? freeVariantId = _Undefined,
     int? freeQuantity,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     bool? isActive,
     Object? createdBy = _Undefined,
     Object? updatedBy = _Undefined,
@@ -211,8 +213,8 @@ class _ShopMoreGetMoreOfferImpl extends ShopMoreGetMoreOffer {
           ? freeVariantId
           : this.freeVariantId,
       freeQuantity: freeQuantity ?? this.freeQuantity,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       isActive: isActive ?? this.isActive,
       createdBy: createdBy is String? ? createdBy : this.createdBy,
       updatedBy: updatedBy is String? ? updatedBy : this.updatedBy,

@@ -48,10 +48,11 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
   final _productController = AdminProductController.instance;
 
   bool _isSubmitting = false;
+  bool _hasExpiry = false;
   Product? _selectedProduct;
   String? _selectedVariantId;
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 365));
+  DateTime? _startDate;
+  DateTime? _endDate;
   String? _selectedCategory;
 
   bool get isEditing => widget.offer != null;
@@ -103,9 +104,11 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
     final offer = widget.offer;
     if (offer != null) {
       _minAmountController.text = offer.minimumOrderAmount.toStringAsFixed(0);
-      _startDate = offer.startDate;
-      _endDate = offer.endDate;
-
+      if (offer.startDate != null && offer.endDate != null) {
+        _hasExpiry = true;
+        _startDate = offer.startDate;
+        _endDate = offer.endDate;
+      }
       _selectedProduct = _firstWhereOrNull(
         _productController.products,
         (Product p) => p.productId == offer.freeProductId,
@@ -158,9 +161,12 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
   }
 
   Future<void> _selectDate(bool isStart) async {
+    final initial = isStart
+        ? (_startDate ?? _endDate ?? DateTime.now())
+        : (_endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 365)));
     final selected = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startDate : _endDate,
+      initialDate: initial,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );
@@ -168,8 +174,8 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
     setState(() {
       if (isStart) {
         _startDate = selected;
-        if (_endDate.isBefore(_startDate)) {
-          _endDate = _startDate.add(const Duration(days: 1));
+        if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+          _endDate = _startDate!.add(const Duration(days: 1));
         }
       } else {
         _endDate = selected;
@@ -187,9 +193,15 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       _showError('Please enter a valid minimum order amount');
       return;
     }
-    if (_endDate.isBefore(_startDate)) {
-      _showError('End date must be after start date');
-      return;
+    if (_hasExpiry) {
+      if (_startDate == null || _endDate == null) {
+        _showError('Please set both start and end dates');
+        return;
+      }
+      if (_endDate!.isBefore(_startDate!)) {
+        _showError('End date must be after start date');
+        return;
+      }
     }
 
     final offer = ShopMoreGetMoreOffer(
@@ -199,8 +211,8 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       freeProductId: _selectedProduct!.productId!,
       freeVariantId: _selectedVariantId,
       freeQuantity: 1,
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: _hasExpiry ? _startDate : null,
+      endDate: _hasExpiry ? _endDate : null,
       isActive: widget.offer?.isActive ?? true,
       createdAt: widget.offer?.createdAt ?? DateTime.now(),
     );
@@ -371,27 +383,52 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
             ),
           ],
           SizedBox(height: 14.h),
-          Row(
-            children: [
-              Expanded(
-                child: _DateCard(
-                  label: 'Start Date',
-                  value: _startDate,
-                  onTap: () => _selectDate(true),
-                  enabled: !_isSubmitting,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: _DateCard(
-                  label: 'End Date',
-                  value: _endDate,
-                  onTap: () => _selectDate(false),
-                  enabled: !_isSubmitting,
-                ),
-              ),
-            ],
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Set Expiry Dates'),
+            subtitle: Text(
+              _hasExpiry
+                  ? 'Offer runs from ${_formatDate(_startDate!)} to ${_formatDate(_endDate!)}'
+                  : 'Offer never expires until manually deactivated',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: _hasExpiry,
+            onChanged: _isSubmitting
+                ? null
+                : (v) {
+                    setState(() {
+                      _hasExpiry = v;
+                      if (v) {
+                        _startDate ??= DateTime.now();
+                        _endDate ??= DateTime.now().add(const Duration(days: 365));
+                      }
+                    });
+                  },
           ),
+          if (_hasExpiry) ...[
+            SizedBox(height: 6.h),
+            Row(
+              children: [
+                Expanded(
+                  child: _DateCard(
+                    label: 'Start Date',
+                    value: _startDate,
+                    onTap: () => _selectDate(true),
+                    enabled: !_isSubmitting,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: _DateCard(
+                    label: 'End Date',
+                    value: _endDate,
+                    onTap: () => _selectDate(false),
+                    enabled: !_isSubmitting,
+                  ),
+                ),
+              ],
+            ),
+          ],
           SizedBox(height: 24.h),
           SizedBox(
             width: double.infinity,
@@ -411,11 +448,14 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       ),
     );
   }
+
+  String _formatDate(DateTime date) =>
+      '${date.day}/${date.month}/${date.year}';
 }
 
 class _DateCard extends StatelessWidget {
   final String label;
-  final DateTime value;
+  final DateTime? value;
   final VoidCallback onTap;
   final bool enabled;
 
@@ -425,9 +465,6 @@ class _DateCard extends StatelessWidget {
     required this.onTap,
     required this.enabled,
   });
-
-  String _formatDate(DateTime date) =>
-      '${date.day}/${date.month}/${date.year}';
 
   @override
   Widget build(BuildContext context) {
@@ -474,7 +511,9 @@ class _DateCard extends StatelessWidget {
                   ),
                   SizedBox(height: 3.h),
                   Text(
-                    _formatDate(value),
+                    value != null
+                        ? '${value!.day}/${value!.month}/${value!.year}'
+                        : 'Not set',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AdminTextStyles.cardTitle(context).copyWith(

@@ -21,8 +21,8 @@ abstract class ShopMoreGetMoreOfferRow
     required this.freeProductId,
     this.freeVariantId,
     int? freeQuantity,
-    required this.startsAt,
-    required this.endsAt,
+    this.startsAt,
+    this.endsAt,
     String? status,
     this.deactivatedAt,
     this.createdBy,
@@ -44,8 +44,8 @@ abstract class ShopMoreGetMoreOfferRow
     required _i1.UuidValue freeProductId,
     _i1.UuidValue? freeVariantId,
     int? freeQuantity,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     String? createdBy,
@@ -75,10 +75,12 @@ abstract class ShopMoreGetMoreOfferRow
               jsonSerialization['freeVariantId'],
             ),
       freeQuantity: jsonSerialization['freeQuantity'] as int?,
-      startsAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startsAt'],
-      ),
-      endsAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
+      startsAt: jsonSerialization['startsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startsAt']),
+      endsAt: jsonSerialization['endsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -115,9 +117,9 @@ abstract class ShopMoreGetMoreOfferRow
 
   int freeQuantity;
 
-  DateTime startsAt;
+  DateTime? startsAt;
 
-  DateTime endsAt;
+  DateTime? endsAt;
 
   String status;
 
@@ -169,8 +171,8 @@ abstract class ShopMoreGetMoreOfferRow
       'freeProductId': freeProductId.toJson(),
       if (freeVariantId != null) 'freeVariantId': freeVariantId?.toJson(),
       'freeQuantity': freeQuantity,
-      'startsAt': startsAt.toJson(),
-      'endsAt': endsAt.toJson(),
+      if (startsAt != null) 'startsAt': startsAt?.toJson(),
+      if (endsAt != null) 'endsAt': endsAt?.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       if (createdBy != null) 'createdBy': createdBy,
@@ -227,8 +229,8 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     required _i1.UuidValue freeProductId,
     _i1.UuidValue? freeVariantId,
     int? freeQuantity,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     String? createdBy,
@@ -267,8 +269,8 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
     _i1.UuidValue? freeProductId,
     Object? freeVariantId = _Undefined,
     int? freeQuantity,
-    DateTime? startsAt,
-    DateTime? endsAt,
+    Object? startsAt = _Undefined,
+    Object? endsAt = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
     Object? createdBy = _Undefined,
@@ -287,8 +289,8 @@ class _ShopMoreGetMoreOfferRowImpl extends ShopMoreGetMoreOfferRow {
           ? freeVariantId
           : this.freeVariantId,
       freeQuantity: freeQuantity ?? this.freeQuantity,
-      startsAt: startsAt ?? this.startsAt,
-      endsAt: endsAt ?? this.endsAt,
+      startsAt: startsAt is DateTime? ? startsAt : this.startsAt,
+      endsAt: endsAt is DateTime? ? endsAt : this.endsAt,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -339,16 +341,17 @@ class ShopMoreGetMoreOfferRowUpdateTable
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime? value) =>
       _i1.ColumnValue(
         table.startsAt,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime value) => _i1.ColumnValue(
-    table.endsAt,
-    value,
-  );
+  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.endsAt,
+        value,
+      );
 
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,
