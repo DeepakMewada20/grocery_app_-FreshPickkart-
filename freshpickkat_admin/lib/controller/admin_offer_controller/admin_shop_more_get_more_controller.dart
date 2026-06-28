@@ -260,6 +260,34 @@ class AdminShopMoreGetMoreController extends GetxController {
     }
   }
 
+  Future<OfferMutationResult> upsertOfferWithConflicts(
+    ShopMoreGetMoreOffer offer, {
+    bool confirmDisableConflictingCombo = false,
+    bool forceDisableFreeDelivery = false,
+    NotificationDraft? notificationDraft,
+  }) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final result = await client.shopMoreGetMore.upsertOfferWithConflicts(
+        offer,
+        uid,
+        idToken,
+        confirmDisableConflictingCombo: confirmDisableConflictingCombo,
+        forceDisableFreeDelivery: forceDisableFreeDelivery,
+        notificationDraft: notificationDraft,
+      );
+      if (result.success) {
+        _upsertLocal(offer);
+      }
+      return result;
+    } on Exception catch (e) {
+      return OfferMutationResult(success: false, message: e.toString());
+    }
+  }
+
   Future<bool> upsertOffer(
     ShopMoreGetMoreOffer offer, {
     NotificationDraft? notificationDraft,

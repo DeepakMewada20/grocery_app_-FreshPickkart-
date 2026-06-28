@@ -1103,12 +1103,13 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
   }
 
   Future<void> _editSmgmOffer(ShopMoreGetMoreOffer offer) async {
-    final saved = await showShopMoreGetMoreDialog(
+    final result = await showShopMoreGetMoreDialog(
       context: context,
       offer: offer,
-      onSave: (updated) async => _smgmController.upsertOffer(updated),
+      onSave: (updated) async =>
+          _smgmController.upsertOfferWithConflicts(updated),
     );
-    if (saved == true && mounted) {
+    if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Free gift offer updated successfully'),

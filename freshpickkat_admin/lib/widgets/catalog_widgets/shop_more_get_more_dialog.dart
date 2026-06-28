@@ -5,12 +5,13 @@ import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:freshpickkat_admin/widgets/confirm_action_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<bool?> showShopMoreGetMoreDialog({
   required BuildContext context,
   ShopMoreGetMoreOffer? offer,
-  required Future<bool> Function(ShopMoreGetMoreOffer offer) onSave,
+  required Future<OfferMutationResult> Function(ShopMoreGetMoreOffer offer) onSave,
 }) {
   return showModalBottomSheet<bool>(
     context: context,
@@ -35,7 +36,7 @@ Future<bool?> showShopMoreGetMoreDialog({
 
 class ShopMoreGetMoreDialog extends StatefulWidget {
   final ShopMoreGetMoreOffer? offer;
-  final Future<bool> Function(ShopMoreGetMoreOffer offer) onSave;
+  final Future<OfferMutationResult> Function(ShopMoreGetMoreOffer offer) onSave;
 
   const ShopMoreGetMoreDialog({super.key, this.offer, required this.onSave});
 
@@ -217,15 +218,54 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
       createdAt: widget.offer?.createdAt ?? DateTime.now(),
     );
 
+    await _saveWithConflicts(offer, forceDisableFreeDelivery: false, confirmDisableConflictingCombo: false);
+  }
+
+  Future<void> _saveWithConflicts(
+    ShopMoreGetMoreOffer offer, {
+    required bool confirmDisableConflictingCombo,
+    required bool forceDisableFreeDelivery,
+  }) async {
     setState(() => _isSubmitting = true);
     try {
-      final saved = await widget.onSave(offer);
+      final result = await widget.onSave(offer);
       if (!mounted) return;
-      if (saved) {
+      if (result.success) {
         Navigator.pop(context, true);
-      } else {
-        _showError(isEditing ? 'Error updating offer' : 'Error creating offer');
+        return;
       }
+
+      final conflict = result.conflict;
+      if (conflict != null && conflict.hasConflict && mounted) {
+        final shouldProceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Offer Conflict'),
+            content: Text(conflict.message ?? 'A conflicting offer exists.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Disable & Save'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        if (shouldProceed == true) {
+          await _saveWithConflicts(
+            offer,
+            confirmDisableConflictingCombo: true,
+            forceDisableFreeDelivery: true,
+          );
+        }
+        return;
+      }
+
+      _showError(result.message ?? 'Error saving offer');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
