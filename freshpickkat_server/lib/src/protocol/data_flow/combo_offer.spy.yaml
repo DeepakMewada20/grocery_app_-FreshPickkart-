@@ -7,8 +7,8 @@ fields:
   discountType: String
   discountValue: double
   minQuantityPerProduct: int
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   isActive: bool
   priority: int
   maxUsagePerUser: int

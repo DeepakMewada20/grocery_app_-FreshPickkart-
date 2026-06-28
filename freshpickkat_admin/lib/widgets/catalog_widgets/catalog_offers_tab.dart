@@ -76,9 +76,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     return false;
   }
 
-  bool _isOfferLive(DateTime startDate, DateTime endDate, bool isActive) {
+  bool _isOfferLive(DateTime? startDate, DateTime? endDate, bool isActive) {
+    if (!isActive) return false;
     final now = DateTime.now();
-    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
+    if (startDate != null && startDate.isAfter(now)) return false;
+    if (endDate != null && endDate.isBefore(now)) return false;
+    return true;
   }
 
   List<Product> _productsForComboOffer(
@@ -1233,11 +1236,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     final now = DateTime.now();
     final productId = product.productId;
     for (final offer in categoryOffers) {
-      if (!offer.isActive ||
-          offer.startDate.isAfter(now) ||
-          offer.endDate.isBefore(now)) {
-        continue;
-      }
+      if (!offer.isActive) continue;
+      if (offer.startDate != null && offer.startDate!.isAfter(now)) continue;
+      if (offer.endDate != null && offer.endDate!.isBefore(now)) continue;
       if (productId != null &&
           (offer.excludeProductIds ?? const <String>[]).contains(productId)) {
         continue;
@@ -1260,11 +1261,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     final productId = product.productId;
     if (productId == null) return null;
     for (final offer in comboOffers) {
-      if (!offer.isActive ||
-          offer.startDate.isAfter(now) ||
-          offer.endDate.isBefore(now)) {
-        continue;
-      }
+      if (!offer.isActive) continue;
+      if (offer.startDate != null && offer.startDate!.isAfter(now)) continue;
+      if (offer.endDate != null && offer.endDate!.isBefore(now)) continue;
       if (offer.comboProducts.any((item) => item.productId == productId)) {
         return offer;
       }

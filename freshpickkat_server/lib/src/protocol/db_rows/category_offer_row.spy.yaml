@@ -11,8 +11,8 @@ fields:
   maxDiscountAmount: double?
   minOrderAmount: double?
   priority: int, default=0
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   scopeProductIds: String?

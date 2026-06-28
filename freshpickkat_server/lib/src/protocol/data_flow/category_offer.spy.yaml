@@ -11,8 +11,8 @@ fields:
   minOrderAmount: double?
   productIds: List<String>?
   excludeProductIds: List<String>?
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   isActive: bool
   priority: int
   createdAt: DateTime

@@ -30,8 +30,8 @@ abstract class BannerRow
     this.linkedProductIds,
     int? priority,
     bool? isBaseImage,
-    required this.startsAt,
-    required this.endsAt,
+    this.startsAt,
+    this.endsAt,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
@@ -59,8 +59,8 @@ abstract class BannerRow
     String? linkedProductIds,
     int? priority,
     bool? isBaseImage,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -106,10 +106,12 @@ abstract class BannerRow
       isBaseImage: jsonSerialization['isBaseImage'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isBaseImage']),
-      startsAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startsAt'],
-      ),
-      endsAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
+      startsAt: jsonSerialization['startsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startsAt']),
+      endsAt: jsonSerialization['endsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -160,9 +162,9 @@ abstract class BannerRow
 
   bool isBaseImage;
 
-  DateTime startsAt;
+  DateTime? startsAt;
 
-  DateTime endsAt;
+  DateTime? endsAt;
 
   String status;
 
@@ -222,8 +224,8 @@ abstract class BannerRow
       if (linkedProductIds != null) 'linkedProductIds': linkedProductIds,
       'priority': priority,
       'isBaseImage': isBaseImage,
-      'startsAt': startsAt.toJson(),
-      'endsAt': endsAt.toJson(),
+      if (startsAt != null) 'startsAt': startsAt?.toJson(),
+      if (endsAt != null) 'endsAt': endsAt?.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -285,8 +287,8 @@ class _BannerRowImpl extends BannerRow {
     String? linkedProductIds,
     int? priority,
     bool? isBaseImage,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -335,8 +337,8 @@ class _BannerRowImpl extends BannerRow {
     Object? linkedProductIds = _Undefined,
     int? priority,
     bool? isBaseImage,
-    DateTime? startsAt,
-    DateTime? endsAt,
+    Object? startsAt = _Undefined,
+    Object? endsAt = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
@@ -368,8 +370,8 @@ class _BannerRowImpl extends BannerRow {
           : this.linkedProductIds,
       priority: priority ?? this.priority,
       isBaseImage: isBaseImage ?? this.isBaseImage,
-      startsAt: startsAt ?? this.startsAt,
-      endsAt: endsAt ?? this.endsAt,
+      startsAt: startsAt is DateTime? ? startsAt : this.startsAt,
+      endsAt: endsAt is DateTime? ? endsAt : this.endsAt,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -465,16 +467,17 @@ class BannerRowUpdateTable extends _i1.UpdateTable<BannerRowTable> {
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime? value) =>
       _i1.ColumnValue(
         table.startsAt,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime value) => _i1.ColumnValue(
-    table.endsAt,
-    value,
-  );
+  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.endsAt,
+        value,
+      );
 
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,

@@ -22,8 +22,8 @@ abstract class BogoOfferRow
     this.triggerBaseQuantity,
     this.triggerBaseUnit,
     required this.title,
-    required this.startsAt,
-    required this.endsAt,
+    this.startsAt,
+    this.endsAt,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
@@ -41,8 +41,8 @@ abstract class BogoOfferRow
     double? triggerBaseQuantity,
     String? triggerBaseUnit,
     required String title,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -67,10 +67,12 @@ abstract class BogoOfferRow
           ?.toDouble(),
       triggerBaseUnit: jsonSerialization['triggerBaseUnit'] as String?,
       title: jsonSerialization['title'] as String,
-      startsAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startsAt'],
-      ),
-      endsAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
+      startsAt: jsonSerialization['startsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startsAt']),
+      endsAt: jsonSerialization['endsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -105,9 +107,9 @@ abstract class BogoOfferRow
 
   String title;
 
-  DateTime startsAt;
+  DateTime? startsAt;
 
-  DateTime endsAt;
+  DateTime? endsAt;
 
   String status;
 
@@ -151,8 +153,8 @@ abstract class BogoOfferRow
         'triggerBaseQuantity': triggerBaseQuantity,
       if (triggerBaseUnit != null) 'triggerBaseUnit': triggerBaseUnit,
       'title': title,
-      'startsAt': startsAt.toJson(),
-      'endsAt': endsAt.toJson(),
+      if (startsAt != null) 'startsAt': startsAt?.toJson(),
+      if (endsAt != null) 'endsAt': endsAt?.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -206,8 +208,8 @@ class _BogoOfferRowImpl extends BogoOfferRow {
     double? triggerBaseQuantity,
     String? triggerBaseUnit,
     required String title,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -240,8 +242,8 @@ class _BogoOfferRowImpl extends BogoOfferRow {
     Object? triggerBaseQuantity = _Undefined,
     Object? triggerBaseUnit = _Undefined,
     String? title,
-    DateTime? startsAt,
-    DateTime? endsAt,
+    Object? startsAt = _Undefined,
+    Object? endsAt = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
@@ -261,8 +263,8 @@ class _BogoOfferRowImpl extends BogoOfferRow {
           ? triggerBaseUnit
           : this.triggerBaseUnit,
       title: title ?? this.title,
-      startsAt: startsAt ?? this.startsAt,
-      endsAt: endsAt ?? this.endsAt,
+      startsAt: startsAt is DateTime? ? startsAt : this.startsAt,
+      endsAt: endsAt is DateTime? ? endsAt : this.endsAt,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -312,16 +314,17 @@ class BogoOfferRowUpdateTable extends _i1.UpdateTable<BogoOfferRowTable> {
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime? value) =>
       _i1.ColumnValue(
         table.startsAt,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime value) => _i1.ColumnValue(
-    table.endsAt,
-    value,
-  );
+  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.endsAt,
+        value,
+      );
 
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,

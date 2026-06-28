@@ -279,7 +279,9 @@ class _CategoryOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isValid = offer.startDate.isBefore(now) && offer.endDate.isAfter(now);
+    final isValid = offer.startDate != null && offer.endDate != null
+        ? offer.startDate!.isBefore(now) && offer.endDate!.isAfter(now)
+        : true;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -451,8 +453,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   String _discountType = 'percentage';
   String? _selectedCategoryId;
   int _priority = 0;
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  bool _hasExpiry = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
   bool _isSubmitting = false;
 
   bool get isEditing => widget.offer != null;
@@ -466,8 +469,11 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
       _discountType = widget.offer!.discountType;
       _selectedCategoryId = widget.offer!.categoryId;
       _priority = widget.offer!.priority;
-      _startDate = widget.offer!.startDate;
-      _endDate = widget.offer!.endDate;
+      if (widget.offer!.startDate != null && widget.offer!.endDate != null) {
+        _hasExpiry = true;
+        _startDate = widget.offer!.startDate;
+        _endDate = widget.offer!.endDate;
+      }
       if (widget.offer!.maxDiscount != null) {
         _maxDiscountController.text = widget.offer!.maxDiscount.toString();
       }
@@ -520,7 +526,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
 
   Widget _buildDateCard({
     required String label,
-    required DateTime value,
+    required DateTime? value,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -753,26 +759,50 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDateCard(
-                              label: 'Start Date',
-                              value: _startDate,
-                              onTap: () => _selectDate(true),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildDateCard(
-                              label: 'End Date',
-                              value: _endDate,
-                              onTap: () => _selectDate(false),
-                            ),
-                          ),
-                        ],
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Set Expiry Dates'),
+                        subtitle: Text(
+                          _hasExpiry && _startDate != null && _endDate != null
+                              ? 'Offer runs from ${_formatDate(_startDate!)} to ${_formatDate(_endDate!)}'
+                              : 'Offer never expires until manually deactivated',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        value: _hasExpiry,
+                        onChanged: _isSubmitting
+                            ? null
+                            : (v) {
+                                setState(() {
+                                  _hasExpiry = v;
+                                  if (v) {
+                                    _startDate ??= DateTime.now();
+                                    _endDate ??= DateTime.now().add(const Duration(days: 30));
+                                  }
+                                });
+                              },
                       ),
+                      if (_hasExpiry) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDateCard(
+                                label: 'Start Date',
+                                value: _startDate,
+                                onTap: () => _selectDate(true),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildDateCard(
+                                label: 'End Date',
+                                value: _endDate,
+                                onTap: () => _selectDate(false),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -820,7 +850,9 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
   Future<void> _selectDate(bool isStart) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startDate : _endDate,
+      initialDate: isStart
+          ? (_startDate ?? _endDate ?? DateTime.now())
+          : (_endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 30))),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );
@@ -836,7 +868,8 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'No expiry';
     return '${date.day}/${date.month}/${date.year}';
   }
 
@@ -864,8 +897,8 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
       minOrderAmount: _minOrderController.text.isNotEmpty
           ? double.parse(_minOrderController.text)
           : null,
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: _hasExpiry ? _startDate : null,
+      endDate: _hasExpiry ? _endDate : null,
       isActive: widget.offer?.isActive ?? true,
       priority: _priority,
       createdAt: widget.offer?.createdAt ?? DateTime.now(),

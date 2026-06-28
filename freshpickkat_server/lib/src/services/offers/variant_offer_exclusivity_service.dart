@@ -33,12 +33,13 @@ class VariantOfferExclusivityService {
     );
     final now = DateTime.now().toUtc();
     final existingBogo = existingBogoRows
-        .where(
-          (r) =>
-              !now.isBefore(r.startsAt) &&
-              !now.isAfter(r.endsAt) &&
-              r.id.toString() != existingOfferId,
-        )
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return r.id.toString() != existingOfferId;
+        })
         .toList();
 
     // Existing combo offers involving this product
@@ -54,7 +55,13 @@ class VariantOfferExclusivityService {
             where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
           );
     final activeComboIds = comboRows
-        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .map((r) => r.id!.toString())
         .toSet();
     final applicableComboItems = comboItemRows
@@ -117,9 +124,13 @@ class VariantOfferExclusivityService {
     );
     final now = DateTime.now().toUtc();
     final activeBogo = bogoRows
-        .where(
-          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
-        )
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
 
     // Existing combo offers involving this product (exclude the one being edited)
@@ -140,7 +151,13 @@ class VariantOfferExclusivityService {
             where: (t) => t.id.inSet(otherComboIds) & t.status.equals('active'),
           );
     final activeOtherComboIds = otherComboRows
-        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .map((r) => r.id!.toString())
         .toSet();
     final applicableOtherComboItems = otherComboItemRows
@@ -181,9 +198,13 @@ class VariantOfferExclusivityService {
     );
     final now = DateTime.now().toUtc();
     final activeBogo = bogoRows
-        .where(
-          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
-        )
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
 
     // Existing combo offers involving this product
@@ -199,7 +220,13 @@ class VariantOfferExclusivityService {
             where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
           );
     final activeComboIds = comboRows
-        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .map((r) => r.id!.toString())
         .toSet();
     final applicableComboItems = comboItemRows
@@ -300,9 +327,13 @@ class VariantOfferExclusivityService {
     );
     final now = DateTime.now().toUtc();
     final activeBogo = bogoRows
-        .where(
-          (r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt),
-        )
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
 
     // Existing combo offers involving this product
@@ -318,7 +349,13 @@ class VariantOfferExclusivityService {
             where: (t) => t.id.inSet(comboIds) & t.status.equals('active'),
           );
     final activeComboIds = comboRows
-        .where((r) => !now.isBefore(r.startsAt) && !now.isAfter(r.endsAt))
+        .where((r) {
+          final startsAt = r.startsAt;
+          final endsAt = r.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .map((r) => r.id!.toString())
         .toSet();
     final applicableComboItems = comboItemRows

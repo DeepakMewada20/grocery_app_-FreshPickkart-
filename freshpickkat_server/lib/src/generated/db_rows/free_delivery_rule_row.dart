@@ -24,8 +24,8 @@ abstract class FreeDeliveryRuleRow
     this.couponId,
     this.userId,
     double? waivedAmount,
-    required this.startsAt,
-    required this.endsAt,
+    this.startsAt,
+    this.endsAt,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
@@ -45,8 +45,8 @@ abstract class FreeDeliveryRuleRow
     _i1.UuidValue? couponId,
     _i1.UuidValue? userId,
     double? waivedAmount,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -70,10 +70,12 @@ abstract class FreeDeliveryRuleRow
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['userId']),
       waivedAmount: (jsonSerialization['waivedAmount'] as num?)?.toDouble(),
-      startsAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startsAt'],
-      ),
-      endsAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
+      startsAt: jsonSerialization['startsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startsAt']),
+      endsAt: jsonSerialization['endsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -112,9 +114,9 @@ abstract class FreeDeliveryRuleRow
 
   double waivedAmount;
 
-  DateTime startsAt;
+  DateTime? startsAt;
 
-  DateTime endsAt;
+  DateTime? endsAt;
 
   String status;
 
@@ -160,8 +162,8 @@ abstract class FreeDeliveryRuleRow
       if (couponId != null) 'couponId': couponId?.toJson(),
       if (userId != null) 'userId': userId?.toJson(),
       'waivedAmount': waivedAmount,
-      'startsAt': startsAt.toJson(),
-      'endsAt': endsAt.toJson(),
+      if (startsAt != null) 'startsAt': startsAt?.toJson(),
+      if (endsAt != null) 'endsAt': endsAt?.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -217,8 +219,8 @@ class _FreeDeliveryRuleRowImpl extends FreeDeliveryRuleRow {
     _i1.UuidValue? couponId,
     _i1.UuidValue? userId,
     double? waivedAmount,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -255,8 +257,8 @@ class _FreeDeliveryRuleRowImpl extends FreeDeliveryRuleRow {
     Object? couponId = _Undefined,
     Object? userId = _Undefined,
     double? waivedAmount,
-    DateTime? startsAt,
-    DateTime? endsAt,
+    Object? startsAt = _Undefined,
+    Object? endsAt = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
@@ -274,8 +276,8 @@ class _FreeDeliveryRuleRowImpl extends FreeDeliveryRuleRow {
       couponId: couponId is _i1.UuidValue? ? couponId : this.couponId,
       userId: userId is _i1.UuidValue? ? userId : this.userId,
       waivedAmount: waivedAmount ?? this.waivedAmount,
-      startsAt: startsAt ?? this.startsAt,
-      endsAt: endsAt ?? this.endsAt,
+      startsAt: startsAt is DateTime? ? startsAt : this.startsAt,
+      endsAt: endsAt is DateTime? ? endsAt : this.endsAt,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -334,16 +336,17 @@ class FreeDeliveryRuleRowUpdateTable
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime? value) =>
       _i1.ColumnValue(
         table.startsAt,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime value) => _i1.ColumnValue(
-    table.endsAt,
-    value,
-  );
+  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.endsAt,
+        value,
+      );
 
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,

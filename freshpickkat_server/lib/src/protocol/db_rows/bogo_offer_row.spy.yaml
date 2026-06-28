@@ -9,8 +9,8 @@ fields:
   triggerBaseQuantity: double?
   triggerBaseUnit: String?
   title: String
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now

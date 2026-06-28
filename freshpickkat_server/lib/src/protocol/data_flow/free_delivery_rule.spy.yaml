@@ -9,7 +9,7 @@ fields:
   couponCode: String?
   userId: String?
   isActive: bool
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   deliveryFeeWaived: double
   createdAt: DateTime

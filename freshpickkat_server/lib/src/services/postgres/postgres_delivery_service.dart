@@ -128,9 +128,14 @@ class PostgresDeliveryService {
     final now = DateTime.now().toUtc();
     return rows
         .where(
-          (row) =>
-              row.ruleType == 'user_rule' ||
-              (!now.isBefore(row.startsAt) && !now.isAfter(row.endsAt)),
+          (row) {
+            if (row.ruleType == 'user_rule') return true;
+            final startsAt = row.startsAt;
+            final endsAt = row.endsAt;
+            if (startsAt != null && now.isBefore(startsAt)) return false;
+            if (endsAt != null && now.isAfter(endsAt)) return false;
+            return true;
+          },
         )
         .map(_mapRule)
         .toList();

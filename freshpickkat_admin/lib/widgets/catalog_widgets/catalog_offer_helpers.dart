@@ -128,10 +128,10 @@ bool _hasCatalogLiveBogoOffer(
   if (productId == null) return false;
   final now = DateTime.now();
   return bogoOffers.any((offer) {
-    return offer.triggerProductId == productId &&
-        offer.isActive &&
-        !offer.startDate.isAfter(now) &&
-        !offer.endDate.isBefore(now);
+    if (offer.triggerProductId != productId || !offer.isActive) return false;
+    if (offer.startDate != null && offer.startDate!.isAfter(now)) return false;
+    if (offer.endDate != null && offer.endDate!.isBefore(now)) return false;
+    return true;
   });
 }
 
@@ -198,11 +198,9 @@ bool _hasCatalogLiveCategoryOffer(
   final productId = product.productId;
   final now = DateTime.now();
   return categoryOffers.any((offer) {
-    if (!offer.isActive ||
-        offer.startDate.isAfter(now) ||
-        offer.endDate.isBefore(now)) {
-      return false;
-    }
+    if (!offer.isActive) return false;
+    if (offer.startDate != null && offer.startDate!.isAfter(now)) return false;
+    if (offer.endDate != null && offer.endDate!.isBefore(now)) return false;
     if (productId != null &&
         (offer.excludeProductIds ?? const <String>[]).contains(productId)) {
       return false;
@@ -224,11 +222,9 @@ bool _hasCatalogLiveComboOffer(
   if (productId == null) return false;
   final now = DateTime.now();
   return comboOffers.any((offer) {
-    if (!offer.isActive ||
-        offer.startDate.isAfter(now) ||
-        offer.endDate.isBefore(now)) {
-      return false;
-    }
+    if (!offer.isActive) return false;
+    if (offer.startDate != null && offer.startDate!.isAfter(now)) return false;
+    if (offer.endDate != null && offer.endDate!.isBefore(now)) return false;
     return offer.comboProducts.any((item) => item.productId == productId);
   });
 }
@@ -302,18 +298,28 @@ String catalogProductOfferLabelWithLinkedOffers(
 bool isCatalogCouponLive(Coupon coupon) {
   if (!coupon.isActive) return false;
   final today = DateUtils.dateOnly(DateTime.now());
-  final start = DateUtils.dateOnly(coupon.startDate);
-  final end = DateUtils.dateOnly(coupon.endDate);
-  return !today.isBefore(start) && !today.isAfter(end);
+  if (coupon.startDate != null &&
+      today.isBefore(DateUtils.dateOnly(coupon.startDate!))) {
+    return false;
+  }
+  if (coupon.endDate != null &&
+      today.isAfter(DateUtils.dateOnly(coupon.endDate!))) {
+    return false;
+  }
+  return true;
 }
 
 String catalogCouponStatusLabel(Coupon coupon) {
   if (!coupon.isActive) return 'Inactive';
   final today = DateUtils.dateOnly(DateTime.now());
-  final start = DateUtils.dateOnly(coupon.startDate);
-  final end = DateUtils.dateOnly(coupon.endDate);
-  if (today.isBefore(start)) return 'Scheduled';
-  if (today.isAfter(end)) return 'Expired';
+  if (coupon.startDate != null &&
+      today.isBefore(DateUtils.dateOnly(coupon.startDate!))) {
+    return 'Scheduled';
+  }
+  if (coupon.endDate != null &&
+      today.isAfter(DateUtils.dateOnly(coupon.endDate!))) {
+    return 'Expired';
+  }
   return 'Live';
 }
 
@@ -331,7 +337,8 @@ Color catalogCouponStatusColor(BuildContext context, Coupon coupon) {
   }
 }
 
-String catalogDateLabel(DateTime value) {
+String catalogDateLabel(DateTime? value) {
+  if (value == null) return 'No expiry';
   return '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 }
 

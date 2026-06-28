@@ -1086,14 +1086,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
@@ -1194,14 +1194,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
@@ -1507,14 +1507,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
@@ -1647,14 +1647,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
@@ -2149,14 +2149,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',
@@ -3363,14 +3363,14 @@ class Protocol extends _i1.SerializationManagerServer {
         _i2.ColumnDefinition(
           name: 'startsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'endsAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
+          isNullable: true,
+          dartType: 'DateTime?',
         ),
         _i2.ColumnDefinition(
           name: 'status',

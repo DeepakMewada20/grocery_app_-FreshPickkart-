@@ -14,8 +14,8 @@ fields:
   maxUsagePerUser: int?
   loyaltyRequiredOrders: int?
   usedCount: int, default=0
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   assignedUserId: UuidValue?

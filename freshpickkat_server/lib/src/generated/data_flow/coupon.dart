@@ -26,8 +26,8 @@ abstract class Coupon
     this.maxDiscountAmount,
     this.productIds,
     this.loyaltyRequiredOrders,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     this.expiryDate,
     this.usageLimit,
     required this.usedCount,
@@ -48,8 +48,8 @@ abstract class Coupon
     double? maxDiscountAmount,
     List<String>? productIds,
     int? loyaltyRequiredOrders,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     DateTime? expiryDate,
     int? usageLimit,
     required int usedCount,
@@ -76,10 +76,12 @@ abstract class Coupon
               jsonSerialization['productIds'],
             ),
       loyaltyRequiredOrders: jsonSerialization['loyaltyRequiredOrders'] as int?,
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       expiryDate: jsonSerialization['expiryDate'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['expiryDate']),
@@ -112,9 +114,9 @@ abstract class Coupon
 
   int? loyaltyRequiredOrders;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   DateTime? expiryDate;
 
@@ -169,8 +171,8 @@ abstract class Coupon
       if (productIds != null) 'productIds': productIds?.toJson(),
       if (loyaltyRequiredOrders != null)
         'loyaltyRequiredOrders': loyaltyRequiredOrders,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
       'usedCount': usedCount,
@@ -196,8 +198,8 @@ abstract class Coupon
       if (productIds != null) 'productIds': productIds?.toJson(),
       if (loyaltyRequiredOrders != null)
         'loyaltyRequiredOrders': loyaltyRequiredOrders,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
       'usedCount': usedCount,
@@ -228,8 +230,8 @@ class _CouponImpl extends Coupon {
     double? maxDiscountAmount,
     List<String>? productIds,
     int? loyaltyRequiredOrders,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     DateTime? expiryDate,
     int? usageLimit,
     required int usedCount,
@@ -274,8 +276,8 @@ class _CouponImpl extends Coupon {
     Object? maxDiscountAmount = _Undefined,
     Object? productIds = _Undefined,
     Object? loyaltyRequiredOrders = _Undefined,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     Object? expiryDate = _Undefined,
     Object? usageLimit = _Undefined,
     int? usedCount,
@@ -303,8 +305,8 @@ class _CouponImpl extends Coupon {
       loyaltyRequiredOrders: loyaltyRequiredOrders is int?
           ? loyaltyRequiredOrders
           : this.loyaltyRequiredOrders,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       expiryDate: expiryDate is DateTime? ? expiryDate : this.expiryDate,
       usageLimit: usageLimit is int? ? usageLimit : this.usageLimit,
       usedCount: usedCount ?? this.usedCount,

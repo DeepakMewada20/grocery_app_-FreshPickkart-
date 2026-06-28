@@ -10,8 +10,8 @@ fields:
   maxDiscountAmount: double?
   productIds: List<String>?
   loyaltyRequiredOrders: int?
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   expiryDate: DateTime?
   usageLimit: int?
   usedCount: int

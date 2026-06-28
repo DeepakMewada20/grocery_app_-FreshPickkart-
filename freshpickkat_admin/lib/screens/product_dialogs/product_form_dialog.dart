@@ -1396,12 +1396,15 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
   }
 
   bool _isOfferLive(
-    DateTime startDate,
-    DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     bool isActive,
     DateTime now,
   ) {
-    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
+    if (!isActive) return false;
+    if (startDate != null && startDate.isAfter(now)) return false;
+    if (endDate != null && endDate.isBefore(now)) return false;
+    return true;
   }
 
   String _discountBadge(String discountType, double discountValue) {

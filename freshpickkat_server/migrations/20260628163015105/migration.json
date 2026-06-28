@@ -1,0 +1,199 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "banner",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "bogo_offer",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "category_offer",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "combo_offer",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "coupon",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "free_delivery_rule",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [],
+        "modifyColumns": [
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "startsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          },
+          {
+            "__className__": "serverpod.ColumnMigration",
+            "columnName": "endsAt",
+            "addNullable": true,
+            "removeNullable": false,
+            "changeDefault": false
+          }
+        ],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": []
+      }
+    }
+  ],
+  "warnings": [],
+  "migrationApiVersion": 1
+}

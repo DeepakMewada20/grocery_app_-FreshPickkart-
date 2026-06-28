@@ -473,9 +473,13 @@ class PostgresCatalogService {
 
     final now = DateTime.now().toUtc();
     final activeBogoOfferRows = bogoOfferRows
-        .where(
-          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-        )
+        .where((row) {
+          final startsAt = row.startsAt;
+          final endsAt = row.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
     final activeBogoOfferIds = activeBogoOfferRows
         .map((row) => row.id!)
@@ -603,9 +607,13 @@ class PostgresCatalogService {
     }
 
     final activeCategoryOffers = categoryOfferRows
-        .where(
-          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-        )
+        .where((row) {
+          final startsAt = row.startsAt;
+          final endsAt = row.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
     activeCategoryOffers.sort((a, b) => b.priority.compareTo(a.priority));
     final categoryOfferByCategory = {
@@ -613,9 +621,13 @@ class PostgresCatalogService {
     };
 
     final activeComboOffers = activeComboOfferRows
-        .where(
-          (row) => !now.isBefore(row.startsAt) && !now.isAfter(row.endsAt),
-        )
+        .where((row) {
+          final startsAt = row.startsAt;
+          final endsAt = row.endsAt;
+          if (startsAt != null && now.isBefore(startsAt)) return false;
+          if (endsAt != null && now.isAfter(endsAt)) return false;
+          return true;
+        })
         .toList();
     final activeComboOfferIds = activeComboOffers
         .map((r) => r.id!.toString())

@@ -17,8 +17,8 @@ fields:
   linkedProductIds: String?
   priority: int, default=0
   isBaseImage: bool, default=false
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now

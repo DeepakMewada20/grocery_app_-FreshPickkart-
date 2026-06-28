@@ -24,8 +24,8 @@ abstract class ComboOffer
     required this.discountType,
     required this.discountValue,
     required this.minQuantityPerProduct,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.isActive,
     required this.priority,
     required this.maxUsagePerUser,
@@ -42,8 +42,8 @@ abstract class ComboOffer
     required String discountType,
     required double discountValue,
     required int minQuantityPerProduct,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     required int priority,
     required int maxUsagePerUser,
@@ -63,10 +63,12 @@ abstract class ComboOffer
       discountType: jsonSerialization['discountType'] as String,
       discountValue: (jsonSerialization['discountValue'] as num).toDouble(),
       minQuantityPerProduct: jsonSerialization['minQuantityPerProduct'] as int,
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       priority: jsonSerialization['priority'] as int,
       maxUsagePerUser: jsonSerialization['maxUsagePerUser'] as int,
@@ -92,9 +94,9 @@ abstract class ComboOffer
 
   int minQuantityPerProduct;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   bool isActive;
 
@@ -139,8 +141,8 @@ abstract class ComboOffer
       'discountType': discountType,
       'discountValue': discountValue,
       'minQuantityPerProduct': minQuantityPerProduct,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'isActive': isActive,
       'priority': priority,
       'maxUsagePerUser': maxUsagePerUser,
@@ -163,8 +165,8 @@ abstract class ComboOffer
       'discountType': discountType,
       'discountValue': discountValue,
       'minQuantityPerProduct': minQuantityPerProduct,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'isActive': isActive,
       'priority': priority,
       'maxUsagePerUser': maxUsagePerUser,
@@ -191,8 +193,8 @@ class _ComboOfferImpl extends ComboOffer {
     required String discountType,
     required double discountValue,
     required int minQuantityPerProduct,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     required int priority,
     required int maxUsagePerUser,
@@ -229,8 +231,8 @@ class _ComboOfferImpl extends ComboOffer {
     String? discountType,
     double? discountValue,
     int? minQuantityPerProduct,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     bool? isActive,
     int? priority,
     int? maxUsagePerUser,
@@ -249,8 +251,8 @@ class _ComboOfferImpl extends ComboOffer {
       discountValue: discountValue ?? this.discountValue,
       minQuantityPerProduct:
           minQuantityPerProduct ?? this.minQuantityPerProduct,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       isActive: isActive ?? this.isActive,
       priority: priority ?? this.priority,
       maxUsagePerUser: maxUsagePerUser ?? this.maxUsagePerUser,

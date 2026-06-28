@@ -720,8 +720,9 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   late final TextEditingController _targetOrderCountController;
   late String _ruleType;
   late String _targetUserType;
-  late DateTime _startDate;
-  late DateTime _endDate;
+  bool _hasExpiry = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
   bool _isSaving = false;
 
   @override
@@ -743,8 +744,11 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
     );
     _ruleType = rule?.ruleType ?? 'special_event';
     _targetUserType = rule?.targetUserType ?? 'all';
-    _startDate = rule?.startDate ?? DateTime.now();
-    _endDate = rule?.endDate ?? DateTime.now().add(const Duration(days: 30));
+    if (rule != null) {
+      _hasExpiry = true;
+      _startDate = rule.startDate;
+      _endDate = rule.endDate;
+    }
   }
 
   @override
@@ -889,32 +893,62 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-                  if (_ruleType != 'user_rule')
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _pickDate(isStart: true),
-                            icon: const Icon(Icons.calendar_today, size: 16),
-                            label: Text(
-                              'Start: ${_startDate.day}/${_startDate.month}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _pickDate(isStart: false),
-                            icon: const Icon(Icons.calendar_today, size: 16),
-                            label: Text(
-                              'End: ${_endDate.day}/${_endDate.month}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      ],
+                  if (_ruleType != 'user_rule') ...[
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Set Expiry Dates'),
+                      subtitle: Text(
+                        _hasExpiry && _startDate != null && _endDate != null
+                            ? 'Rule runs from ${_startDate!.day}/${_startDate!.month}/${_startDate!.year} to ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
+                            : 'Rule never expires until manually deactivated',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      value: _hasExpiry,
+                      onChanged: _isSaving
+                          ? null
+                          : (v) {
+                              setState(() {
+                                _hasExpiry = v;
+                                if (v) {
+                                  _startDate ??= DateTime.now();
+                                  _endDate ??= DateTime.now().add(const Duration(days: 30));
+                                }
+                              });
+                            },
                     ),
+                    if (_hasExpiry) ...[
+                      SizedBox(height: 6.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _pickDate(isStart: true),
+                              icon: const Icon(Icons.calendar_today, size: 16),
+                              label: Text(
+                                _startDate != null
+                                    ? 'Start: ${_startDate!.day}/${_startDate!.month}'
+                                    : 'Start',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _pickDate(isStart: false),
+                              icon: const Icon(Icons.calendar_today, size: 16),
+                              label: Text(
+                                _endDate != null
+                                    ? 'End: ${_endDate!.day}/${_endDate!.month}'
+                                    : 'End',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                   SizedBox(height: 24.h),
                   FilledButton(
                     onPressed: _isSaving ? null : _save,
@@ -965,9 +999,15 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
         return;
       }
     }
-    if (_endDate.isBefore(_startDate)) {
-      _showError('End date must be after start date.');
-      return;
+    if (_hasExpiry) {
+      if (_startDate == null || _endDate == null) {
+        _showError('Please set both start and end dates');
+        return;
+      }
+      if (_endDate!.isBefore(_startDate!)) {
+        _showError('End date must be after start date.');
+        return;
+      }
     }
 
     final rule = DeliveryRule(
@@ -984,8 +1024,8 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
           ? int.tryParse(orderCountText)
           : null,
       isActive: widget.rule?.isActive ?? true,
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: _hasExpiry ? (_startDate ?? DateTime.now()) : DateTime.now(),
+      endDate: _hasExpiry ? (_endDate ?? DateTime.now().add(const Duration(days: 30))) : DateTime(2099, 12, 31),
       createdAt: widget.rule?.createdAt ?? DateTime.now(),
     );
 
@@ -1001,7 +1041,9 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   Future<void> _pickDate({required bool isStart}) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startDate : _endDate,
+      initialDate: isStart
+          ? (_startDate ?? _endDate ?? DateTime.now())
+          : (_endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 30))),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );

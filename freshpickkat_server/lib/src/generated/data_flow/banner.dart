@@ -28,8 +28,8 @@ abstract class Banner
     this.externalUrl,
     required this.screenPlacements,
     required this.priority,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.active,
     required this.isBaseImage,
     this.linkedProductIds,
@@ -50,8 +50,8 @@ abstract class Banner
     String? externalUrl,
     required String screenPlacements,
     required int priority,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool active,
     required bool isBaseImage,
     List<String>? linkedProductIds,
@@ -73,10 +73,12 @@ abstract class Banner
       externalUrl: jsonSerialization['externalUrl'] as String?,
       screenPlacements: jsonSerialization['screenPlacements'] as String,
       priority: jsonSerialization['priority'] as int,
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       active: _i1.BoolJsonExtension.fromJson(jsonSerialization['active']),
       isBaseImage: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['isBaseImage'],
@@ -119,9 +121,9 @@ abstract class Banner
 
   int priority;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   bool active;
 
@@ -173,8 +175,8 @@ abstract class Banner
       if (externalUrl != null) 'externalUrl': externalUrl,
       'screenPlacements': screenPlacements,
       'priority': priority,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'active': active,
       'isBaseImage': isBaseImage,
       if (linkedProductIds != null)
@@ -200,8 +202,8 @@ abstract class Banner
       if (externalUrl != null) 'externalUrl': externalUrl,
       'screenPlacements': screenPlacements,
       'priority': priority,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'active': active,
       'isBaseImage': isBaseImage,
       if (linkedProductIds != null)
@@ -233,8 +235,8 @@ class _BannerImpl extends Banner {
     String? externalUrl,
     required String screenPlacements,
     required int priority,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool active,
     required bool isBaseImage,
     List<String>? linkedProductIds,
@@ -279,8 +281,8 @@ class _BannerImpl extends Banner {
     Object? externalUrl = _Undefined,
     String? screenPlacements,
     int? priority,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     bool? active,
     bool? isBaseImage,
     Object? linkedProductIds = _Undefined,
@@ -300,8 +302,8 @@ class _BannerImpl extends Banner {
       externalUrl: externalUrl is String? ? externalUrl : this.externalUrl,
       screenPlacements: screenPlacements ?? this.screenPlacements,
       priority: priority ?? this.priority,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       active: active ?? this.active,
       isBaseImage: isBaseImage ?? this.isBaseImage,
       linkedProductIds: linkedProductIds is List<String>?

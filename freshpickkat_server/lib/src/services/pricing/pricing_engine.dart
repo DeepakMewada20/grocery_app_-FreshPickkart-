@@ -140,7 +140,10 @@ class PricingEngine {
     for (final offer in bogoOffers) {
       if (!offer.isActive) continue;
       final now = DateTime.now();
-      if (offer.startDate.isAfter(now) || offer.endDate.isBefore(now)) continue;
+      final startDate = offer.startDate;
+      final endDate = offer.endDate;
+      if (startDate != null && now.isBefore(startDate)) continue;
+      if (endDate != null && now.isAfter(endDate)) continue;
 
       final product = productMap[offer.triggerProductId];
       if (product == null) continue;
@@ -232,7 +235,10 @@ class PricingEngine {
     for (final offer in categoryOffers) {
       if (!offer.isActive) continue;
       final now = DateTime.now();
-      if (offer.startDate.isAfter(now) || offer.endDate.isBefore(now)) continue;
+      final startDate = offer.startDate;
+      final endDate = offer.endDate;
+      if (startDate != null && now.isBefore(startDate)) continue;
+      if (endDate != null && now.isAfter(endDate)) continue;
       if (offer.minOrderAmount != null &&
           effectiveSubtotal < offer.minOrderAmount!) {
         continue;
@@ -284,7 +290,10 @@ class PricingEngine {
     for (final combo in comboOffers) {
       if (!combo.isActive) continue;
       final now = DateTime.now();
-      if (combo.startDate.isAfter(now) || combo.endDate.isBefore(now)) continue;
+      final startDate = combo.startDate;
+      final endDate = combo.endDate;
+      if (startDate != null && now.isBefore(startDate)) continue;
+      if (endDate != null && now.isAfter(endDate)) continue;
 
       final comboId = combo.comboId?.trim();
       if (comboId == null || comboId.isEmpty) {

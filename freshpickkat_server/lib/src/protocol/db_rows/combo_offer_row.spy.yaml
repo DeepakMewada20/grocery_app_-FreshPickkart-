@@ -12,8 +12,8 @@ fields:
   maxUsageTotal: int?
   usedCount: int, default=0
   priority: int, default=0
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now

@@ -358,8 +358,9 @@ class _BannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isValid =
-        banner.startDate.isBefore(now) && banner.endDate.isAfter(now);
+    final isValid = banner.startDate != null && banner.endDate != null
+        ? banner.startDate!.isBefore(now) && banner.endDate!.isAfter(now)
+        : true;
     final placements = banner.screenPlacements
         .split(',')
         .map((s) => s.trim())
@@ -653,7 +654,9 @@ class _BannerCard extends StatelessWidget {
                     color: AdminAppTheme.getTextSecondaryColor(context),
                   ),
                   Text(
-                    '${_formatDate(banner.startDate)} - ${_formatDate(banner.endDate)}',
+                    banner.startDate != null && banner.endDate != null
+                        ? '${_formatDate(banner.startDate)} - ${_formatDate(banner.endDate)}'
+                        : 'No expiry',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -731,7 +734,8 @@ class _BannerCard extends StatelessWidget {
     return labels[placement] ?? placement;
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'No expiry';
     return '${date.day}/${date.month}/${date.year}';
   }
 }
@@ -766,8 +770,9 @@ class _BannerSheetState extends State<_BannerSheet> {
   List<String> _linkedProductIds = [];
   Set<String> _selectedPlacements = {'home_top'};
   int _priority = 1;
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  bool _hasExpiry = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
   bool _active = true;
   bool _isBaseImage = false;
   bool _isUploading = false;
@@ -796,8 +801,11 @@ class _BannerSheetState extends State<_BannerSheet> {
       _couponCode = widget.banner!.couponCode;
       _externalUrl = widget.banner!.externalUrl;
       _priority = widget.banner!.priority;
-      _startDate = widget.banner!.startDate;
-      _endDate = widget.banner!.endDate;
+      if (widget.banner!.startDate != null && widget.banner!.endDate != null) {
+        _hasExpiry = true;
+        _startDate = widget.banner!.startDate;
+        _endDate = widget.banner!.endDate;
+      }
       _active = widget.banner!.active;
       _isBaseImage = widget.banner!.isBaseImage;
       _linkedProductIds = widget.banner!.linkedProductIds ?? [];
@@ -1019,50 +1027,75 @@ class _BannerSheetState extends State<_BannerSheet> {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 16.h),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final startDate = InkWell(
-                              onTap: () => _selectDate(true),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'Start Date',
+                        SwitchListTile(
+                          title: const Text('Set Expiry Dates'),
+                          subtitle: Text(
+                            _hasExpiry && _startDate != null && _endDate != null
+                                ? 'Banner runs from ${_formatDate(_startDate!)} to ${_formatDate(_endDate!)}'
+                                : 'Banner never expires until manually deactivated',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          value: _hasExpiry,
+                          onChanged: _isSubmitting
+                              ? null
+                              : (v) {
+                                  setState(() {
+                                    _hasExpiry = v;
+                                    if (v) {
+                                      _startDate ??= DateTime.now();
+                                      _endDate ??= DateTime.now().add(const Duration(days: 30));
+                                    }
+                                  });
+                                },
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (_hasExpiry) ...[
+                          SizedBox(height: 6.h),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final startDate = InkWell(
+                                onTap: () => _selectDate(true),
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Start Date',
+                                  ),
+                                  child: Text(
+                                    _formatDate(_startDate),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                                child: Text(
-                                  _formatDate(_startDate),
-                                  overflow: TextOverflow.ellipsis,
+                              );
+                              final endDate = InkWell(
+                                onTap: () => _selectDate(false),
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'End Date',
+                                  ),
+                                  child: Text(
+                                    _formatDate(_endDate),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            );
-                            final endDate = InkWell(
-                              onTap: () => _selectDate(false),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'End Date',
-                                ),
-                                child: Text(
-                                  _formatDate(_endDate),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            );
-                            if (constraints.maxWidth < 420) {
-                              return Column(
+                              );
+                              if (constraints.maxWidth < 420) {
+                                return Column(
+                                  children: [
+                                    startDate,
+                                    SizedBox(height: 12.h),
+                                    endDate,
+                                  ],
+                                );
+                              }
+                              return Row(
                                 children: [
-                                  startDate,
-                                  SizedBox(height: 12.h),
-                                  endDate,
+                                  Expanded(child: startDate),
+                                  SizedBox(width: 16.w),
+                                  Expanded(child: endDate),
                                 ],
                               );
-                            }
-                            return Row(
-                              children: [
-                                Expanded(child: startDate),
-                                SizedBox(width: 16.w),
-                                Expanded(child: endDate),
-                              ],
-                            );
-                          },
-                        ),
+                            },
+                          ),
+                        ],
                         SizedBox(height: 16.h),
                         SwitchListTile(
                           title: Text('Active'),
@@ -1583,7 +1616,9 @@ class _BannerSheetState extends State<_BannerSheet> {
   Future<void> _selectDate(bool isStart) async {
     final date = await showDatePicker(
       context: context,
-      initialDate: isStart ? _startDate : _endDate,
+      initialDate: isStart
+          ? (_startDate ?? _endDate ?? DateTime.now())
+          : (_endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 30))),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
     );
@@ -1629,7 +1664,8 @@ class _BannerSheetState extends State<_BannerSheet> {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'No expiry';
     return '${date.day}/${date.month}/${date.year}';
   }
 
@@ -1657,8 +1693,8 @@ class _BannerSheetState extends State<_BannerSheet> {
       externalUrl: _externalUrl,
       screenPlacements: _selectedPlacements.join(','),
       priority: _priority,
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: _hasExpiry ? _startDate : null,
+      endDate: _hasExpiry ? _endDate : null,
       active: _active,
       isBaseImage: _isBaseImage,
       linkedProductIds: _linkedProductIds,

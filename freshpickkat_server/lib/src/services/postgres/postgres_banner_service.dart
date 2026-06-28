@@ -41,11 +41,14 @@ class PostgresBannerService {
       banners = banners.where((banner) => banner.active).toList();
       banners = banners.where((banner) {
         if (banner.isBaseImage) return true;
+        final startDate = banner.startDate;
+        final endDate = banner.endDate;
+        if (startDate == null || endDate == null) return true;
         return !now.isBefore(
-              banner.startDate.subtract(const Duration(days: 1)),
+              startDate.subtract(const Duration(days: 1)),
             ) &&
             !now.isAfter(
-              banner.endDate.add(const Duration(days: 1)),
+              endDate.add(const Duration(days: 1)),
             );
       }).toList();
     }
@@ -149,8 +152,8 @@ class PostgresBannerService {
               : linkedProductIds.map((id) => id.toString()).join(','),
           priority: banner.priority,
           isBaseImage: banner.isBaseImage,
-          startsAt: banner.startDate.toUtc(),
-          endsAt: banner.endDate.toUtc(),
+          startsAt: banner.startDate?.toUtc(),
+          endsAt: banner.endDate?.toUtc(),
           status: banner.active ? 'active' : 'inactive',
           deactivatedAt: banner.active ? null : now,
           createdAt: now,
@@ -218,8 +221,8 @@ class PostgresBannerService {
               : linkedProductIds.map((id) => id.toString()).join(','),
           priority: banner.priority,
           isBaseImage: banner.isBaseImage,
-          startsAt: banner.startDate.toUtc(),
-          endsAt: banner.endDate.toUtc(),
+          startsAt: banner.startDate?.toUtc(),
+          endsAt: banner.endDate?.toUtc(),
           status: banner.active ? 'active' : 'inactive',
           deactivatedAt: banner.active ? null : now,
           updatedAt: now,

@@ -85,8 +85,8 @@ class PostgresCouponService {
           maxUsagePerUser: null,
           loyaltyRequiredOrders: coupon.loyaltyRequiredOrders,
           usedCount: coupon.usedCount,
-          startsAt: coupon.startDate.toUtc(),
-          endsAt: _resolveCouponExpiry(coupon).toUtc(),
+          startsAt: coupon.startDate?.toUtc(),
+          endsAt: _resolveCouponExpiry(coupon)?.toUtc(),
           status: coupon.isActive ? 'active' : 'inactive',
           deactivatedAt: coupon.isActive ? null : now,
           createdAt: now,
@@ -135,8 +135,8 @@ class PostgresCouponService {
           maxUsagePerUser: existing.maxUsagePerUser,
           loyaltyRequiredOrders: coupon.loyaltyRequiredOrders,
           usedCount: coupon.usedCount,
-          startsAt: coupon.startDate.toUtc(),
-          endsAt: _resolveCouponExpiry(coupon).toUtc(),
+          startsAt: coupon.startDate?.toUtc(),
+          endsAt: _resolveCouponExpiry(coupon)?.toUtc(),
           status: coupon.isActive ? 'active' : 'inactive',
           deactivatedAt: coupon.isActive ? null : now,
           updatedAt: now,
@@ -509,8 +509,8 @@ class PostgresCouponService {
     final now = DateTime.now().toUtc();
     final normalizedSubtotal = cartSubtotal < 0 ? 0.0 : cartSubtotal;
     final couponType = _resolveCouponType(coupon);
-    final expiryDate = (coupon.expiryDate ?? coupon.endDate).toUtc();
-    final startDate = coupon.startDate.toUtc();
+    final expiryDate = (coupon.expiryDate ?? coupon.endDate)?.toUtc();
+    final startDate = coupon.startDate?.toUtc();
 
     if (coupon.code.trim().isEmpty) {
       return _CouponEvaluation.notApplicable(coupon, 'Invalid coupon code');
@@ -518,13 +518,13 @@ class PostgresCouponService {
     if (!coupon.isActive) {
       return _CouponEvaluation.notApplicable(coupon, 'Coupon is inactive');
     }
-    if (now.isBefore(startDate)) {
+    if (startDate != null && now.isBefore(startDate)) {
       return _CouponEvaluation.notApplicable(
         coupon,
         'Coupon is not active yet',
       );
     }
-    if (now.isAfter(expiryDate)) {
+    if (expiryDate != null && now.isAfter(expiryDate)) {
       return _CouponEvaluation.notApplicable(coupon, 'Coupon has expired');
     }
     if (coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!) {
@@ -766,8 +766,8 @@ class PostgresCouponService {
     return 'FLAT_DISCOUNT';
   }
 
-  DateTime _resolveCouponExpiry(Coupon coupon) {
-    return (coupon.expiryDate ?? coupon.endDate);
+  DateTime? _resolveCouponExpiry(Coupon coupon) {
+    return coupon.expiryDate ?? coupon.endDate;
   }
 }
 

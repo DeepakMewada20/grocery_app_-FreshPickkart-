@@ -99,7 +99,9 @@ class ValidationService {
         'Minimum order amount cannot be negative',
       );
     }
-    if (coupon.endDate.isBefore(coupon.startDate)) {
+    final startDate = coupon.startDate;
+    final endDate = coupon.endDate;
+    if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException(
         'Coupon end date must be after start date',
       );
@@ -327,7 +329,9 @@ class ValidationService {
     if (combo.discountType == 'percentage' && combo.discountValue > 100) {
       throw InvalidParametersException('Percentage discount cannot exceed 100');
     }
-    if (combo.endDate.isBefore(combo.startDate)) {
+    final startDate = combo.startDate;
+    final endDate = combo.endDate;
+    if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException('End date must be after start date');
     }
   }
@@ -356,7 +360,9 @@ class ValidationService {
     if (offer.minOrderAmount != null && offer.minOrderAmount! < 0) {
       throw InvalidParametersException('Min order amount cannot be negative');
     }
-    if (offer.endDate.isBefore(offer.startDate)) {
+    final startDate = offer.startDate;
+    final endDate = offer.endDate;
+    if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException('End date must be after start date');
     }
   }
@@ -388,7 +394,9 @@ class ValidationService {
         'Delivery fee waived cannot be negative',
       );
     }
-    if (rule.endDate.isBefore(rule.startDate)) {
+    final startDate = rule.startDate;
+    final endDate = rule.endDate;
+    if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException('End date must be after start date');
     }
   }
@@ -422,7 +430,9 @@ class ValidationService {
     if (rule.priority < 0) {
       throw InvalidParametersException('Priority cannot be negative');
     }
-    if (rule.endDate.isBefore(rule.startDate)) {
+    final startDate = rule.startDate;
+    final endDate = rule.endDate;
+    if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException('End date must be after start date');
     }
     if (rule.ruleType != 'special_event' && rule.ruleType != 'user_rule') {

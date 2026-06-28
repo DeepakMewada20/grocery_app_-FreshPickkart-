@@ -31,9 +31,12 @@ class OffersDashboardTab extends StatelessWidget {
   final AdminFreeDeliveryController freeDeliveryController;
   final AdminBannerController bannerController;
 
-  bool _isLive(DateTime startDate, DateTime endDate, bool isActive) {
+  bool _isLive(DateTime? startDate, DateTime? endDate, bool isActive) {
+    if (!isActive) return false;
     final now = DateTime.now();
-    return isActive && !startDate.isAfter(now) && !endDate.isBefore(now);
+    if (startDate != null && startDate.isAfter(now)) return false;
+    if (endDate != null && endDate.isBefore(now)) return false;
+    return true;
   }
 
   @override

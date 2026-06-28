@@ -12,8 +12,8 @@ fields:
   externalUrl: String?
   screenPlacements: String # Comma-separated: home_top,home_middle,cart_page
   priority: int
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   active: bool
   isBaseImage: bool
   linkedProductIds: List<String>?

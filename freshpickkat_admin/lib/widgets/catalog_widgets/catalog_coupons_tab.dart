@@ -618,8 +618,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
 
   late String _couponType;
   late bool _isActive;
-  late DateTime _startDate;
-  late DateTime _endDate;
+  bool _hasExpiry = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
   late bool _sendNotification;
   bool _isSaving = false;
 
@@ -657,11 +658,11 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _couponType = _deriveCouponType(coupon);
     _isActive = coupon?.isActive ?? true;
     _sendNotification = coupon == null;
-    _startDate = coupon?.startDate ?? DateTime.now();
-    _endDate =
-        coupon?.expiryDate ??
-        coupon?.endDate ??
-        DateTime.now().add(const Duration(days: 30));
+    if (coupon != null && coupon.startDate != null && (coupon.endDate != null || coupon.expiryDate != null)) {
+      _hasExpiry = true;
+      _startDate = coupon.startDate;
+      _endDate = coupon.expiryDate ?? coupon.endDate;
+    }
   }
 
   @override
@@ -707,9 +708,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       loyaltyRequiredOrders: _couponType == 'LOYALTY'
           ? int.tryParse(_loyaltyOrdersCtrl.text.trim())
           : null,
-      startDate: _startDate,
-      endDate: _endDate,
-      expiryDate: _endDate,
+      startDate: _hasExpiry ? _startDate : null,
+      endDate: _hasExpiry ? _endDate : null,
+      expiryDate: _hasExpiry ? _endDate : null,
       usageLimit: usageLimit,
       usedCount: widget.initialCoupon?.usedCount ?? 0,
       isActive: _isActive,
@@ -787,7 +788,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
 
   Widget _buildDateCard({
     required String label,
-    required DateTime value,
+    required DateTime? value,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -1068,21 +1069,45 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                   ),
                 ],
               ),
-              SizedBox(height: 16.h),
-              _CouponAdaptiveRow(
-                children: [
-                  _buildDateCard(
-                    label: 'Start Date',
-                    value: _startDate,
-                    onTap: () => _pickDate(true),
-                  ),
-                  _buildDateCard(
-                    label: 'End Date',
-                    value: _endDate,
-                    onTap: () => _pickDate(false),
-                  ),
-                ],
+              SwitchListTile(
+                contentPadding: EdgeInsets.only(left: 8.w),
+                title: const Text('Set Expiry Dates'),
+                subtitle: Text(
+                  _hasExpiry && _startDate != null && _endDate != null
+                      ? 'Coupon runs from ${catalogDateLabel(_startDate!)} to ${catalogDateLabel(_endDate!)}'
+                      : 'Coupon never expires until manually deactivated',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                value: _hasExpiry,
+                onChanged: _isSaving
+                    ? null
+                    : (v) {
+                        setState(() {
+                          _hasExpiry = v;
+                          if (v) {
+                            _startDate ??= DateTime.now();
+                            _endDate ??= DateTime.now().add(const Duration(days: 30));
+                          }
+                        });
+                      },
               ),
+              if (_hasExpiry) ...[
+                SizedBox(height: 6.h),
+                _CouponAdaptiveRow(
+                  children: [
+                    _buildDateCard(
+                      label: 'Start Date',
+                      value: _startDate,
+                      onTap: () => _pickDate(true),
+                    ),
+                    _buildDateCard(
+                      label: 'End Date',
+                      value: _endDate,
+                      onTap: () => _pickDate(false),
+                    ),
+                  ],
+                ),
+              ],
               if (!isEditing) ...[
                 SizedBox(height: 16.h),
                 SwitchListTile(
@@ -1183,7 +1208,9 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
   Future<void> _pickDate(bool isStartDate) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: isStartDate ? _startDate : _endDate,
+      initialDate: isStartDate
+          ? (_startDate ?? _endDate ?? DateTime.now())
+          : (_endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 30))),
       firstDate: DateTime(2023),
       lastDate: DateTime(2100),
     );
@@ -1191,8 +1218,8 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       setState(() {
         if (isStartDate) {
           _startDate = picked;
-          if (_endDate.isBefore(_startDate)) {
-            _endDate = _startDate.add(const Duration(days: 30));
+          if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+            _endDate = _startDate!.add(const Duration(days: 30));
           }
         } else {
           _endDate = picked;

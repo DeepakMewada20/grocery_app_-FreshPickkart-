@@ -27,8 +27,8 @@ abstract class CategoryOffer
     this.minOrderAmount,
     this.productIds,
     this.excludeProductIds,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.isActive,
     required this.priority,
     required this.createdAt,
@@ -46,8 +46,8 @@ abstract class CategoryOffer
     double? minOrderAmount,
     List<String>? productIds,
     List<String>? excludeProductIds,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     required int priority,
     required DateTime createdAt,
@@ -74,10 +74,12 @@ abstract class CategoryOffer
           : _i2.Protocol().deserialize<List<String>>(
               jsonSerialization['excludeProductIds'],
             ),
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       priority: jsonSerialization['priority'] as int,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -108,9 +110,9 @@ abstract class CategoryOffer
 
   List<String>? excludeProductIds;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   bool isActive;
 
@@ -155,8 +157,8 @@ abstract class CategoryOffer
       if (productIds != null) 'productIds': productIds?.toJson(),
       if (excludeProductIds != null)
         'excludeProductIds': excludeProductIds?.toJson(),
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'isActive': isActive,
       'priority': priority,
       'createdAt': createdAt.toJson(),
@@ -179,8 +181,8 @@ abstract class CategoryOffer
       if (productIds != null) 'productIds': productIds?.toJson(),
       if (excludeProductIds != null)
         'excludeProductIds': excludeProductIds?.toJson(),
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'isActive': isActive,
       'priority': priority,
       'createdAt': createdAt.toJson(),
@@ -208,8 +210,8 @@ class _CategoryOfferImpl extends CategoryOffer {
     double? minOrderAmount,
     List<String>? productIds,
     List<String>? excludeProductIds,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required bool isActive,
     required int priority,
     required DateTime createdAt,
@@ -248,8 +250,8 @@ class _CategoryOfferImpl extends CategoryOffer {
     Object? minOrderAmount = _Undefined,
     Object? productIds = _Undefined,
     Object? excludeProductIds = _Undefined,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     bool? isActive,
     int? priority,
     DateTime? createdAt,
@@ -272,8 +274,8 @@ class _CategoryOfferImpl extends CategoryOffer {
       excludeProductIds: excludeProductIds is List<String>?
           ? excludeProductIds
           : this.excludeProductIds?.map((e0) => e0).toList(),
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       isActive: isActive ?? this.isActive,
       priority: priority ?? this.priority,
       createdAt: createdAt ?? this.createdAt,

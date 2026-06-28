@@ -895,8 +895,8 @@ class BasketSuggestionService {
       if (appliedCouponCode?.toUpperCase() == coupon.code.toUpperCase()) {
         continue;
       }
-      final expiry = (coupon.expiryDate ?? coupon.endDate).toUtc();
-      if (now.isAfter(expiry)) continue;
+      final expiry = (coupon.expiryDate ?? coupon.endDate)?.toUtc();
+      if (expiry != null && now.isAfter(expiry)) continue;
       if (best == null) {
         best = coupon;
         continue;
@@ -1781,8 +1781,8 @@ class BasketSuggestionService {
 
     for (final c in coupons) {
       if (!c.isActive || c.minOrderAmount <= cartTotal) continue;
-      final expiry = (c.expiryDate ?? c.endDate).toUtc();
-      if (now.isAfter(expiry)) continue;
+      final expiry = (c.expiryDate ?? c.endDate)?.toUtc();
+      if (expiry != null && now.isAfter(expiry)) continue;
       if (appliedCouponCode?.toUpperCase() == c.code.toUpperCase()) continue;
 
       final remaining = c.minOrderAmount - cartTotal;

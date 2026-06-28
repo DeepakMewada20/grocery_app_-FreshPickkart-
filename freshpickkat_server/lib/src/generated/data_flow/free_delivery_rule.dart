@@ -24,8 +24,8 @@ abstract class FreeDeliveryRule
     this.couponCode,
     this.userId,
     required this.isActive,
-    required this.startDate,
-    required this.endDate,
+    this.startDate,
+    this.endDate,
     required this.deliveryFeeWaived,
     required this.createdAt,
   });
@@ -40,8 +40,8 @@ abstract class FreeDeliveryRule
     String? couponCode,
     String? userId,
     required bool isActive,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required double deliveryFeeWaived,
     required DateTime createdAt,
   }) = _FreeDeliveryRuleImpl;
@@ -57,10 +57,12 @@ abstract class FreeDeliveryRule
       couponCode: jsonSerialization['couponCode'] as String?,
       userId: jsonSerialization['userId'] as String?,
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
-      startDate: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startDate'],
-      ),
-      endDate: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
+      startDate: jsonSerialization['startDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startDate']),
+      endDate: jsonSerialization['endDate'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endDate']),
       deliveryFeeWaived: (jsonSerialization['deliveryFeeWaived'] as num)
           .toDouble(),
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -87,9 +89,9 @@ abstract class FreeDeliveryRule
 
   bool isActive;
 
-  DateTime startDate;
+  DateTime? startDate;
 
-  DateTime endDate;
+  DateTime? endDate;
 
   double deliveryFeeWaived;
 
@@ -126,8 +128,8 @@ abstract class FreeDeliveryRule
       if (couponCode != null) 'couponCode': couponCode,
       if (userId != null) 'userId': userId,
       'isActive': isActive,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'deliveryFeeWaived': deliveryFeeWaived,
       'createdAt': createdAt.toJson(),
     };
@@ -146,8 +148,8 @@ abstract class FreeDeliveryRule
       if (couponCode != null) 'couponCode': couponCode,
       if (userId != null) 'userId': userId,
       'isActive': isActive,
-      'startDate': startDate.toJson(),
-      'endDate': endDate.toJson(),
+      if (startDate != null) 'startDate': startDate?.toJson(),
+      if (endDate != null) 'endDate': endDate?.toJson(),
       'deliveryFeeWaived': deliveryFeeWaived,
       'createdAt': createdAt.toJson(),
     };
@@ -172,8 +174,8 @@ class _FreeDeliveryRuleImpl extends FreeDeliveryRule {
     String? couponCode,
     String? userId,
     required bool isActive,
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     required double deliveryFeeWaived,
     required DateTime createdAt,
   }) : super._(
@@ -206,8 +208,8 @@ class _FreeDeliveryRuleImpl extends FreeDeliveryRule {
     Object? couponCode = _Undefined,
     Object? userId = _Undefined,
     bool? isActive,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _Undefined,
+    Object? endDate = _Undefined,
     double? deliveryFeeWaived,
     DateTime? createdAt,
   }) {
@@ -223,8 +225,8 @@ class _FreeDeliveryRuleImpl extends FreeDeliveryRule {
       couponCode: couponCode is String? ? couponCode : this.couponCode,
       userId: userId is String? ? userId : this.userId,
       isActive: isActive ?? this.isActive,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate is DateTime? ? startDate : this.startDate,
+      endDate: endDate is DateTime? ? endDate : this.endDate,
       deliveryFeeWaived: deliveryFeeWaived ?? this.deliveryFeeWaived,
       createdAt: createdAt ?? this.createdAt,
     );
