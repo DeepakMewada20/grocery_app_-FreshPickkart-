@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,13 +29,20 @@ class SmgmGiftCard extends StatelessWidget {
 
       return Column(
         children: smgmItems.map((freeItem) {
-          final imageUrl = freeItem.imageUrl ?? '';
-          final product = ProductProviderController.instance.allProducts
+          final cachedProduct = ProductProviderController.instance.allProducts
               .firstWhereOrNull(
                 (p) => p.productId == freeItem.productId,
               );
-          final qtyLabel = product != null
-              ? productFullQuantityLabel(product)
+          final displayName =
+              freeItem.productName.isNotEmpty
+                  ? freeItem.productName
+                  : (cachedProduct?.productName ?? '');
+          final displayImage =
+              (freeItem.imageUrl?.isNotEmpty == true)
+                  ? freeItem.imageUrl!
+                  : cachedProduct?.imageUrl;
+          final qtyLabel = cachedProduct != null
+              ? productFullQuantityLabel(cachedProduct)
               : '';
 
           return Container(
@@ -80,7 +88,7 @@ class SmgmGiftCard extends StatelessWidget {
                         height: 56.r,
                         color: cs.surface,
                         child: SafeNetworkImage(
-                          url: imageUrl,
+                          url: displayImage,
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -90,27 +98,8 @@ class SmgmGiftCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6.w,
-                              vertical: 2.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: offerTheme.badge,
-                              borderRadius: BorderRadius.circular(4.r),
-                            ),
-                            child: Text(
-                              'FREE',
-                              style: TextStyle(
-                                color: offerTheme.onBadge,
-                                fontSize: 10.sp,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 6.h),
                           Text(
-                            freeItem.productName,
+                            displayName,
                             style: TextStyle(
                               color: cs.onSurface,
                               fontSize: 14.sp,
@@ -129,13 +118,25 @@ class SmgmGiftCard extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (freeItem.rewardThreshold != null &&
+                              freeItem.rewardThreshold! > 0) ...[
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Free on orders above ₹${freeItem.rewardThreshold!.formatPrice}',
+                              style: TextStyle(
+                                color: offerTheme.badge,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     if (freeItem.rewardValue != null &&
                         freeItem.rewardValue! > 0)
                       Text(
-                        '₹${freeItem.rewardValue!.toStringAsFixed(0)}',
+                        '₹${freeItem.rewardValue!.formatPrice}',
                         style: TextStyle(
                           color: offerTheme.badge,
                           fontSize: 14.sp,

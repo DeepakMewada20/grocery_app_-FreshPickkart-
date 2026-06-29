@@ -28,6 +28,7 @@ class SingleCardBody extends StatelessWidget {
     final isBest = s.isBest ?? false;
     final action = s.actions?.first;
     final type = s.type;
+    final isSmgm = type == 'smgm_reward';
 
     return Padding(
       padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
@@ -43,7 +44,7 @@ class SingleCardBody extends StatelessWidget {
               if (action != null)
                 Flexible(
                   child: SuggestionActionChip(
-                    label: action.label.toUpperCase(),
+                    label: isSmgm ? _buildSmgmChipLabel(s) : action.label.toUpperCase(),
                     color: accent,
                     icon: _getIcon(action.type),
                   ),
@@ -55,7 +56,7 @@ class SingleCardBody extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           Text(
-            s.title ?? s.message,
+            isSmgm ? _buildSmgmMainText(s) : (s.title ?? s.message),
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w700,
@@ -66,7 +67,21 @@ class SingleCardBody extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if ((s.subtitle ?? '').trim().isNotEmpty) ...[
+          if (isSmgm) ...[
+            if (s.progressTarget != null && s.progressTarget! > 0) ...[
+              SizedBox(height: 3.h),
+              Text(
+                'Free on orders above ₹${s.progressTarget!.toStringAsFixed(0)}',
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 11.sp,
+                  height: 1.3,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ] else if ((s.subtitle ?? '').trim().isNotEmpty) ...[
             SizedBox(height: 3.h),
             Text(
               s.subtitle!,
@@ -85,14 +100,14 @@ class SingleCardBody extends StatelessWidget {
           // Variant comparison and other specific UI is now handled in the bottom row to save space
           Row(
             children: [
-              if (type == 'smgm_reward' && s.thumbnailUrl != null)
-                _Thumb(url: s.thumbnailUrl!)
+              if (isSmgm)
+                _buildSmgmThumb(s)
               else if (type == 'combo' && s.comboId != null)
                 _ComboThumbs(comboId: s.comboId!, s: s)
               else if (s.thumbnailUrl != null)
                 _Thumb(url: s.thumbnailUrl!),
 
-              if (type == 'smgm_reward')
+              if (isSmgm)
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(left: 8.w),
@@ -101,12 +116,25 @@ class SingleCardBody extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          s.metadata?['quantity'] ?? '',
+                          s.metadata?['productName'] ?? '',
                           style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 11.sp,
+                            color: textPrimary,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        SizedBox(height: 2.h),
+                        if (s.metadata?['quantity'] case final qty?
+                            when qty.isNotEmpty)
+                          Text(
+                            qty,
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 11.sp,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -150,7 +178,7 @@ class SingleCardBody extends StatelessWidget {
               CTAButton(
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
-                onTap: type == 'smgm_reward'
+                onTap: isSmgm
                     ? () => SuggestionNavigationHelper.handleTap(s)
                     : () => CartController.instance.applyBasketSuggestion(s),
                 showArrow: type != 'delivery',
@@ -159,6 +187,41 @@ class SingleCardBody extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  String _buildSmgmChipLabel(client.BasketSuggestion s) {
+    return 'FREE GIFT';
+  }
+
+  String _buildSmgmMainText(client.BasketSuggestion s) {
+    final remaining = s.progressRemaining ?? 0;
+    if (remaining > 0) {
+      return 'Spend ₹${remaining.toStringAsFixed(0)} more & unlock!';
+    }
+    return "You've unlocked a free gift!";
+  }
+
+  Widget _buildSmgmThumb(client.BasketSuggestion s) {
+    if (s.thumbnailUrl != null) {
+      return _Thumb(url: s.thumbnailUrl!);
+    }
+    final productId = s.metadata?['productId']?.toString();
+    if (productId != null && productId.isNotEmpty) {
+      final cached = ProductProviderController.instance.allProducts
+          .firstWhereOrNull((p) => p.productId == productId);
+      if (cached?.imageUrl case final url? when url.isNotEmpty) {
+        return _Thumb(url: url);
+      }
+    }
+    return Container(
+      width: 40.r,
+      height: 40.r,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Icon(Icons.card_giftcard_rounded, color: accent, size: 20.r),
     );
   }
 
@@ -201,7 +264,10 @@ class _ComboThumbs extends StatelessWidget {
       final urls = <String>[];
 
       if (combo != null) {
-        final productIds = combo.comboProducts.map((p) => p.productId).toList();
+        final productIds = combo.comboProducts
+            .map((p) => p.productId)
+            .toSet()
+            .toList();
         final products = ProductProviderController.instance.allProducts
             .where((p) => productIds.contains(p.productId))
             .toList();

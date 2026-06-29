@@ -981,8 +981,8 @@ class PostgresOfferService {
         continue;
       }
 
-      // Numeric stock check: ensure enough stock for the reward quantity
-      if (product.stock == null || product.stock! < offer.freeQuantity) {
+      // Numeric stock check: skip if stock not tracked (null = unlimited)
+      if (product.stock != null && product.stock! < offer.freeQuantity) {
         session.log(
           'SMGM reward stock insufficient: offer="${offer.name}" '
           'product="${product.name}" stock=${product.stock} '

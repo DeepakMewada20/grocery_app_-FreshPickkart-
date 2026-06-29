@@ -28,7 +28,6 @@ import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
 import 'package:freshpickkat_flutter/basket/widgets/confetti_burst_widget.dart';
 import 'package:freshpickkat_flutter/basket/widgets/reward_banner_overlay.dart';
 import 'package:freshpickkat_flutter/basket/widgets/savings_card.dart';
-import 'package:freshpickkat_flutter/basket/widgets/reward_progress_card.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 
@@ -141,7 +140,6 @@ class _BasketScreenState extends State<BasketScreen> {
                                 );
                               }),
                               _buildCartItemsList(context, cartController, cs),
-                              const RewardProgressCard(),
                               const BasketSuggestionsSection(),
                     const CouponSection(),
                     _buildFreshPointsSection(cartController, cs),

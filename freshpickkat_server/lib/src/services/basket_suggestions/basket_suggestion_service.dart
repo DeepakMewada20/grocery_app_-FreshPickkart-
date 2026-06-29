@@ -126,6 +126,12 @@ class BasketSuggestionService {
         }
       }
     }
+    final smgmOffers = await _getSmgmOffers(session);
+    for (final offer in smgmOffers) {
+      if (offer.isActive) {
+        productIds.add(offer.freeProductId);
+      }
+    }
 
     final products = await ProductEndpoint().getProductsByIds(
       session,
@@ -144,8 +150,6 @@ class BasketSuggestionService {
       freeDelivery: true,
       limit: 6,
     );
-    final smgmOffers = await _getSmgmOffers(session);
-
     // ── 2. Build all individual scored suggestions ──────────────────────────
     final scored = <_Scored>[];
 
@@ -360,6 +364,23 @@ class BasketSuggestionService {
             recentOrderProductIds,
           );
     productPool.addAll(recentOrderProducts);
+    final smgmIds = smgmOffers
+        .where((o) => o.isActive)
+        .map((o) => o.freeProductId)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    if (smgmIds.isNotEmpty) {
+      final missingSmgmIds = smgmIds
+          .where((id) => !loadedProductIds.contains(id))
+          .toList();
+      if (missingSmgmIds.isNotEmpty) {
+        final smgmProducts = await ProductEndpoint().getProductsByIds(
+          session,
+          missingSmgmIds,
+        );
+        productPool.addAll(smgmProducts);
+      }
+    }
     final productMap = {
       for (final product in productPool)
         if (product.productId != null) product.productId!: product,
@@ -649,7 +670,7 @@ class BasketSuggestionService {
       case 'reorder':
         return suggestion.subtitle ?? 'Tap to add it again in one step';
       case 'coupon':
-        return suggestion.subtitle ?? 'Apply before checkout to save more';
+        return suggestion.subtitle ?? 'Add more items to unlock this coupon';
       case 'delivery':
         return suggestion.subtitle ??
             'Add a little more to unlock cheaper delivery';
@@ -941,7 +962,7 @@ class BasketSuggestionService {
         id: 'coupon:${best.code}',
         type: 'coupon',
         title: 'Get ₹${benefit.toStringAsFixed(0)} OFF',
-        subtitle: 'Use ${best.code} before checkout',
+        subtitle: 'Add items worth ₹${remaining.toStringAsFixed(0)} to unlock ${best.code}!',
         message: 'Coupon ${best.code} is active and ready to use',
         priority: 1,
         action: action,
@@ -1802,7 +1823,7 @@ class BasketSuggestionService {
 
     final action = BasketSuggestionAction(
       type: 'coupon',
-      label: 'Unlock Coupon ${best.code}',
+      label: 'Unlock Coupon',
       ctaLabel: 'Unlock',
       payload: {
         'couponCode': best.code,
@@ -1824,8 +1845,10 @@ class BasketSuggestionService {
         urgency: (remaining <= 100 ? 16 : 12).toDouble(),
       ),
       suggestion: BasketSuggestion(
+        title: 'Unlock ${best.code} on orders above ₹${best.minOrderAmount.toStringAsFixed(0)}',
+        subtitle: 'Add ₹${remaining.toStringAsFixed(0)} more & save ₹${benefit.toStringAsFixed(0)}!',
         message: 'Add ₹${remaining.toStringAsFixed(0)} more for ${best.code}',
-        type: 'single',
+        type: 'coupon',
         priority: 0,
         actions: [action],
         progressCurrent: cartTotal,
@@ -2343,19 +2366,23 @@ class BasketSuggestionService {
             profitImpact: (rewardPrice * 1.8).clamp(10, 30),
             urgency: remaining <= 50 ? 24 : 16,
           ),
-          suggestion: BasketSuggestion(
-            message:
-                'Add ₹${remaining.toStringAsFixed(0)} more for FREE ${rewardProduct?.productName ?? "gift"}',
-            type: 'smgm_reward',
-            priority: 0,
-            actions: [action],
-            progressCurrent: cartTotal,
-            progressTarget: nextTier.minimumOrderAmount,
-            progressRemaining: remaining,
-            savingAmount: rewardPrice,
-            thumbnailUrl: rewardProduct?.imageUrl,
-            metadata: {'quantity': rewardProduct?.quantity ?? ''},
-          ),
+            suggestion: BasketSuggestion(
+              message:
+                  'Add ₹${remaining.toStringAsFixed(0)} more for FREE ${rewardProduct?.productName ?? "gift"}',
+              type: 'smgm_reward',
+              priority: 0,
+              actions: [action],
+              progressCurrent: cartTotal,
+              progressTarget: nextTier.minimumOrderAmount,
+              progressRemaining: remaining,
+              savingAmount: rewardPrice,
+              thumbnailUrl: rewardProduct?.imageUrl,
+              metadata: {
+                'quantity': rewardProduct?.quantity ?? '',
+                'productName': rewardProduct?.productName ?? '',
+                'productId': nextTier.freeProductId,
+              },
+            ),
         ),
       );
 
@@ -2395,7 +2422,11 @@ class BasketSuggestionService {
               progressRemaining: nextRemaining,
               savingAmount: nextPrice,
               thumbnailUrl: nextProduct?.imageUrl,
-              metadata: {'quantity': nextProduct?.quantity ?? ''},
+              metadata: {
+                'quantity': nextProduct?.quantity ?? '',
+                'productName': nextProduct?.productName ?? '',
+                'productId': nextTier.freeProductId,
+              },
             ),
           ),
         );
@@ -2417,25 +2448,29 @@ class BasketSuggestionService {
             profitImpact: (rewardProduct?.price ?? 0 * 1.5).clamp(8, 22),
             urgency: 12,
           ),
-          suggestion: BasketSuggestion(
-            message:
-                'Shop for ₹${firstTier.minimumOrderAmount.toStringAsFixed(0)} to unlock a free gift!',
-            type: 'smgm_reward',
-            priority: 0,
-            actions: [
-              _primaryAction(
-                type: 'product',
-                label: 'Start Shopping',
-                ctaLabel: 'Browse',
-                benefit: rewardProduct?.price ?? 0,
-                extraSpend: firstTier.minimumOrderAmount,
-              ),
-            ],
-            progressTarget: firstTier.minimumOrderAmount,
-            savingAmount: rewardProduct?.price ?? 0,
-            thumbnailUrl: rewardProduct?.imageUrl,
-            metadata: {'quantity': rewardProduct?.quantity ?? ''},
-          ),
+            suggestion: BasketSuggestion(
+              message:
+                  'Shop for ₹${firstTier.minimumOrderAmount.toStringAsFixed(0)} to unlock a free gift!',
+              type: 'smgm_reward',
+              priority: 0,
+              actions: [
+                _primaryAction(
+                  type: 'product',
+                  label: 'Start Shopping',
+                  ctaLabel: 'Browse',
+                  benefit: rewardProduct?.price ?? 0,
+                  extraSpend: firstTier.minimumOrderAmount,
+                ),
+              ],
+              progressTarget: firstTier.minimumOrderAmount,
+              savingAmount: rewardProduct?.price ?? 0,
+              thumbnailUrl: rewardProduct?.imageUrl,
+              metadata: {
+                'quantity': rewardProduct?.quantity ?? '',
+                'productName': rewardProduct?.productName ?? '',
+                'productId': firstTier.freeProductId,
+              },
+            ),
         ),
       );
     }
