@@ -35,6 +35,7 @@ fields:
   productDiscountAmount: double?
   comboDiscountAmount: double?
   bogoDiscountAmount: double?
+  categoryOfferDiscountAmount: double?
   deliveryFee: double?
   originalDeliveryFee: double?
   deliveryDiscountAmount: double?

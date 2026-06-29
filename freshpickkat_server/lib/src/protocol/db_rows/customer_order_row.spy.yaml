@@ -26,6 +26,7 @@ fields:
   productDiscountAmount: double, default=0
   comboDiscountAmount: double, default=0
   bogoDiscountAmount: double, default=0
+  categoryOfferDiscountAmount: double, default=0
   deliveryFee: double, default=0
   originalDeliveryFee: double, default=0
   deliveryDiscountAmount: double, default=0

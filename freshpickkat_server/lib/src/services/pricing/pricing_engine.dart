@@ -466,11 +466,28 @@ class PricingEngine {
         level: LogLevel.info,
       );
 
+      String? smgmVariantLabel;
+      if (smgmOffer.freeVariantId?.isNotEmpty == true) {
+        try {
+          final freeVariantId = tryParseUuid(smgmOffer.freeVariantId!);
+          if (freeVariantId != null) {
+            final variantRow =
+                await ProductVariantRow.db.findById(session, freeVariantId);
+            if (variantRow != null) {
+              if (variantRow.label.isNotEmpty) {
+                smgmVariantLabel = variantRow.label;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
       freeItemsList.add(
         FreeItemInfo(
           productId: smgmOffer.freeProductId,
           productName: smgmProductName,
           imageUrl: smgmImageUrl.isNotEmpty ? smgmImageUrl : null,
+          variantLabel: smgmVariantLabel,
           variantId: smgmOffer.freeVariantId?.isNotEmpty == true
               ? smgmOffer.freeVariantId
               : null,

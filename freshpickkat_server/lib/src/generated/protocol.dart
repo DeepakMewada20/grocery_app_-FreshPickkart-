@@ -2393,6 +2393,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '0',
         ),
         _i2.ColumnDefinition(
+          name: 'categoryOfferDiscountAmount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+          columnDefault: '0',
+        ),
+        _i2.ColumnDefinition(
           name: 'deliveryFee',
           columnType: _i2.ColumnType.doublePrecision,
           isNullable: false,

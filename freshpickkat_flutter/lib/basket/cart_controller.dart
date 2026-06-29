@@ -220,6 +220,7 @@ class CartController extends GetxController {
           fetchCartPricing(),
           fetchBasketSuggestions(),
         ]);
+        await fetchMaxRedeemablePoints(usePreFreshPoints: true);
         return;
       }
 
@@ -227,6 +228,7 @@ class CartController extends GetxController {
         _syncWithServer(),
         _fetchHydratedCartMeta(items),
       ]);
+      await fetchMaxRedeemablePoints(usePreFreshPoints: true);
     } finally {}
   }
 
@@ -324,11 +326,14 @@ class CartController extends GetxController {
     }
   }
 
-  Future<void> fetchMaxRedeemablePoints() async {
+  Future<void> fetchMaxRedeemablePoints({bool usePreFreshPoints = false}) async {
     final userId = AuthController.instance.currentUser?.uid;
     if (userId == null) return;
     try {
-      final payable = totalAmount;
+      final fpDiscount = cartPricing.value?.freshPointsDiscount ?? 0;
+      final payable = usePreFreshPoints
+          ? (totalAmount + fpDiscount)
+          : totalAmount;
       maxRedeemablePoints.value = await client.freshPoints.getMaxRedeemable(
         userId,
         payable,
@@ -352,6 +357,7 @@ class CartController extends GetxController {
       fetchCartPricing(),
       fetchBasketSuggestions(),
     ]);
+    await fetchMaxRedeemablePoints(usePreFreshPoints: true);
   }
 
   void _updateDeliveryFeeEstimate() {

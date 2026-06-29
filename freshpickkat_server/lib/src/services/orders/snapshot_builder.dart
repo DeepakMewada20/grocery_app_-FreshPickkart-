@@ -126,6 +126,7 @@ class SnapshotBuilder {
               'offerName': bogo.title,
               'triggerProductId': bogo.triggerProductId.toString(),
               'minTriggerQuantity': bogo.minTriggerQuantity,
+              'discountType': 'free_item',
             });
           }
         }
@@ -148,6 +149,15 @@ class SnapshotBuilder {
           'rewardQuantity': item.quantity,
           'rewardValue': item.rewardValue ?? 0,
           'rewardSource': item.rewardSource ?? 'SHOP_MORE_GET_MORE',
+        });
+      } else if (product != null && product.discountType != null && !item.isFreeItem) {
+        offerJson = jsonEncode({
+          'offerType': 'DIRECT_DISCOUNT',
+          'discountType': product.discountType,
+        });
+      } else if (item.isFreeDelivery == true) {
+        offerJson = jsonEncode({
+          'offerType': 'FREE_DELIVERY',
         });
       }
 
@@ -230,7 +240,8 @@ class SnapshotBuilder {
       'offerDiscount':
           order.productDiscountAmount +
           order.comboDiscountAmount +
-          order.bogoDiscountAmount,
+          order.bogoDiscountAmount +
+          order.categoryOfferDiscountAmount,
       'couponDiscount': order.discountAmount,
       'deliveryCharge': order.deliveryFee,
       'grandTotal': order.finalAmount,

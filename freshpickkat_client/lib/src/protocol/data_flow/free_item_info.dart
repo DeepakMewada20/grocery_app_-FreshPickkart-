@@ -18,6 +18,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     required this.productName,
     this.imageUrl,
     this.variantId,
+    this.variantLabel,
     required this.quantity,
     this.triggerProductId,
     this.bogoOfferId,
@@ -39,6 +40,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     required String productName,
     String? imageUrl,
     String? variantId,
+    String? variantLabel,
     required int quantity,
     String? triggerProductId,
     String? bogoOfferId,
@@ -59,6 +61,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       productName: jsonSerialization['productName'] as String,
       imageUrl: jsonSerialization['imageUrl'] as String?,
       variantId: jsonSerialization['variantId'] as String?,
+      variantLabel: jsonSerialization['variantLabel'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
       bogoOfferId: jsonSerialization['bogoOfferId'] as String?,
@@ -94,6 +97,8 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
 
   String? variantId;
 
+  String? variantLabel;
+
   int quantity;
 
   String? triggerProductId;
@@ -126,6 +131,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
     String? productName,
     String? imageUrl,
     String? variantId,
+    String? variantLabel,
     int? quantity,
     String? triggerProductId,
     String? bogoOfferId,
@@ -147,6 +153,7 @@ abstract class FreeItemInfo implements _i1.SerializableModel {
       'productName': productName,
       if (imageUrl != null) 'imageUrl': imageUrl,
       if (variantId != null) 'variantId': variantId,
+      if (variantLabel != null) 'variantLabel': variantLabel,
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
       if (bogoOfferId != null) 'bogoOfferId': bogoOfferId,
@@ -176,6 +183,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     required String productName,
     String? imageUrl,
     String? variantId,
+    String? variantLabel,
     required int quantity,
     String? triggerProductId,
     String? bogoOfferId,
@@ -193,6 +201,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
          productName: productName,
          imageUrl: imageUrl,
          variantId: variantId,
+         variantLabel: variantLabel,
          quantity: quantity,
          triggerProductId: triggerProductId,
          bogoOfferId: bogoOfferId,
@@ -216,6 +225,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     String? productName,
     Object? imageUrl = _Undefined,
     Object? variantId = _Undefined,
+    Object? variantLabel = _Undefined,
     int? quantity,
     Object? triggerProductId = _Undefined,
     Object? bogoOfferId = _Undefined,
@@ -234,6 +244,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
       productName: productName ?? this.productName,
       imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
       variantId: variantId is String? ? variantId : this.variantId,
+      variantLabel: variantLabel is String? ? variantLabel : this.variantLabel,
       quantity: quantity ?? this.quantity,
       triggerProductId: triggerProductId is String?
           ? triggerProductId

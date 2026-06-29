@@ -52,6 +52,7 @@ abstract class Complaint
     this.productDiscountAmount,
     this.comboDiscountAmount,
     this.bogoDiscountAmount,
+    this.categoryOfferDiscountAmount,
     this.deliveryFee,
     this.originalDeliveryFee,
     this.deliveryDiscountAmount,
@@ -101,6 +102,7 @@ abstract class Complaint
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -171,6 +173,9 @@ abstract class Complaint
           ?.toDouble(),
       bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
           ?.toDouble(),
+      categoryOfferDiscountAmount:
+          (jsonSerialization['categoryOfferDiscountAmount'] as num?)
+              ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num?)?.toDouble(),
       originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
           ?.toDouble(),
@@ -263,6 +268,8 @@ abstract class Complaint
 
   double? bogoDiscountAmount;
 
+  double? categoryOfferDiscountAmount;
+
   double? deliveryFee;
 
   double? originalDeliveryFee;
@@ -320,6 +327,7 @@ abstract class Complaint
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -373,6 +381,8 @@ abstract class Complaint
       if (comboDiscountAmount != null)
         'comboDiscountAmount': comboDiscountAmount,
       if (bogoDiscountAmount != null) 'bogoDiscountAmount': bogoDiscountAmount,
+      if (categoryOfferDiscountAmount != null)
+        'categoryOfferDiscountAmount': categoryOfferDiscountAmount,
       if (deliveryFee != null) 'deliveryFee': deliveryFee,
       if (originalDeliveryFee != null)
         'originalDeliveryFee': originalDeliveryFee,
@@ -431,6 +441,8 @@ abstract class Complaint
       if (comboDiscountAmount != null)
         'comboDiscountAmount': comboDiscountAmount,
       if (bogoDiscountAmount != null) 'bogoDiscountAmount': bogoDiscountAmount,
+      if (categoryOfferDiscountAmount != null)
+        'categoryOfferDiscountAmount': categoryOfferDiscountAmount,
       if (deliveryFee != null) 'deliveryFee': deliveryFee,
       if (originalDeliveryFee != null)
         'originalDeliveryFee': originalDeliveryFee,
@@ -493,6 +505,7 @@ class _ComplaintImpl extends Complaint {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -538,6 +551,7 @@ class _ComplaintImpl extends Complaint {
          productDiscountAmount: productDiscountAmount,
          comboDiscountAmount: comboDiscountAmount,
          bogoDiscountAmount: bogoDiscountAmount,
+         categoryOfferDiscountAmount: categoryOfferDiscountAmount,
          deliveryFee: deliveryFee,
          originalDeliveryFee: originalDeliveryFee,
          deliveryDiscountAmount: deliveryDiscountAmount,
@@ -589,6 +603,7 @@ class _ComplaintImpl extends Complaint {
     Object? productDiscountAmount = _Undefined,
     Object? comboDiscountAmount = _Undefined,
     Object? bogoDiscountAmount = _Undefined,
+    Object? categoryOfferDiscountAmount = _Undefined,
     Object? deliveryFee = _Undefined,
     Object? originalDeliveryFee = _Undefined,
     Object? deliveryDiscountAmount = _Undefined,
@@ -661,6 +676,9 @@ class _ComplaintImpl extends Complaint {
       bogoDiscountAmount: bogoDiscountAmount is double?
           ? bogoDiscountAmount
           : this.bogoDiscountAmount,
+      categoryOfferDiscountAmount: categoryOfferDiscountAmount is double?
+          ? categoryOfferDiscountAmount
+          : this.categoryOfferDiscountAmount,
       deliveryFee: deliveryFee is double? ? deliveryFee : this.deliveryFee,
       originalDeliveryFee: originalDeliveryFee is double?
           ? originalDeliveryFee

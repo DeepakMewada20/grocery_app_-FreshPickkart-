@@ -39,6 +39,7 @@ abstract class CustomerOrderRow
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -89,6 +90,7 @@ abstract class CustomerOrderRow
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
        bogoDiscountAmount = bogoDiscountAmount ?? 0.0,
+       categoryOfferDiscountAmount = categoryOfferDiscountAmount ?? 0.0,
        deliveryFee = deliveryFee ?? 0.0,
        originalDeliveryFee = originalDeliveryFee ?? 0.0,
        deliveryDiscountAmount = deliveryDiscountAmount ?? 0.0,
@@ -128,6 +130,7 @@ abstract class CustomerOrderRow
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -223,6 +226,9 @@ abstract class CustomerOrderRow
           ?.toDouble(),
       bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
           ?.toDouble(),
+      categoryOfferDiscountAmount:
+          (jsonSerialization['categoryOfferDiscountAmount'] as num?)
+              ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num?)?.toDouble(),
       originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
           ?.toDouble(),
@@ -385,6 +391,8 @@ abstract class CustomerOrderRow
 
   double bogoDiscountAmount;
 
+  double categoryOfferDiscountAmount;
+
   double deliveryFee;
 
   double originalDeliveryFee;
@@ -504,6 +512,7 @@ abstract class CustomerOrderRow
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -580,6 +589,7 @@ abstract class CustomerOrderRow
       'productDiscountAmount': productDiscountAmount,
       'comboDiscountAmount': comboDiscountAmount,
       'bogoDiscountAmount': bogoDiscountAmount,
+      'categoryOfferDiscountAmount': categoryOfferDiscountAmount,
       'deliveryFee': deliveryFee,
       'originalDeliveryFee': originalDeliveryFee,
       'deliveryDiscountAmount': deliveryDiscountAmount,
@@ -703,6 +713,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -772,6 +783,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          productDiscountAmount: productDiscountAmount,
          comboDiscountAmount: comboDiscountAmount,
          bogoDiscountAmount: bogoDiscountAmount,
+         categoryOfferDiscountAmount: categoryOfferDiscountAmount,
          deliveryFee: deliveryFee,
          originalDeliveryFee: originalDeliveryFee,
          deliveryDiscountAmount: deliveryDiscountAmount,
@@ -847,6 +859,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -928,6 +941,8 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
           productDiscountAmount ?? this.productDiscountAmount,
       comboDiscountAmount: comboDiscountAmount ?? this.comboDiscountAmount,
       bogoDiscountAmount: bogoDiscountAmount ?? this.bogoDiscountAmount,
+      categoryOfferDiscountAmount:
+          categoryOfferDiscountAmount ?? this.categoryOfferDiscountAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       originalDeliveryFee: originalDeliveryFee ?? this.originalDeliveryFee,
       deliveryDiscountAmount:
@@ -1158,6 +1173,12 @@ class CustomerOrderRowUpdateTable
   _i1.ColumnValue<double, double> bogoDiscountAmount(double value) =>
       _i1.ColumnValue(
         table.bogoDiscountAmount,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> categoryOfferDiscountAmount(double value) =>
+      _i1.ColumnValue(
+        table.categoryOfferDiscountAmount,
         value,
       );
 
@@ -1522,6 +1543,11 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
+    categoryOfferDiscountAmount = _i1.ColumnDouble(
+      'categoryOfferDiscountAmount',
+      this,
+      hasDefault: true,
+    );
     deliveryFee = _i1.ColumnDouble(
       'deliveryFee',
       this,
@@ -1761,6 +1787,8 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDouble bogoDiscountAmount;
 
+  late final _i1.ColumnDouble categoryOfferDiscountAmount;
+
   late final _i1.ColumnDouble deliveryFee;
 
   late final _i1.ColumnDouble originalDeliveryFee;
@@ -1875,6 +1903,7 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     productDiscountAmount,
     comboDiscountAmount,
     bogoDiscountAmount,
+    categoryOfferDiscountAmount,
     deliveryFee,
     originalDeliveryFee,
     deliveryDiscountAmount,

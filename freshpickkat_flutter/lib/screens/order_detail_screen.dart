@@ -1150,10 +1150,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           .where((i) => i.rewardSource != 'SHOP_MORE_GET_MORE'),
     ];
     final freeDeliveryItems = combinedItems
-        .where((i) => i.isFreeDelivery && !i.isFreeItem)
+        .where((i) => (i.isFreeDelivery ?? false) && !i.isFreeItem)
         .toList();
     final individualItems = combinedItems
-        .where((i) => !i.isFreeDelivery || i.isFreeItem)
+        .where((i) => !(i.isFreeDelivery ?? false) || i.isFreeItem)
         .toList();
 
     return Container(

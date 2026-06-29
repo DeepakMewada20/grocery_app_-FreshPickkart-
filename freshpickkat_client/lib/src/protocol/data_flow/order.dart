@@ -29,6 +29,7 @@ abstract class Order implements _i1.SerializableModel {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     required this.deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -80,6 +81,7 @@ abstract class Order implements _i1.SerializableModel {
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
        bogoDiscountAmount = bogoDiscountAmount ?? 0.0,
+       categoryOfferDiscountAmount = categoryOfferDiscountAmount ?? 0.0,
        originalDeliveryFee = originalDeliveryFee ?? 0.0,
        deliveryDiscountAmount = deliveryDiscountAmount ?? 0.0,
        freeDeliveryApplied = freeDeliveryApplied ?? false;
@@ -97,6 +99,7 @@ abstract class Order implements _i1.SerializableModel {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     required double deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -165,6 +168,9 @@ abstract class Order implements _i1.SerializableModel {
           ?.toDouble(),
       bogoDiscountAmount: (jsonSerialization['bogoDiscountAmount'] as num?)
           ?.toDouble(),
+      categoryOfferDiscountAmount:
+          (jsonSerialization['categoryOfferDiscountAmount'] as num?)
+              ?.toDouble(),
       deliveryFee: (jsonSerialization['deliveryFee'] as num).toDouble(),
       originalDeliveryFee: (jsonSerialization['originalDeliveryFee'] as num?)
           ?.toDouble(),
@@ -291,6 +297,8 @@ abstract class Order implements _i1.SerializableModel {
 
   double bogoDiscountAmount;
 
+  double categoryOfferDiscountAmount;
+
   double deliveryFee;
 
   double originalDeliveryFee;
@@ -401,6 +409,7 @@ abstract class Order implements _i1.SerializableModel {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -465,6 +474,7 @@ abstract class Order implements _i1.SerializableModel {
       'productDiscountAmount': productDiscountAmount,
       'comboDiscountAmount': comboDiscountAmount,
       'bogoDiscountAmount': bogoDiscountAmount,
+      'categoryOfferDiscountAmount': categoryOfferDiscountAmount,
       'deliveryFee': deliveryFee,
       'originalDeliveryFee': originalDeliveryFee,
       'deliveryDiscountAmount': deliveryDiscountAmount,
@@ -549,6 +559,7 @@ class _OrderImpl extends Order {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     required double deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -609,6 +620,7 @@ class _OrderImpl extends Order {
          productDiscountAmount: productDiscountAmount,
          comboDiscountAmount: comboDiscountAmount,
          bogoDiscountAmount: bogoDiscountAmount,
+         categoryOfferDiscountAmount: categoryOfferDiscountAmount,
          deliveryFee: deliveryFee,
          originalDeliveryFee: originalDeliveryFee,
          deliveryDiscountAmount: deliveryDiscountAmount,
@@ -675,6 +687,7 @@ class _OrderImpl extends Order {
     double? productDiscountAmount,
     double? comboDiscountAmount,
     double? bogoDiscountAmount,
+    double? categoryOfferDiscountAmount,
     double? deliveryFee,
     double? originalDeliveryFee,
     double? deliveryDiscountAmount,
@@ -737,6 +750,8 @@ class _OrderImpl extends Order {
           productDiscountAmount ?? this.productDiscountAmount,
       comboDiscountAmount: comboDiscountAmount ?? this.comboDiscountAmount,
       bogoDiscountAmount: bogoDiscountAmount ?? this.bogoDiscountAmount,
+      categoryOfferDiscountAmount:
+          categoryOfferDiscountAmount ?? this.categoryOfferDiscountAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       originalDeliveryFee: originalDeliveryFee ?? this.originalDeliveryFee,
       deliveryDiscountAmount:

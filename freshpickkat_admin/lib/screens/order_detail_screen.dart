@@ -329,7 +329,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     )
                   else
-                    ..._buildGroupedOrderItemWidgets(groupedItems),
+                    ..._buildGroupedOrderItemWidgets(groupedItems, order),
                 ],
               ),
               SizedBox(height: 16.h),
@@ -1185,6 +1185,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   List<Widget> _buildGroupedOrderItemWidgets(
     AdminGroupedOrderSections groupedItems,
+    Order order,
   ) {
     final smgmItems = <OrderItem>[];
     final orphanedPaidItems = <OrderItem>[];
@@ -1210,11 +1211,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ...groupedItems.individualItems
           .where((i) => i.rewardSource != 'SHOP_MORE_GET_MORE'),
     ];
-    final freeDeliveryItems = combinedItems
-        .where((i) => i.isFreeDelivery && !i.isFreeItem)
-        .toList();
+    smgmItems.addAll(
+      combinedItems.where((i) => i.isFreeItem),
+    );
+    combinedItems.removeWhere((i) => i.isFreeItem);
+    final hasProductLevelFreeDelivery =
+        combinedItems.any((i) => (i.isFreeDelivery ?? false) && !i.isFreeItem);
+    final orderLevelFreeDelivery =
+        order.freeDeliveryApplied && !hasProductLevelFreeDelivery;
+    final freeDeliveryItems = orderLevelFreeDelivery
+        ? combinedItems.where((i) => !i.isFreeItem).toList()
+        : combinedItems
+            .where((i) => (i.isFreeDelivery ?? false) && !i.isFreeItem)
+            .toList();
     final otherItems = combinedItems
-        .where((i) => !i.isFreeDelivery || i.isFreeItem)
+        .where((i) => !freeDeliveryItems.contains(i))
         .toList();
 
     return [
@@ -1222,89 +1233,67 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _orderItemSectionTitle('BOGO Offers'),
         ...bogoGroups.map(_buildBogoOrderItem),
       ],
+      if (smgmItems.isNotEmpty) ...[
+        _orderItemSectionTitle('SMGM Free Gifts'),
+        ...smgmItems.map(
+          (item) => _buildOrderItemCard(
+            item.copyWith(
+              variantLabel: item.rewardOfferName?.isNotEmpty == true &&
+                      item.variantLabel?.isNotEmpty == true
+                  ? '${item.rewardOfferName} - ${item.variantLabel}'
+                  : item.variantLabel,
+            ),
+            footer: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(top: 8.h),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: AdminAppTheme.getSuccessColor(context),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    'FREE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10.sp.clamp(8.0, 11.0),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                if (item.rewardOfferName?.isNotEmpty == true)
+                  Padding(
+                    padding: EdgeInsets.only(top: 4.h),
+                    child: Text(
+                      'Unlocked via ${item.rewardOfferName}',
+                      style: TextStyle(
+                        fontSize: 11.sp.clamp(10.0, 12.0),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+      if (freeDeliveryItems.isNotEmpty) ...[
+        _orderItemSectionTitle('Free Delivery Product'),
+        ...freeDeliveryItems.map(_buildOrderItemCard),
+      ],
       if (groupedItems.comboGroups.isNotEmpty) ...[
         _orderItemSectionTitle('Combo Offers'),
         ...groupedItems.comboGroups.map(_buildComboOrderGroup),
-      ],
-      if (smgmItems.isNotEmpty) ...[
-        _orderItemSectionTitle('Free Gifts'),
-        ...smgmItems.map(_buildSmgmRewardItem),
-      ],
-      if (freeDeliveryItems.isNotEmpty) ...[
-        _orderItemSectionTitle('Free Delivery'),
-        ...freeDeliveryItems.map(_buildOrderItemCard),
       ],
       if (otherItems.isNotEmpty) ...[
         _orderItemSectionTitle('Individual Items'),
         ...otherItems.map(_buildOrderItemCard),
       ],
     ];
-  }
-
-  Widget _buildSmgmRewardItem(OrderItem item) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Text(
-              'FREE',
-              style: TextStyle(
-                color: cs.onSurface,
-                fontSize: 10.sp.clamp(8.0, 11.0),
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${item.productName} x${item.quantity}',
-                  style: TextStyle(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14.sp.clamp(12.0, 16.0),
-                  ),
-                ),
-                if (item.rewardOfferName != null &&
-                    item.rewardOfferName!.isNotEmpty)
-                  Text(
-                    'Unlocked via ${item.rewardOfferName}',
-                    style: TextStyle(
-                      fontSize: 12.sp.clamp(10.0, 13.0),
-                      color: cs.onSurface.withValues(alpha: 0.7),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (item.rewardValue != null && item.rewardValue! > 0)
-            Text(
-              '₹${item.rewardValue!.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 14.sp.clamp(12.0, 16.0),
-                fontWeight: FontWeight.w700,
-                color: cs.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 
   Widget _orderItemSectionTitle(String title) {
@@ -1322,26 +1311,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildBogoOrderItem(AdminGroupedOrderItem group) {
-    return _buildOrderItemCard(
-      group.item,
-      footer: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: group.freeItems
-            .map(
-              (item) => Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: Text(
-                  'FREE: ${item.productName} x${item.quantity}',
-                  style: TextStyle(
-                    color: AdminAppTheme.getSuccessColor(context),
-                    fontSize: 12.sp.clamp(10.0, 13.0),
-                    fontWeight: FontWeight.w700,
-                  ),
+    return Column(
+      children: [
+        _buildOrderItemCard(group.item),
+        ...group.freeItems.map(
+          (item) => _buildOrderItemCard(
+            item,
+            footer: Container(
+              margin: EdgeInsets.only(top: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: AdminAppTheme.getSuccessColor(context),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                'FREE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10.sp.clamp(8.0, 11.0),
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-            )
-            .toList(growable: false),
-      ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

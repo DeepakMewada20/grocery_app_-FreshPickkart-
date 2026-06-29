@@ -1382,6 +1382,7 @@ class PostgresPaymentService {
           productDiscountAmount: row.productDiscountAmount,
           comboDiscountAmount: row.comboDiscountAmount,
           bogoDiscountAmount: row.bogoDiscountAmount,
+          categoryOfferDiscountAmount: row.categoryOfferDiscountAmount,
           deliveryFee: row.deliveryFee,
           originalDeliveryFee: row.originalDeliveryFee,
           deliveryDiscountAmount: row.deliveryDiscountAmount,

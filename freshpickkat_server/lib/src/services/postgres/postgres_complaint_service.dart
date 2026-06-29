@@ -1054,6 +1054,7 @@ class PostgresComplaintService {
       productDiscountAmount: order.productDiscountAmount,
       comboDiscountAmount: order.comboDiscountAmount,
       bogoDiscountAmount: order.bogoDiscountAmount,
+      categoryOfferDiscountAmount: order.categoryOfferDiscountAmount,
       deliveryFee: order.deliveryFee,
       originalDeliveryFee: order.originalDeliveryFee,
       deliveryDiscountAmount: order.deliveryDiscountAmount,

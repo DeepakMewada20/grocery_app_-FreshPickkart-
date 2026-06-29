@@ -46,11 +46,10 @@ abstract class OrderItem
     this.rewardOfferName,
     this.rewardThreshold,
     this.rewardSource,
-    bool? isFreeDelivery,
+    this.isFreeDelivery,
   }) : isRewardProduct = isRewardProduct ?? false,
        quantityEditable = quantityEditable ?? true,
-       priceEditable = priceEditable ?? true,
-       isFreeDelivery = isFreeDelivery ?? false;
+       priceEditable = priceEditable ?? true;
 
   factory OrderItem({
     String? orderItemId,
@@ -204,7 +203,7 @@ abstract class OrderItem
 
   String? rewardSource;
 
-  bool isFreeDelivery;
+  bool? isFreeDelivery;
 
   /// Returns a shallow copy of this [OrderItem]
   /// with some or all fields replaced by the given arguments.
@@ -279,7 +278,7 @@ abstract class OrderItem
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
       if (rewardSource != null) 'rewardSource': rewardSource,
-      'isFreeDelivery': isFreeDelivery,
+      if (isFreeDelivery != null) 'isFreeDelivery': isFreeDelivery,
     };
   }
 
@@ -319,7 +318,7 @@ abstract class OrderItem
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
       if (rewardSource != null) 'rewardSource': rewardSource,
-      'isFreeDelivery': isFreeDelivery,
+      if (isFreeDelivery != null) 'isFreeDelivery': isFreeDelivery,
     };
   }
 
@@ -436,7 +435,7 @@ class _OrderItemImpl extends OrderItem {
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
     Object? rewardSource = _Undefined,
-    bool? isFreeDelivery,
+    Object? isFreeDelivery = _Undefined,
   }) {
     return OrderItem(
       orderItemId: orderItemId is String? ? orderItemId : this.orderItemId,
@@ -490,7 +489,9 @@ class _OrderItemImpl extends OrderItem {
           ? rewardThreshold
           : this.rewardThreshold,
       rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
-      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
+      isFreeDelivery: isFreeDelivery is bool?
+          ? isFreeDelivery
+          : this.isFreeDelivery,
     );
   }
 }

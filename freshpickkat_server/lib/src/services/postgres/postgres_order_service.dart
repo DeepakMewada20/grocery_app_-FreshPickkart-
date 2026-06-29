@@ -71,28 +71,42 @@ class PostgresOrderService {
         )
         .toList();
 
-    final serverSmgmItems = pricing.freeItems
-        .where((fi) => fi.rewardSource == 'SHOP_MORE_GET_MORE')
-        .map((fi) => OrderItem(
-              productId: fi.productId,
-              variantId: fi.variantId,
-              productName: fi.productName,
-              productImage: '',
-              quantity: fi.quantity,
-              unitPrice: 0,
-              totalPrice: 0,
-              isFreeItem: true,
-              isRewardProduct: true,
-              quantityEditable: false,
-              priceEditable: false,
-              originalUnitPrice: fi.originalUnitPrice ?? fi.rewardValue,
-              rewardValue: fi.rewardValue,
-              rewardOfferId: fi.rewardOfferId,
-              rewardOfferName: fi.rewardOfferName,
-              rewardThreshold: fi.rewardThreshold,
-              rewardSource: fi.rewardSource,
-            ))
-        .toList();
+    final serverSmgmItems = await Future.wait(
+      pricing.freeItems
+          .where((fi) => fi.rewardSource == 'SHOP_MORE_GET_MORE')
+          .map((fi) async {
+        var imageUrl = fi.imageUrl ?? '';
+        if (imageUrl.isEmpty) {
+          try {
+            final parsedPid = tryParseUuid(fi.productId);
+            if (parsedPid != null) {
+              final pRow = await ProductRow.db.findById(session, parsedPid);
+              imageUrl = pRow?.primaryImageUrl ?? '';
+            }
+          } catch (_) {}
+        }
+        return OrderItem(
+          productId: fi.productId,
+          variantId: fi.variantId,
+          variantLabel: fi.variantLabel,
+          productName: fi.productName,
+          productImage: imageUrl,
+          quantity: fi.quantity,
+          unitPrice: 0,
+          totalPrice: 0,
+          isFreeItem: true,
+          isRewardProduct: true,
+          quantityEditable: false,
+          priceEditable: false,
+          originalUnitPrice: fi.originalUnitPrice ?? fi.rewardValue,
+          rewardValue: fi.rewardValue,
+          rewardOfferId: fi.rewardOfferId,
+          rewardOfferName: fi.rewardOfferName,
+          rewardThreshold: fi.rewardThreshold,
+          rewardSource: fi.rewardSource,
+        );
+      }),
+    );
 
     final reconciledItems = [...nonSmgmClientItems, ...serverSmgmItems];
 
@@ -205,6 +219,7 @@ class PostgresOrderService {
             productDiscountAmount: pricing.itemDiscounts,
             comboDiscountAmount: pricing.comboDiscount,
             bogoDiscountAmount: pricing.bogoDiscount,
+            categoryOfferDiscountAmount: pricing.categoryOfferDiscount,
             deliveryFee: pricing.deliveryFee,
             originalDeliveryFee: pricing.originalDeliveryFee,
             deliveryDiscountAmount:
@@ -290,7 +305,9 @@ class PostgresOrderService {
             isRewardProduct: item.isRewardProduct,
             quantityEditable: item.quantityEditable,
             priceEditable: item.priceEditable,
-            originalUnitPrice: item.originalUnitPrice,
+            originalUnitPrice: item.isFreeItem
+                ? item.originalUnitPrice
+                : (item.originalUnitPrice ?? serverUnitPrice),
             rewardValue: item.rewardValue,
             rewardOfferId: item.rewardOfferId,
             rewardOfferName: item.rewardOfferName,
@@ -744,6 +761,7 @@ class PostgresOrderService {
           productDiscountAmount: order.productDiscountAmount,
           comboDiscountAmount: order.comboDiscountAmount,
           bogoDiscountAmount: order.bogoDiscountAmount,
+          categoryOfferDiscountAmount: order.categoryOfferDiscountAmount,
           deliveryFee: order.deliveryFee,
           originalDeliveryFee: order.originalDeliveryFee,
           deliveryDiscountAmount: order.deliveryDiscountAmount,
@@ -1714,10 +1732,16 @@ class PostgresOrderService {
     List<OrderItem> items,
   ) async {
     final variantIds = <UuidValue>{};
+    final productIdsForVariantless = <UuidValue>{};
     for (final item in items) {
       if (item.isFreeItem) continue;
       final vid = item.variantId == null ? null : tryParseUuid(item.variantId!);
-      if (vid != null) variantIds.add(vid);
+      if (vid != null) {
+        variantIds.add(vid);
+      } else {
+        final pid = tryParseUuid(item.productId);
+        if (pid != null) productIdsForVariantless.add(pid);
+      }
     }
 
     final variantRows = variantIds.isEmpty
@@ -1729,6 +1753,19 @@ class PostgresOrderService {
     final variantByKey = {
       for (final v in variantRows) v.id!.toString(): v,
     };
+
+    Map<String, ProductVariantRow> defaultVariantByProduct = {};
+    if (productIdsForVariantless.isNotEmpty) {
+      final variantlessVariants = await ProductVariantRow.db.find(
+        session,
+        where: (t) => t.productId.inSet(productIdsForVariantless),
+        orderBy: (t) => t.sortOrder,
+      );
+      for (final v in variantlessVariants) {
+        final pid = v.productId.toString();
+        defaultVariantByProduct.putIfAbsent(pid, () => v);
+      }
+    }
 
     final result = <String, ({double unitPrice, double? mrp})>{};
     for (final item in items) {
@@ -1747,8 +1784,14 @@ class PostgresOrderService {
           mrp = null;
         }
       } else {
-        unitPrice = 0;
-        mrp = null;
+        final defaultVariant = defaultVariantByProduct[item.productId];
+        if (defaultVariant != null) {
+          unitPrice = defaultVariant.salePrice;
+          mrp = defaultVariant.listPrice;
+        } else {
+          unitPrice = 0;
+          mrp = null;
+        }
       }
       result[key] = (unitPrice: unitPrice, mrp: mrp);
     }

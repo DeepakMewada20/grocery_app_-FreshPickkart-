@@ -4,6 +4,7 @@ fields:
   productName: String
   imageUrl: String?
   variantId: String?
+  variantLabel: String?
   quantity: int
   triggerProductId: String?
   bogoOfferId: String?
