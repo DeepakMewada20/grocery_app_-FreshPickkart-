@@ -3,6 +3,7 @@ name: Production Deployment
 on:
   push:
     branches:
+      - main
       - master
     paths:
       - 'freshpickkat_server/**'
@@ -75,13 +76,14 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           timeout: 30s
+          envs: 'GITHUB_REF_NAME'
           script: |
             cd ~/projects/grocery_app_-FreshPickkart-/
             if [ -d .git ]; then
-              echo "--- Fetching All Branches & Resetting to Master ---"
+              echo "--- Fetching & Resetting to $GITHUB_REF_NAME ---"
               git fetch --all
-              git checkout master || git checkout -b master origin/master
-              git reset --hard origin/master
+              git checkout "$GITHUB_REF_NAME" || git checkout -b "$GITHUB_REF_NAME" "origin/$GITHUB_REF_NAME"
+              git reset --hard "origin/$GITHUB_REF_NAME"
             fi
 
       # --- SCP builds to server (conditional) ---
