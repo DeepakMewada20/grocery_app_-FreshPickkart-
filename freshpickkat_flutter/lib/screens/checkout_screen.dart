@@ -2428,8 +2428,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 12.h),
           ],
           if (smgmFreeItems.isNotEmpty) ...[
-            _buildSectionLabel('Free Gifts', cs,
-                badgeColor: Colors.orange),
+            _buildSectionLabel('Free Gifts', cs),
             SizedBox(height: 8.h),
             ...smgmFreeItems.map(
               (item) => _buildSmgmCheckoutItem(item, cs),
@@ -2637,31 +2636,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildSmgmCheckoutItem(FreeItemInfo item, ColorScheme cs) {
-    final offerTheme =
-        Theme.of(Get.context!).extension<AppOfferTheme>() ??
-        AppOfferTheme.fallback(Theme.of(Get.context!).brightness);
     return Container(
       margin: EdgeInsets.only(bottom: 8.h),
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: offerTheme.badgeSoft,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: offerTheme.badgeBorder),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
             decoration: BoxDecoration(
-              color: offerTheme.badge,
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4.r),
             ),
             child: Text(
               'FREE',
               style: TextStyle(
-                color: offerTheme.onBadge,
+                color: cs.onSurface,
                 fontSize: 10.sp,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -2683,7 +2679,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Text(
                     'Unlocked via ${item.rewardOfferName}',
                     style: TextStyle(
-                      color: offerTheme.badge.withValues(alpha: 0.8),
+                      color: cs.onSurface.withValues(alpha: 0.7),
                       fontSize: 10.sp,
                     ),
                   ),
@@ -2694,9 +2690,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Text(
               '₹${item.rewardValue!.formatPrice}',
               style: TextStyle(
-                color: offerTheme.badge,
+                color: cs.onSurface.withValues(alpha: 0.7),
                 fontSize: 14.sp,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
             ),
         ],

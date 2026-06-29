@@ -219,10 +219,12 @@ class _BasketScreenState extends State<BasketScreen> {
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: cs.outlineVariant, width: 1),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.all(12.w),
+          Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(12.w),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -240,28 +242,6 @@ class _BasketScreenState extends State<BasketScreen> {
                         ),
                       ),
                     ),
-                    if (bogoOffer != null)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(4.w),
-                          decoration: BoxDecoration(
-                            color: offerTheme.badge,
-                            borderRadius: BorderRadius.only(
-                              bottomRight: Radius.circular(8.r),
-                            ),
-                          ),
-                          child: Text(
-                            'BOGO',
-                            style: TextStyle(
-                              color: offerTheme.onBadge,
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 SizedBox(width: 14.w),
@@ -472,7 +452,55 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ),
               ),
-          ],
+            ],
+            ],
+          ),
+          if (bogoOffer != null)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: EdgeInsets.only(left: 10.w, top: 4.w, right: 6.w, bottom: 4.w),
+                decoration: BoxDecoration(
+                  color: offerTheme.badge,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.r),
+                    bottomRight: Radius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  'BOGO',
+                  style: TextStyle(
+                    color: offerTheme.onBadge,
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          if (item.product.isFreeDelivery)
+            Positioned(
+              top: bogoOffer != null ? 26.h : 0,
+              left: 0,
+              child: Container(
+                padding: EdgeInsets.only(left: 10.w, top: 4.w, right: 6.w, bottom: 4.w),
+                decoration: BoxDecoration(
+                  color: offerTheme.badge,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16.r),
+                    bottomRight: Radius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  'FREE DELIVERY',
+                  style: TextStyle(
+                    color: offerTheme.onBadge,
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

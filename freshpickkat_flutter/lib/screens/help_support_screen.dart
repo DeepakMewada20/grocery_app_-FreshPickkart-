@@ -21,8 +21,8 @@ class HelpSupportScreen extends StatefulWidget {
 }
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
-  static const _supportPhone = '+918815086850';
-  static const _supportEmail = 'support@freshpickkat.com';
+  static const _supportPhone = '+919109042266';
+  static const _supportEmail = 'freshpickkart@gmail.com';
 
   late final Future<PackageInfo> _appInfoFuture;
 
@@ -285,7 +285,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       'Hi FreshPickKat Support, I need help.',
     );
     await _launchExternal(
-      Uri.parse('https://wa.me/918815086850?text=$text'),
+      Uri.parse('https://wa.me/919109042266?text=$text'),
       fallbackMessage: 'WhatsApp is not available on this device.',
     );
   }
