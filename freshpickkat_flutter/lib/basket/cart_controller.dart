@@ -259,6 +259,8 @@ class CartController extends GetxController {
       _prefetchComboProductsFromSuggestions(suggestions.suggestions);
     }
 
+    _prefetchSmgmProducts(hydrated.cartPricing);
+
     availableCoupons.assignAll(hydrated.availableCoupons);
     final bestDisplay =
         hydrated.availableCoupons.firstWhereOrNull(
@@ -609,6 +611,7 @@ class CartController extends GetxController {
           cartPricing.value = result;
           _lastPricingSnapshot = snapshot;
           isPricingStale.value = false;
+          _prefetchSmgmProducts(result);
           // Also update estimate logic if we got config back (if ever exposed)
           _updateDeliveryFeeEstimate();
           // Notify reward service — delivery fee may have just become free
@@ -738,6 +741,24 @@ class CartController extends GetxController {
         );
       }
     });
+  }
+
+  void _prefetchSmgmProducts(CartPricingResult? pricing) {
+    final freeItems = pricing?.freeItems ?? [];
+    final smgmIds = freeItems
+        .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+        .map((item) => item.productId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (smgmIds.isEmpty) return;
+    final missingIds = smgmIds
+        .where((id) => !ProductProviderController.instance.allProducts
+            .any((p) => p.productId == id))
+        .toList();
+    if (missingIds.isNotEmpty) {
+      ProductProviderController.instance.fetchProductsByIds(missingIds);
+    }
   }
 
   String _buildMeaningfulCartSnapshot() {

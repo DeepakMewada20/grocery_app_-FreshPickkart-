@@ -17,6 +17,7 @@ abstract class FreeItemInfo
   FreeItemInfo._({
     required this.productId,
     required this.productName,
+    this.imageUrl,
     this.variantId,
     required this.quantity,
     this.triggerProductId,
@@ -37,6 +38,7 @@ abstract class FreeItemInfo
   factory FreeItemInfo({
     required String productId,
     required String productName,
+    String? imageUrl,
     String? variantId,
     required int quantity,
     String? triggerProductId,
@@ -56,6 +58,7 @@ abstract class FreeItemInfo
     return FreeItemInfo(
       productId: jsonSerialization['productId'] as String,
       productName: jsonSerialization['productName'] as String,
+      imageUrl: jsonSerialization['imageUrl'] as String?,
       variantId: jsonSerialization['variantId'] as String?,
       quantity: jsonSerialization['quantity'] as int,
       triggerProductId: jsonSerialization['triggerProductId'] as String?,
@@ -87,6 +90,8 @@ abstract class FreeItemInfo
   String productId;
 
   String productName;
+
+  String? imageUrl;
 
   String? variantId;
 
@@ -120,6 +125,7 @@ abstract class FreeItemInfo
   FreeItemInfo copyWith({
     String? productId,
     String? productName,
+    String? imageUrl,
     String? variantId,
     int? quantity,
     String? triggerProductId,
@@ -140,6 +146,7 @@ abstract class FreeItemInfo
       '__className__': 'FreeItemInfo',
       'productId': productId,
       'productName': productName,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
@@ -162,6 +169,7 @@ abstract class FreeItemInfo
       '__className__': 'FreeItemInfo',
       'productId': productId,
       'productName': productName,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       if (variantId != null) 'variantId': variantId,
       'quantity': quantity,
       if (triggerProductId != null) 'triggerProductId': triggerProductId,
@@ -190,6 +198,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
   _FreeItemInfoImpl({
     required String productId,
     required String productName,
+    String? imageUrl,
     String? variantId,
     required int quantity,
     String? triggerProductId,
@@ -206,6 +215,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
   }) : super._(
          productId: productId,
          productName: productName,
+         imageUrl: imageUrl,
          variantId: variantId,
          quantity: quantity,
          triggerProductId: triggerProductId,
@@ -228,6 +238,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
   FreeItemInfo copyWith({
     String? productId,
     String? productName,
+    Object? imageUrl = _Undefined,
     Object? variantId = _Undefined,
     int? quantity,
     Object? triggerProductId = _Undefined,
@@ -245,6 +256,7 @@ class _FreeItemInfoImpl extends FreeItemInfo {
     return FreeItemInfo(
       productId: productId ?? this.productId,
       productName: productName ?? this.productName,
+      imageUrl: imageUrl is String? ? imageUrl : this.imageUrl,
       variantId: variantId is String? ? variantId : this.variantId,
       quantity: quantity ?? this.quantity,
       triggerProductId: triggerProductId is String?

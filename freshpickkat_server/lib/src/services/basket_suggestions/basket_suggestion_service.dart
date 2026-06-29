@@ -2304,9 +2304,9 @@ class BasketSuggestionService {
       }
     }
 
-    // Find the next unlockable reward
+    // Find the next unlockable reward (nearest lowest threshold)
     ShopMoreGetMoreOffer? nextTier;
-    for (final offer in activeOffers) {
+    for (final offer in activeOffers.reversed) {
       if (cartTotal < offer.minimumOrderAmount) {
         nextTier = offer;
         break;
@@ -2317,42 +2317,6 @@ class BasketSuggestionService {
     final cartProductIds = cartItems.map((item) => item.productId).toSet();
     final rewardAlreadyInCart = unlockedReward != null &&
         cartProductIds.contains(unlockedReward.freeProductId);
-
-    // A. Reward already unlocked but not in cart — suggest adding it
-    if (unlockedReward != null && !rewardAlreadyInCart) {
-      final rewardProduct = productMap[unlockedReward.freeProductId];
-      final rewardPrice = rewardProduct?.price ?? 0;
-      final action = _primaryAction(
-        type: 'product',
-        label: 'Claim Free Gift',
-        ctaLabel: 'Add FREE ${rewardProduct?.productName ?? ''}',
-        productId: unlockedReward.freeProductId,
-        variantId: unlockedReward.freeVariantId,
-        benefit: rewardPrice,
-        extraSpend: 0,
-      );
-      results.add(
-        _Scored(
-          extraSpend: 0,
-          totalBenefit: rewardPrice,
-          score: _scoreFromComponents(
-            type: 'smgm_reward',
-            conversionProbability: 48,
-            userRelevance: 30,
-            profitImpact: (rewardPrice * 1.8).clamp(10, 30),
-            urgency: 22,
-          ),
-          suggestion: BasketSuggestion(
-            message:
-                'You unlocked FREE ${rewardProduct?.productName ?? ""}! Add it now.',
-            type: 'smgm_reward',
-            priority: 0,
-            actions: [action],
-            savingAmount: rewardPrice,
-          ),
-        ),
-      );
-    }
 
     // B. Not yet at threshold — suggest next tier
     if (nextTier != null) {
@@ -2389,6 +2353,8 @@ class BasketSuggestionService {
             progressTarget: nextTier.minimumOrderAmount,
             progressRemaining: remaining,
             savingAmount: rewardPrice,
+            thumbnailUrl: rewardProduct?.imageUrl,
+            metadata: {'quantity': rewardProduct?.quantity ?? ''},
           ),
         ),
       );
@@ -2428,6 +2394,8 @@ class BasketSuggestionService {
               progressTarget: nextTier.minimumOrderAmount,
               progressRemaining: nextRemaining,
               savingAmount: nextPrice,
+              thumbnailUrl: nextProduct?.imageUrl,
+              metadata: {'quantity': nextProduct?.quantity ?? ''},
             ),
           ),
         );
@@ -2465,6 +2433,8 @@ class BasketSuggestionService {
             ],
             progressTarget: firstTier.minimumOrderAmount,
             savingAmount: rewardProduct?.price ?? 0,
+            thumbnailUrl: rewardProduct?.imageUrl,
+            metadata: {'quantity': rewardProduct?.quantity ?? ''},
           ),
         ),
       );

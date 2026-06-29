@@ -97,6 +97,10 @@ class PricingEngine {
         productIds.add(freeProductId);
       }
     }
+    final smgmOffers = await _offerService.getActiveShopMoreGetMoreOffers(session);
+    for (final offer in smgmOffers) {
+      productIds.add(offer.freeProductId);
+    }
     final productMap = await _fetchProducts(session, productIds);
 
     for (final item in items) {
@@ -425,10 +429,12 @@ class PricingEngine {
     );
     if (smgmOffer != null) {
       String smgmProductName = '';
+      String smgmImageUrl = '';
       double smgmRewardValue = 0;
       if (productMap.containsKey(smgmOffer.freeProductId)) {
         final p = productMap[smgmOffer.freeProductId]!;
         smgmProductName = p.productName ?? '';
+        smgmImageUrl = p.imageUrl;
         smgmRewardValue = p.price;
       } else {
         try {
@@ -436,6 +442,7 @@ class PricingEngine {
           if (parsedPid != null) {
             final pRow = await ProductRow.db.findById(session, parsedPid);
             smgmProductName = pRow?.name ?? '';
+            smgmImageUrl = pRow?.primaryImageUrl ?? '';
             if (pRow != null) {
               final pVariants = await ProductVariantRow.db.find(
                 session,
@@ -463,6 +470,7 @@ class PricingEngine {
         FreeItemInfo(
           productId: smgmOffer.freeProductId,
           productName: smgmProductName,
+          imageUrl: smgmImageUrl.isNotEmpty ? smgmImageUrl : null,
           variantId: smgmOffer.freeVariantId?.isNotEmpty == true
               ? smgmOffer.freeVariantId
               : null,

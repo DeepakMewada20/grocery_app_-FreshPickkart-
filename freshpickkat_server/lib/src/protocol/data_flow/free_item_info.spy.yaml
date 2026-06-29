@@ -2,6 +2,7 @@ class: FreeItemInfo
 fields:
   productId: String
   productName: String
+  imageUrl: String?
   variantId: String?
   quantity: int
   triggerProductId: String?

@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:get/get.dart';
 
@@ -84,51 +85,74 @@ class SingleCardBody extends StatelessWidget {
           // Variant comparison and other specific UI is now handled in the bottom row to save space
           Row(
             children: [
-              if (type == 'combo' && s.comboId != null)
+              if (type == 'smgm_reward' && s.thumbnailUrl != null)
+                _Thumb(url: s.thumbnailUrl!)
+              else if (type == 'combo' && s.comboId != null)
                 _ComboThumbs(comboId: s.comboId!, s: s)
               else if (s.thumbnailUrl != null)
                 _Thumb(url: s.thumbnailUrl!),
 
-              SizedBox(width: 8.w),
-
-              // Variant Comparison logic moved here
-              if (s.metadata != null &&
-                  s.metadata!.containsKey('curLabel') &&
-                  s.metadata!.containsKey('vLabel'))
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: VariantComparisonView(
-                      curLabel: s.metadata!['curLabel'] ?? '',
-                      curPrice: s.metadata!['curPrice'] ?? '',
-                      vLabel: s.metadata!['vLabel'] ?? '',
-                      vPrice: s.metadata!['vPrice'] ?? '',
-                      accent: accent,
-                    ),
-                  ),
-                )
-              else if (type == 'coupon' ||
-                  type == 'delivery' ||
-                  action?.type == 'coupon' ||
-                  action?.type == 'delivery')
+              if (type == 'smgm_reward')
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                    child: SuggestionProgressBar(
-                      current: s.progressCurrent ?? 0,
-                      target: s.progressTarget ?? 0,
-                      accent: accent,
+                    padding: EdgeInsets.only(left: 8.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          s.metadata?['quantity'] ?? '',
+                          style: TextStyle(
+                            color: textSecondary,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 )
-              else
-                const Spacer(),
+              else ...[
+                SizedBox(width: 8.w),
+                if (s.metadata != null &&
+                    s.metadata!.containsKey('curLabel') &&
+                    s.metadata!.containsKey('vLabel'))
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: VariantComparisonView(
+                        curLabel: s.metadata!['curLabel'] ?? '',
+                        curPrice: s.metadata!['curPrice'] ?? '',
+                        vLabel: s.metadata!['vLabel'] ?? '',
+                        vPrice: s.metadata!['vPrice'] ?? '',
+                        accent: accent,
+                      ),
+                    ),
+                  )
+                else if (type == 'coupon' ||
+                    type == 'delivery' ||
+                    action?.type == 'coupon' ||
+                    action?.type == 'delivery')
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      child: SuggestionProgressBar(
+                        current: s.progressCurrent ?? 0,
+                        target: s.progressTarget ?? 0,
+                        accent: accent,
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
+              ],
 
               SizedBox(width: 8.w),
               CTAButton(
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
-                onTap: () => CartController.instance.applyBasketSuggestion(s),
+                onTap: type == 'smgm_reward'
+                    ? () => SuggestionNavigationHelper.handleTap(s)
+                    : () => CartController.instance.applyBasketSuggestion(s),
                 showArrow: type != 'delivery',
               ),
             ],
@@ -149,6 +173,7 @@ class SingleCardBody extends StatelessWidget {
       case 'combo':
         return Icons.layers_rounded;
       case 'bogo':
+      case 'smgm_reward':
         return Icons.card_giftcard_rounded;
       case 'reorder':
         return Icons.replay_rounded;

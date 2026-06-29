@@ -61,6 +61,7 @@ class SuggestionNavigationHelper {
           );
         }
         break;
+      case 'smgm_reward':
       case 'product':
       case 'variant':
       case 'bogo':
