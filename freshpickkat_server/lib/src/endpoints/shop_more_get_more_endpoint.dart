@@ -76,17 +76,17 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       );
     }
 
-    final result = await _offers.upsertShopMoreGetMoreOffer(
+    final offerId = await _offers.upsertShopMoreGetMoreOffer(
       session,
       offer,
       updatedBy: actor.id.toString(),
     );
-    if (result) {
+    if (offerId != null) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
         draft: notificationDraft,
         fallbackEntityType: 'shop_more_get_more',
-        fallbackEntityId: offer.offerId ?? offer.freeProductId,
+        fallbackEntityId: offerId,
         extraData: {'offerType': 'shop_more_get_more'},
       );
       await _audit.write(
@@ -94,12 +94,13 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
         actorUserId: actor.id,
         action: 'upsert_with_conflicts',
         entityType: 'shop_more_get_more_offer',
-        entityId: offer.offerId ?? offer.freeProductId,
+        entityId: offerId,
       );
     }
     return protocol.OfferMutationResult(
-      success: result,
-      message: result ? 'Shop More, Get More offer saved.' : 'Failed to save offer.',
+      success: offerId != null,
+      message: offerId != null ? 'Shop More, Get More offer saved.' : 'Failed to save offer.',
+      offerId: offerId,
     );
   }
 
@@ -137,21 +138,21 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       throw Exception(exclusivityErr);
     }
 
-    final result = await _offers.upsertShopMoreGetMoreOffer(
+    final offerId = await _offers.upsertShopMoreGetMoreOffer(
       session,
       offer,
       updatedBy: actor.id.toString(),
     );
-    if (result) {
+    if (offerId != null) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
         draft: notificationDraft,
         fallbackEntityType: 'shop_more_get_more',
-        fallbackEntityId: offer.offerId ?? offer.freeProductId,
+        fallbackEntityId: offerId,
         extraData: {'offerType': 'shop_more_get_more'},
       );
     }
-    return result;
+    return offerId != null;
   }
 
   Future<String> deleteOffer(

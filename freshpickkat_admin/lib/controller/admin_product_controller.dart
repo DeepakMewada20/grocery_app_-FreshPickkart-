@@ -36,7 +36,7 @@ class AdminProductController extends GetxController {
     return categoryFilter == 'All' || product.category == categoryFilter;
   }
 
-  void _sortProducts() {
+  void sortProducts() {
     products.sort(
       (a, b) =>
           a.productName.toLowerCase().compareTo(b.productName.toLowerCase()),
@@ -61,7 +61,7 @@ class AdminProductController extends GetxController {
       products.add(product);
       totalCount.value++;
     }
-    _sortProducts();
+    sortProducts();
   }
 
   Future<void> loadInitial({String? category}) async {

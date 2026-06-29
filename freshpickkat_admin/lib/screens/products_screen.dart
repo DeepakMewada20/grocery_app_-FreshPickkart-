@@ -12,7 +12,6 @@ import 'package:freshpickkat_admin/widgets/catalog_widgets/catalog_categories_ta
 import 'package:freshpickkat_admin/screens/bogo_product_picker_screen.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../widgets/shared_dialogs.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -74,7 +73,13 @@ class _ProductsScreenState extends State<ProductsScreen>
     });
 
     final hasCachedScope = _categoryProductCache.containsKey(value);
-    if (hasCachedScope) return;
+    if (hasCachedScope) {
+      _productController.products
+        ..clear()
+        ..addAll(_categoryProductCache[value]!);
+      _productController.sortProducts();
+      return;
+    }
 
     await _productController.loadInitial(
       category: value == 'All' ? null : value,
@@ -214,7 +219,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
     if (configuredFreeProducts.isEmpty) return;
 
-    await AdminBogoController.instance.upsertOffer(
+    await AdminBogoController.instance.upsertOfferWithConflicts(
       BogoOffer(
         triggerProductId: triggerProductId,
         freeProductIds: configuredFreeProducts.map((f) => f.productId).toList(),
@@ -261,8 +266,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   List<Product> _visibleProducts() {
     final query = _searchQuery.toLowerCase().trim();
-    final sourceProducts = _productsForSelectedCategory();
-    return sourceProducts.where((p) {
+    return _productController.products.where((p) {
       final categoryMatch =
           _selectedCategory == 'All' || p.category == _selectedCategory;
       if (!categoryMatch) return false;
@@ -271,22 +275,6 @@ class _ProductsScreenState extends State<ProductsScreen>
           p.category.toLowerCase().contains(query) ||
           p.quantity.toLowerCase().contains(query);
     }).toList();
-  }
-
-  List<Product> _productsForSelectedCategory() {
-    if (_selectedCategory == 'All') {
-      return _categoryProductCache['All'] ?? _productController.products;
-    }
-
-    if (_categoryProductCache.containsKey(_selectedCategory)) {
-      return _categoryProductCache[_selectedCategory]!;
-    }
-
-    final allProducts =
-        _categoryProductCache['All'] ?? _productController.products;
-    return allProducts
-        .where((product) => product.category == _selectedCategory)
-        .toList();
   }
 
   bool _isCategoryFabExpanded = false;

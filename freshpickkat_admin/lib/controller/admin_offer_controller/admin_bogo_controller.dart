@@ -298,7 +298,11 @@ class AdminBogoController extends GetxController {
         forceDisableFreeDelivery: false,
       );
       if (result.success) {
-        _upsertLocal(offer);
+        _upsertLocal(
+          offer.copyWith(
+            offerId: result.offerId ?? offer.offerId,
+          ),
+        );
       }
       return result;
     } on Exception catch (e) {

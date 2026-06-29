@@ -5,14 +5,14 @@ import '../admin/dependency_checker.dart';
 import 'postgres_support.dart';
 
 class PostgresOfferService {
-  Future<bool> upsertBogoOffer(Session session, BogoOffer offer) async {
+  Future<String?> upsertBogoOffer(Session session, BogoOffer offer) async {
     final triggerProductId = parseUuid(
       offer.triggerProductId,
       fieldName: 'triggerProductId',
     );
     final triggerVariantId = tryParseUuid(offer.triggerVariantId);
 
-    return session.db.transaction<bool>((transaction) async {
+    return session.db.transaction<String?>((transaction) async {
       BogoOfferRow? row;
       final providedId = tryParseUuid(offer.offerId);
       if (providedId != null) {
@@ -79,7 +79,7 @@ class PostgresOfferService {
         offer: offer,
         transaction: transaction,
       );
-      return true;
+      return row.id!.toString();
     });
   }
 
@@ -742,12 +742,12 @@ class PostgresOfferService {
   //  SHOP MORE, GET MORE
   // ═══════════════════════════════════════════════════════════
 
-  Future<bool> upsertShopMoreGetMoreOffer(
+  Future<String?> upsertShopMoreGetMoreOffer(
     Session session,
     ShopMoreGetMoreOffer offer, {
     String? updatedBy,
   }) async {
-    return session.db.transaction<bool>((transaction) async {
+    return session.db.transaction<String?>((transaction) async {
       ShopMoreGetMoreOfferRow? row;
       final providedId = tryParseUuid(offer.offerId);
       if (providedId != null) {
@@ -760,7 +760,7 @@ class PostgresOfferService {
 
       final now = DateTime.now().toUtc();
       if (row == null) {
-        await ShopMoreGetMoreOfferRow.db.insertRow(
+        row = await ShopMoreGetMoreOfferRow.db.insertRow(
           session,
           ShopMoreGetMoreOfferRow(
             name: offer.name.trim(),
@@ -782,7 +782,7 @@ class PostgresOfferService {
           transaction: transaction,
         );
       } else {
-        await ShopMoreGetMoreOfferRow.db.updateRow(
+        row = await ShopMoreGetMoreOfferRow.db.updateRow(
           session,
           row.copyWith(
             name: offer.name.trim(),
@@ -803,7 +803,7 @@ class PostgresOfferService {
           transaction: transaction,
         );
       }
-      return true;
+      return row.id!.toString();
     });
   }
 

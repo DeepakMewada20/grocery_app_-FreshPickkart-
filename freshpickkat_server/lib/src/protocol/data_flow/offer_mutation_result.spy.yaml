@@ -3,3 +3,4 @@ fields:
   success: bool
   message: String?
   conflict: OfferConflictResponse?
+  offerId: String?

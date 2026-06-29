@@ -65,13 +65,13 @@ class BogoEndpoint extends Endpoint {
       );
     }
 
-    final result = await _offers.upsertBogoOffer(session, offer);
-    if (result) {
+    final offerId = await _offers.upsertBogoOffer(session, offer);
+    if (offerId != null) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
         draft: notificationDraft,
         fallbackEntityType: 'bogo',
-        fallbackEntityId: offer.offerId ?? offer.triggerProductId,
+        fallbackEntityId: offerId,
         extraData: {'offerType': 'bogo'},
       );
       await _audit.write(
@@ -79,12 +79,13 @@ class BogoEndpoint extends Endpoint {
         actorUserId: actor.id,
         action: 'upsert_with_conflicts',
         entityType: 'bogo_offer',
-        entityId: offer.offerId ?? offer.triggerProductId,
+        entityId: offerId,
       );
     }
     return protocol.OfferMutationResult(
-      success: result,
-      message: result ? 'BOGO offer saved.' : 'Failed to save BOGO offer.',
+      success: offerId != null,
+      message: offerId != null ? 'BOGO offer saved.' : 'Failed to save BOGO offer.',
+      offerId: offerId,
     );
   }
 
@@ -111,17 +112,17 @@ class BogoEndpoint extends Endpoint {
       throw Exception(exclusivityErr);
     }
 
-    final result = await _offers.upsertBogoOffer(session, offer);
-    if (result) {
+    final offerId = await _offers.upsertBogoOffer(session, offer);
+    if (offerId != null) {
       await NotificationOutboxService.instance.enqueueCampaign(
         session: session,
         draft: notificationDraft,
         fallbackEntityType: 'bogo',
-        fallbackEntityId: offer.offerId ?? offer.triggerProductId,
+        fallbackEntityId: offerId,
         extraData: {'offerType': 'bogo'},
       );
     }
-    return result;
+    return offerId != null;
   }
 
   Future<String> deleteOffer(

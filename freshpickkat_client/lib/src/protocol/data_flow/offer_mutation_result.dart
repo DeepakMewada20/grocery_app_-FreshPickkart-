@@ -19,12 +19,14 @@ abstract class OfferMutationResult implements _i1.SerializableModel {
     required this.success,
     this.message,
     this.conflict,
+    this.offerId,
   });
 
   factory OfferMutationResult({
     required bool success,
     String? message,
     _i2.OfferConflictResponse? conflict,
+    String? offerId,
   }) = _OfferMutationResultImpl;
 
   factory OfferMutationResult.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -36,6 +38,7 @@ abstract class OfferMutationResult implements _i1.SerializableModel {
           : _i3.Protocol().deserialize<_i2.OfferConflictResponse>(
               jsonSerialization['conflict'],
             ),
+      offerId: jsonSerialization['offerId'] as String?,
     );
   }
 
@@ -45,6 +48,8 @@ abstract class OfferMutationResult implements _i1.SerializableModel {
 
   _i2.OfferConflictResponse? conflict;
 
+  String? offerId;
+
   /// Returns a shallow copy of this [OfferMutationResult]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -52,6 +57,7 @@ abstract class OfferMutationResult implements _i1.SerializableModel {
     bool? success,
     String? message,
     _i2.OfferConflictResponse? conflict,
+    String? offerId,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -60,6 +66,7 @@ abstract class OfferMutationResult implements _i1.SerializableModel {
       'success': success,
       if (message != null) 'message': message,
       if (conflict != null) 'conflict': conflict?.toJson(),
+      if (offerId != null) 'offerId': offerId,
     };
   }
 
@@ -76,10 +83,12 @@ class _OfferMutationResultImpl extends OfferMutationResult {
     required bool success,
     String? message,
     _i2.OfferConflictResponse? conflict,
+    String? offerId,
   }) : super._(
          success: success,
          message: message,
          conflict: conflict,
+         offerId: offerId,
        );
 
   /// Returns a shallow copy of this [OfferMutationResult]
@@ -90,6 +99,7 @@ class _OfferMutationResultImpl extends OfferMutationResult {
     bool? success,
     Object? message = _Undefined,
     Object? conflict = _Undefined,
+    Object? offerId = _Undefined,
   }) {
     return OfferMutationResult(
       success: success ?? this.success,
@@ -97,6 +107,7 @@ class _OfferMutationResultImpl extends OfferMutationResult {
       conflict: conflict is _i2.OfferConflictResponse?
           ? conflict
           : this.conflict?.copyWith(),
+      offerId: offerId is String? ? offerId : this.offerId,
     );
   }
 }

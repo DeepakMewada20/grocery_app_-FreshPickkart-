@@ -1356,7 +1356,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
     if (configuredFreeProducts.isEmpty) return;
 
-    await _bogoController.upsertOffer(
+    await _bogoController.upsertOfferWithConflicts(
       BogoOffer(
         triggerProductId: triggerProductId,
         freeProductIds: configuredFreeProducts.map((f) => f.productId).toList(),
