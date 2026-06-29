@@ -142,7 +142,7 @@ class BogoOfferCard extends StatelessWidget {
                               Row(
                                 children: [
                                   Text(
-                                    '₹${product.price.formatPrice}',
+                                    '₹${(triggerVariant?.price ?? product.price).formatPrice}',
                                     style: TextStyle(
                                       color: cs.onSurface,
                                       fontWeight: FontWeight.w800,
@@ -150,9 +150,9 @@ class BogoOfferCard extends StatelessWidget {
                                     ),
                                   ),
                                   SizedBox(width: 6.w),
-                                  if (product.realPrice > product.price)
+                                  if ((triggerVariant?.realPrice ?? product.realPrice) > (triggerVariant?.price ?? product.price))
                                     Text(
-                                      '₹${product.realPrice.formatPrice}',
+                                      '₹${(triggerVariant?.realPrice ?? product.realPrice).formatPrice}',
                                       style: TextStyle(
                                         color: cs.onSurface.withValues(
                                           alpha: 0.45,
@@ -223,6 +223,9 @@ class BogoOfferCard extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final freeProduct = freeProductObjects[index];
                           final freeConfig = freeProducts[index];
+                          final displayProduct = freeConfig.variantId != null
+                              ? applyVariantToProduct(freeProduct, variantId: freeConfig.variantId)
+                              : freeProduct;
                           final freeQtyText = freeConfig.variantId != null
                               ? _getVariantQuantityLabel(
                                   freeProduct,
@@ -230,7 +233,7 @@ class BogoOfferCard extends StatelessWidget {
                                 )
                               : freeProduct.quantity;
                           return _FreeProductCard(
-                            product: freeProduct,
+                            product: displayProduct,
                             quantityLabel: freeQtyText,
                           );
                         },

@@ -576,34 +576,38 @@ class _VariantPriceRow extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: variants.asMap().entries.map((entry) {
-          final i = entry.key;
-          final v = entry.value;
-          final qty = v.quantityValue;
-          final unit = v.quantityUnit;
-          final price = v.price;
+    return Wrap(
+      spacing: 6.w,
+      runSpacing: 4.h,
+      children: variants.map((v) {
+        final qty = v.quantityValue;
+        final unit = v.quantityUnit;
+        final price = v.price;
 
-          final qtyLabel = qty == qty.toInt()
-              ? qty.toInt().toString()
-              : qty.toStringAsFixed(1);
-          final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(2)}';
+        final qtyLabel = qty == qty.toInt()
+            ? qty.toInt().toString()
+            : qty.toStringAsFixed(1);
+        final label = '$qtyLabel$unit • ₹${price.toStringAsFixed(2)}';
 
-          return Padding(
-            padding: EdgeInsets.only(right: i < variants.length - 1 ? 6.w : 0),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: (10.5.sp).clamp(9.0, 12.0),
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+        return Container(
+          margin: EdgeInsets.symmetric(vertical: 1.h),
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
             ),
-          );
-        }).toList(),
-      ),
+            borderRadius: BorderRadius.circular(6.r),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: (10.5.sp).clamp(9.0, 12.0),
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

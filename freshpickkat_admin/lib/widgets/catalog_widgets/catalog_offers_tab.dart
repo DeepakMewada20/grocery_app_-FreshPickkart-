@@ -185,6 +185,15 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     );
   }
 
+  String? _freeVariantLabel(Product product, String? variantId) {
+    if (variantId == null || variantId.isEmpty) return null;
+    final variant = product.variants?.firstWhereOrNull(
+      (v) => v.variantId == variantId,
+    );
+    if (variant == null) return null;
+    return '${variant.quantityValue} ${variant.quantityUnit}';
+  }
+
   bool _isBogoOfferActive(Product product, List<BogoOffer> bogoOffers) {
     final offer = _linkedBogoOffer(product, bogoOffers);
     return offer?.isActive ?? false;
@@ -437,7 +446,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                   (entry) => entry.variantId == item?.variantId,
                 );
                 final quantityLabel = variant != null
-                    ? product.quantity
+                    ? '${variant.quantityValue} ${variant.quantityUnit}'
                     : product.quantity;
                 return Container(
                   width: 164.w.clamp(148.0, 190.0).toDouble(),
@@ -1055,7 +1064,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${offer.freeQuantity}x • ${freeProduct.quantity}',
+                            '${offer.freeQuantity}x • ${_freeVariantLabel(freeProduct, offer.freeVariantId) ?? freeProduct.quantity}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -1897,6 +1906,19 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                     _OfferCardActionType.none => false,
                   };
 
+                  final bogoLinkOffer = actionType == _OfferCardActionType.bogo
+                      ? _linkedBogoOffer(product, bogoOffers)
+                      : null;
+                  final bogoTriggerVariant = bogoLinkOffer?.triggerVariantId?.isNotEmpty == true
+                      ? product.variants?.firstWhereOrNull(
+                          (v) => v.variantId == bogoLinkOffer!.triggerVariantId)
+                      : null;
+                  final displayQty = bogoTriggerVariant != null
+                      ? '${bogoTriggerVariant.quantityValue} ${bogoTriggerVariant.quantityUnit}'
+                      : product.quantity;
+                  final displayPrice = bogoTriggerVariant?.price ?? product.price;
+                  final displayRealPrice = bogoTriggerVariant?.realPrice ?? product.realPrice;
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: Padding(
@@ -1940,7 +1962,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 ),
                                 SizedBox(height: 4.h),
                                 Text(
-                                  '${product.category} • ${product.quantity}',
+                                  '${product.category} • $displayQty',
                                   style: TextStyle(
                                     color: AdminAppTheme.getTextSecondaryColor(
                                       context,
@@ -2002,7 +2024,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
                                 ),
                                 SizedBox(height: 8.h),
                                 Text(
-                                  '₹${product.price.toStringAsFixed(2)} • MRP ₹${product.realPrice.toStringAsFixed(2)}',
+                                  '₹${displayPrice.toStringAsFixed(2)} • MRP ₹${displayRealPrice.toStringAsFixed(2)}',
                                 ),
                               ],
                             ),

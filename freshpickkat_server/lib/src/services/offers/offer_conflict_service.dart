@@ -19,11 +19,53 @@ class OfferConflictService {
     Session session,
     BogoOffer offer,
   ) async {
+    final conflict = await _checkBaseVariantBogoConflict(session, offer);
+    if (conflict.hasConflict) return conflict;
+
     return _checkProductOfferConflicts(
       session,
       productIds: [offer.triggerProductId],
       sourceType: 'bogo',
     );
+  }
+
+  Future<OfferConflictResponse> _checkBaseVariantBogoConflict(
+    Session session,
+    BogoOffer offer,
+  ) async {
+    final parsedProductId = tryParseUuid(offer.triggerProductId);
+    if (parsedProductId == null) return _none();
+
+    final existingRows = await BogoOfferRow.db.find(
+      session,
+      where: (t) =>
+          t.triggerProductId.equals(parsedProductId) &
+          t.status.equals('active'),
+    );
+    if (existingRows.isEmpty) return _none();
+
+    final now = DateTime.now().toUtc();
+
+    for (final row in existingRows) {
+      if (row.startsAt != null && now.isBefore(row.startsAt!)) continue;
+      if (row.endsAt != null && now.isAfter(row.endsAt!)) continue;
+      if (offer.offerId != null &&
+          row.id?.toString() == offer.offerId) {
+        continue;
+      }
+
+      return OfferConflictResponse(
+        hasConflict: true,
+        conflictType: 'bogo_base_variant_conflict',
+        message:
+            'An active BOGO offer already exists for this product. '
+            'Only one BOGO offer per product is allowed.',
+        productIds: [offer.triggerProductId],
+        productNames: await _productNames(session, [offer.triggerProductId]),
+      );
+    }
+
+    return _none();
   }
 
   Future<OfferConflictResponse> checkFreeDeliveryProductConflicts(
