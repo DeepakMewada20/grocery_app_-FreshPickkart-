@@ -147,7 +147,7 @@ class OfferConflictService {
         hasConflict: true,
         conflictType: 'smgm_bogo',
         message:
-            'The reward product has an active BOGO offer. Confirm to disable it.',
+            'The reward product has an active BOGO offer.',
         productIds: [bogo.triggerProductId],
         productNames: await _productNames(session, [bogo.triggerProductId]),
         bogoOffer: bogo,
@@ -167,7 +167,7 @@ class OfferConflictService {
         hasConflict: true,
         conflictType: 'smgm_combo',
         message:
-            'The reward product is part of an active combo. Confirm to disable it.',
+            'The reward product is part of an active combo.',
         productIds: comboProductIds,
         productNames: await _productNames(session, comboProductIds),
         comboOffer: combo,
@@ -327,7 +327,7 @@ class OfferConflictService {
         hasConflict: true,
         conflictType: '${sourceType}_combo',
         message:
-            'This product is part of an active combo. Confirming will disable the whole combo.',
+            'This product is part of an active combo.',
         productIds: comboProductIds,
         productNames: await _productNames(session, comboProductIds),
         comboOffer: combo,

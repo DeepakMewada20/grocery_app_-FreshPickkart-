@@ -279,4 +279,30 @@ class AdminBogoController extends GetxController {
       return false;
     }
   }
+
+  Future<OfferMutationResult> upsertOfferWithConflicts(
+    BogoOffer offer, {
+    NotificationDraft? notificationDraft,
+  }) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final result = await client.bogo.upsertOfferWithConflicts(
+        offer,
+        uid,
+        idToken,
+        notificationDraft: notificationDraft,
+        confirmDisableConflictingCombo: false,
+        forceDisableFreeDelivery: false,
+      );
+      if (result.success) {
+        _upsertLocal(offer);
+      }
+      return result;
+    } on Exception catch (e) {
+      return OfferMutationResult(success: false, message: e.toString());
+    }
+  }
 }

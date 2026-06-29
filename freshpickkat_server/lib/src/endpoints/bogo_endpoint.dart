@@ -31,19 +31,6 @@ class BogoEndpoint extends Endpoint {
       idToken: idToken,
     );
 
-    final exclusivityErr =
-        await VariantOfferExclusivityService.validateBogoSave(
-          session,
-          offer,
-          existingOfferId: offer.offerId,
-        );
-    if (exclusivityErr != null) {
-      return protocol.OfferMutationResult(
-        success: false,
-        message: exclusivityErr,
-      );
-    }
-
     var conflict = await _conflicts.checkBogoConflicts(session, offer);
     for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
       if (conflict.comboOffer != null && confirmDisableConflictingCombo) {
@@ -62,6 +49,19 @@ class BogoEndpoint extends Endpoint {
         success: false,
         message: conflict.message,
         conflict: conflict,
+      );
+    }
+
+    final exclusivityErr =
+        await VariantOfferExclusivityService.validateBogoSave(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
+    if (exclusivityErr != null) {
+      return protocol.OfferMutationResult(
+        success: false,
+        message: exclusivityErr,
       );
     }
 

@@ -49,17 +49,6 @@ class FreeDeliveryEndpoint extends Endpoint {
     }
 
     if (isFreeDelivery) {
-      final exclusivityErr =
-          await VariantOfferExclusivityService.validateFreeDeliveryEnable(
-            session,
-            productId,
-          );
-      if (exclusivityErr != null) {
-        return OfferMutationResult(
-          success: false,
-          message: exclusivityErr,
-        );
-      }
       var conflict = await _conflicts.checkFreeDeliveryProductConflicts(
         session,
         [productId],
@@ -86,6 +75,18 @@ class FreeDeliveryEndpoint extends Endpoint {
           success: false,
           message: conflict.message,
           conflict: conflict,
+        );
+      }
+
+      final exclusivityErr =
+          await VariantOfferExclusivityService.validateFreeDeliveryEnable(
+            session,
+            productId,
+          );
+      if (exclusivityErr != null) {
+        return OfferMutationResult(
+          success: false,
+          message: exclusivityErr,
         );
       }
     }

@@ -6,6 +6,7 @@ import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:freshpickkat_admin/widgets/offer_conflict_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<bool?> showShopMoreGetMoreDialog({
@@ -237,30 +238,13 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
 
       final conflict = result.conflict;
       if (conflict != null && conflict.hasConflict && mounted) {
-        final shouldProceed = await showDialog<bool>(
+        final shouldSelectNew = await showOfferConflictDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Offer Conflict'),
-            content: Text(conflict.message ?? 'A conflicting offer exists.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Disable & Save'),
-              ),
-            ],
-          ),
+          conflict: conflict,
         );
         if (!mounted) return;
-        if (shouldProceed == true) {
-          await _saveWithConflicts(
-            offer,
-            confirmDisableConflictingCombo: true,
-            forceDisableFreeDelivery: true,
-          );
+        if (shouldSelectNew == true) {
+          Navigator.pop(context, false);
         }
         return;
       }

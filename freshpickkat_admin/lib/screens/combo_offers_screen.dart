@@ -8,16 +8,17 @@ import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:freshpickkat_admin/widgets/offer_conflict_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../widgets/admin_app_bar.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/shared_dialogs.dart';
 
-Future<void> showAddComboOfferDialog({
+Future<bool?> showAddComboOfferDialog({
   required BuildContext context,
   required AdminComboOfferController controller,
 }) {
-  return showModalBottomSheet<void>(
+  return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -32,19 +33,19 @@ Future<void> showAddComboOfferDialog({
       ),
       child: _ComboOfferDialog(
         onSave: (offer) async {
-          await controller.createComboOffer(offer);
+          return controller.upsertComboOfferWithConflicts(offer);
         },
       ),
     ),
   );
 }
 
-Future<void> showEditComboOfferDialog({
+Future<bool?> showEditComboOfferDialog({
   required BuildContext context,
   required AdminComboOfferController controller,
   required ComboOffer offer,
 }) {
-  return showModalBottomSheet<void>(
+  return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -60,7 +61,7 @@ Future<void> showEditComboOfferDialog({
       child: _ComboOfferDialog(
         offer: offer,
         onSave: (updated) async {
-          await controller.updateComboOffer(updated);
+          return controller.upsertComboOfferWithConflicts(updated);
         },
       ),
     ),
@@ -433,7 +434,7 @@ class _ComboOfferCard extends StatelessWidget {
 
 class _ComboOfferDialog extends StatefulWidget {
   final ComboOffer? offer;
-  final Function(ComboOffer) onSave;
+  final Future<OfferMutationResult> Function(ComboOffer) onSave;
 
   const _ComboOfferDialog({this.offer, required this.onSave});
 
@@ -1409,8 +1410,30 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
 
     setState(() => _isSubmitting = true);
     try {
-      await widget.onSave(offer);
-      if (mounted) Navigator.pop(context);
+      final result = await widget.onSave(offer);
+      if (!mounted) return;
+      if (result.success) {
+        Navigator.pop(context, true);
+        return;
+      }
+
+      final conflict = result.conflict;
+      if (conflict != null && conflict.hasConflict && mounted) {
+        final shouldSelectNew = await showOfferConflictDialog(
+          context: context,
+          conflict: conflict,
+        );
+        if (!mounted) return;
+        if (shouldSelectNew == true) {
+          Navigator.pop(context, false);
+        }
+        return;
+      }
+
+      AdminSnackbarService.show(
+        context,
+        result.message ?? 'Error saving combo offer',
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

@@ -1278,7 +1278,8 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
         final saved = await BogoOfferEditorScreen.show(
           context: context,
           offer: offer,
-          onSave: (updated) => _bogoController.upsertOffer(updated),
+          onSave: (updated) =>
+              _bogoController.upsertOfferWithConflicts(updated),
         );
         if (saved == true && mounted) {
           AdminSnackbarService.show(context, 'BOGO offer updated successfully');

@@ -42,19 +42,6 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
       return protocol.OfferMutationResult(success: false, message: inputErr);
     }
 
-    final exclusivityErr =
-        await VariantOfferExclusivityService.validateShopMoreGetMoreSave(
-          session,
-          offer,
-          existingOfferId: offer.offerId,
-        );
-    if (exclusivityErr != null) {
-      return protocol.OfferMutationResult(
-        success: false,
-        message: exclusivityErr,
-      );
-    }
-
     var conflict = await _conflicts.checkShopMoreGetMoreConflicts(session, offer);
     for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
       if (conflict.comboOffer != null && confirmDisableConflictingCombo) {
@@ -73,6 +60,19 @@ class ShopMoreGetMoreEndpoint extends Endpoint {
         success: false,
         message: conflict.message,
         conflict: conflict,
+      );
+    }
+
+    final exclusivityErr =
+        await VariantOfferExclusivityService.validateShopMoreGetMoreSave(
+          session,
+          offer,
+          existingOfferId: offer.offerId,
+        );
+    if (exclusivityErr != null) {
+      return protocol.OfferMutationResult(
+        success: false,
+        message: exclusivityErr,
       );
     }
 

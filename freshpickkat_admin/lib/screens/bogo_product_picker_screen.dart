@@ -7,6 +7,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
+import 'package:freshpickkat_admin/widgets/offer_conflict_dialog.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 
 class BogoProductSelection {
@@ -36,14 +37,14 @@ class BogoProductSelection {
 
 class BogoOfferEditorScreen extends StatefulWidget {
   final BogoOffer? offer;
-  final Future<bool> Function(BogoOffer offer) onSave;
+  final Future<OfferMutationResult> Function(BogoOffer offer) onSave;
 
   const BogoOfferEditorScreen({super.key, this.offer, required this.onSave});
 
   static Future<bool?> show({
     required BuildContext context,
     BogoOffer? offer,
-    required Future<bool> Function(BogoOffer offer) onSave,
+    required Future<OfferMutationResult> Function(BogoOffer offer) onSave,
   }) {
     return Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -641,18 +642,33 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      final saved = await widget.onSave(offer);
+      final result = await widget.onSave(offer);
       if (!mounted) return;
-      if (saved) {
+      if (result.success) {
         Navigator.pop(context, true);
-      } else {
-        AdminSnackbarService.show(
-          context,
-          isEditing
-              ? 'Error updating BOGO offer'
-              : 'Error creating BOGO offer',
-        );
+        return;
       }
+
+      final conflict = result.conflict;
+      if (conflict != null && conflict.hasConflict && mounted) {
+        final shouldSelectNew = await showOfferConflictDialog(
+          context: context,
+          conflict: conflict,
+        );
+        if (!mounted) return;
+        if (shouldSelectNew == true) {
+          Navigator.pop(context, false);
+        }
+        return;
+      }
+
+      AdminSnackbarService.show(
+        context,
+        result.message ??
+            (isEditing
+                ? 'Error updating BOGO offer'
+                : 'Error creating BOGO offer'),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

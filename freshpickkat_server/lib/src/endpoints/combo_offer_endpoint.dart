@@ -33,19 +33,6 @@ class ComboOfferEndpoint extends Endpoint {
       );
       ValidationService.validateComboOffer(offer);
 
-      final exclusivityErr =
-          await VariantOfferExclusivityService.validateComboSave(
-            session,
-            offer,
-            existingComboId: offer.comboId,
-          );
-      if (exclusivityErr != null) {
-        return OfferMutationResult(
-          success: false,
-          message: exclusivityErr,
-        );
-      }
-
       var conflict = await _conflicts.checkComboConflicts(session, offer);
       if (force) {
         for (var attempt = 0; attempt < 3 && conflict.hasConflict; attempt++) {
@@ -69,6 +56,19 @@ class ComboOfferEndpoint extends Endpoint {
           success: false,
           message: conflict.message,
           conflict: conflict,
+        );
+      }
+
+      final exclusivityErr =
+          await VariantOfferExclusivityService.validateComboSave(
+            session,
+            offer,
+            existingComboId: offer.comboId,
+          );
+      if (exclusivityErr != null) {
+        return OfferMutationResult(
+          success: false,
+          message: exclusivityErr,
         );
       }
 

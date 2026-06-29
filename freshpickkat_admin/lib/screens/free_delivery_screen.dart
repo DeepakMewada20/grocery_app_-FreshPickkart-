@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import '../widgets/free_delivery_form_widget.dart';
 import '../widgets/network_error_widget.dart';
 import '../widgets/product_selection_dialog.dart';
+import '../widgets/offer_conflict_dialog.dart';
 
 class FreeDeliveryScreen extends StatefulWidget {
   const FreeDeliveryScreen({super.key});
@@ -146,9 +147,10 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
 
   Future<bool?> _showConflictIfNeeded(OfferConflictResponse? conflict) {
     if (conflict == null || !conflict.hasConflict) return Future.value(false);
-    return showDialog<bool>(
+    return showOfferConflictDialog(
       context: context,
-      builder: (context) => OfferConflictDialog(conflict: conflict),
+      conflict: conflict,
+      showSelectNewProduct: false,
     );
   }
 

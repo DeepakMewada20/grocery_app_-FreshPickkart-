@@ -218,7 +218,8 @@ class _OffersScreenState extends State<OffersScreen>
         case 'bogo':
           final saved = await BogoOfferEditorScreen.show(
             context: overlayContext,
-            onSave: (offer) => _bogoController.upsertOffer(offer),
+            onSave: (offer) =>
+                _bogoController.upsertOfferWithConflicts(offer),
           );
           if (saved == true && mounted) {
             AdminSnackbarService.show(context, 'BOGO offer created successfully');

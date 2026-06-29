@@ -199,6 +199,32 @@ class AdminComboOfferController extends GetxController {
     return createComboOffer(offer);
   }
 
+  Future<OfferMutationResult> upsertComboOfferWithConflicts(
+    ComboOffer offer, {
+    NotificationDraft? notificationDraft,
+  }) async {
+    try {
+      final normalizedOffer = offer.copyWith(comboId: _ensureComboId(offer));
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final result = await client.comboOffer.upsertComboOfferWithConflicts(
+        normalizedOffer,
+        uid,
+        idToken,
+        notificationDraft: notificationDraft,
+        force: false,
+      );
+      if (result.success) {
+        _upsertLocal(normalizedOffer);
+      }
+      return result;
+    } on Exception catch (e) {
+      return OfferMutationResult(success: false, message: e.toString());
+    }
+  }
+
   Future<bool?> deleteComboOffer(String comboId) async {
     try {
       return await AdminSessionService.withRetry(
