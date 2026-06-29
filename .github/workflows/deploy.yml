@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
     paths:
       - 'freshpickkat_server/**'
       - 'freshpickkat_flutter/**'
@@ -82,6 +81,7 @@ jobs:
             if [ -d .git ]; then
               echo "--- Fetching & Resetting to $GITHUB_REF_NAME ---"
               git fetch --all
+              git branch -D master 2>/dev/null || true
               git checkout "$GITHUB_REF_NAME" || git checkout -b "$GITHUB_REF_NAME" "origin/$GITHUB_REF_NAME"
               git reset --hard "origin/$GITHUB_REF_NAME"
             fi
