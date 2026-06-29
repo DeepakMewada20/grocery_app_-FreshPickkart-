@@ -188,11 +188,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
     }
   }
 
-  void _selectTriggerProduct(Product? product) {
+  void _selectTriggerProduct(Product? product, {ProductVariant? variant}) {
     if (product == null) return;
     setState(() {
       _selectedTriggerProduct = product;
-      _selectedTriggerVariantId = _defaultTriggerVariantId(product);
+      _selectedTriggerVariantId = variant?.variantId ?? _defaultTriggerVariantId(product);
       if (product.category.trim().isNotEmpty &&
           _selectedCategory != product.category) {
         _selectedCategory = product.category;
@@ -457,7 +457,7 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
                               initialCategory: _selectedCategory,
                             );
                         if (selected != null) {
-                          _selectTriggerProduct(selected);
+                          _selectTriggerProduct(selected.product, variant: selected.variant);
                         }
                       },
                 icon: Icon(trigger == null ? Icons.add : Icons.edit_outlined),

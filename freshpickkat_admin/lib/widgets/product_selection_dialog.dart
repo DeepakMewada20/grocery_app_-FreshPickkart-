@@ -43,13 +43,13 @@ class ProductSelectionDialog extends StatefulWidget {
     this.initialSelections = const <ProductSelectionResult>[],
   });
 
-  static Future<Product?> show({
+  static Future<ProductSelectionResult?> show({
     required BuildContext context,
     String title = 'Select Product',
     Set<String> excludedProductIds = const <String>{},
     String? initialCategory,
   }) {
-    return showDialog<Product>(
+    return showDialog<ProductSelectionResult>(
       context: context,
       builder: (context) => ProductSelectionDialog(
         title: title,
@@ -59,13 +59,13 @@ class ProductSelectionDialog extends StatefulWidget {
     );
   }
 
-  static Future<Product?> showBottomSheet({
+  static Future<ProductSelectionResult?> showBottomSheet({
     required BuildContext context,
     String title = 'Select Product',
     Set<String> excludedProductIds = const <String>{},
     String? initialCategory,
   }) {
-    return showModalBottomSheet<Product>(
+    return showModalBottomSheet<ProductSelectionResult>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -237,7 +237,13 @@ class _ProductSelectionDialogState extends State<ProductSelectionDialog> {
 
   Future<void> _handleProductTap(Product product) async {
     if (!widget.allowMultiSelect) {
-      Navigator.pop(context, product);
+      final outcome = await _pickVariantIfNeeded(product);
+      if (!mounted) return;
+      if (outcome.wasCancelled) return;
+      Navigator.pop(context, ProductSelectionResult(
+        product: product,
+        variant: outcome.variant,
+      ));
       return;
     }
 

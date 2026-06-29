@@ -147,10 +147,10 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
     );
     if (selected != null) {
       setState(() {
-        _selectedProduct = selected;
-        _selectedVariantId = _defaultVariantId(selected);
-        if (selected.category.trim().isNotEmpty) {
-          _selectedCategory = selected.category;
+        _selectedProduct = selected.product;
+        _selectedVariantId = selected.variant?.variantId ?? _defaultVariantId(selected.product);
+        if (selected.product.category.trim().isNotEmpty) {
+          _selectedCategory = selected.product.category;
         }
       });
     }
