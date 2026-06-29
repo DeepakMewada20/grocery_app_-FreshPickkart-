@@ -323,7 +323,7 @@ class _SavingsRow extends StatelessWidget {
             ),
           ),
           Text(
-            '-₹${amount.formatPrice}',
+            '₹${amount.formatPrice}',
             style: TextStyle(
               color: accentColor,
               fontSize: 13.sp,

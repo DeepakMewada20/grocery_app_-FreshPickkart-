@@ -31,3 +31,4 @@ fields:
   rewardOfferName: String?
   rewardThreshold: double?
   rewardSource: String?
+  isFreeDelivery: bool, default=false

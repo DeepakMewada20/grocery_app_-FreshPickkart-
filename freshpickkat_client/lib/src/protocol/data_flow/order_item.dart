@@ -45,9 +45,11 @@ abstract class OrderItem implements _i1.SerializableModel {
     this.rewardOfferName,
     this.rewardThreshold,
     this.rewardSource,
+    bool? isFreeDelivery,
   }) : isRewardProduct = isRewardProduct ?? false,
        quantityEditable = quantityEditable ?? true,
-       priceEditable = priceEditable ?? true;
+       priceEditable = priceEditable ?? true,
+       isFreeDelivery = isFreeDelivery ?? false;
 
   factory OrderItem({
     String? orderItemId,
@@ -81,6 +83,7 @@ abstract class OrderItem implements _i1.SerializableModel {
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
   }) = _OrderItemImpl;
 
   factory OrderItem.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -132,6 +135,9 @@ abstract class OrderItem implements _i1.SerializableModel {
       rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
           ?.toDouble(),
       rewardSource: jsonSerialization['rewardSource'] as String?,
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
     );
   }
 
@@ -197,6 +203,8 @@ abstract class OrderItem implements _i1.SerializableModel {
 
   String? rewardSource;
 
+  bool isFreeDelivery;
+
   /// Returns a shallow copy of this [OrderItem]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -232,6 +240,7 @@ abstract class OrderItem implements _i1.SerializableModel {
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -269,6 +278,7 @@ abstract class OrderItem implements _i1.SerializableModel {
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
       if (rewardSource != null) 'rewardSource': rewardSource,
+      'isFreeDelivery': isFreeDelivery,
     };
   }
 
@@ -313,6 +323,7 @@ class _OrderItemImpl extends OrderItem {
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
   }) : super._(
          orderItemId: orderItemId,
          productId: productId,
@@ -345,6 +356,7 @@ class _OrderItemImpl extends OrderItem {
          rewardOfferName: rewardOfferName,
          rewardThreshold: rewardThreshold,
          rewardSource: rewardSource,
+         isFreeDelivery: isFreeDelivery,
        );
 
   /// Returns a shallow copy of this [OrderItem]
@@ -383,6 +395,7 @@ class _OrderItemImpl extends OrderItem {
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
     Object? rewardSource = _Undefined,
+    bool? isFreeDelivery,
   }) {
     return OrderItem(
       orderItemId: orderItemId is String? ? orderItemId : this.orderItemId,
@@ -436,6 +449,7 @@ class _OrderItemImpl extends OrderItem {
           ? rewardThreshold
           : this.rewardThreshold,
       rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
     );
   }
 }

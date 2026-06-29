@@ -271,6 +271,7 @@ class PostgresOrderService {
             productVariantId: tryParseUuid(item.variantId),
             comboOfferId: tryParseUuid(item.comboId),
             bogoOfferId: bogoOfferId,
+            triggerProductId: tryParseUuid(item.triggerProductId),
             productNameSnapshot: item.productName.trim(),
             productImageUrlSnapshot: cleanNullableString(item.productImage),
             variantLabelSnapshot: cleanNullableString(item.variantLabel),
@@ -285,6 +286,7 @@ class PostgresOrderService {
             unitPrice: serverUnitPrice,
             totalPrice: serverTotalPrice,
             isFreeItem: item.isFreeItem,
+            isFreeDelivery: item.isFreeDelivery,
             isRewardProduct: item.isRewardProduct,
             quantityEditable: item.quantityEditable,
             priceEditable: item.priceEditable,
@@ -616,11 +618,6 @@ class PostgresOrderService {
         .map((item) => item.comboOfferId)
         .whereType<UuidValue>()
         .toSet();
-    final bogoOfferIds = items
-        .map((item) => item.bogoOfferId)
-        .whereType<UuidValue>()
-        .toSet();
-
     final comboOffers = comboOfferIds.isEmpty
         ? const <ComboOfferRow>[]
         : await ComboOfferRow.db.find(
@@ -644,14 +641,6 @@ class PostgresOrderService {
           )] =
           item.quantity;
     }
-
-    final bogoOffers = bogoOfferIds.isEmpty
-        ? const <BogoOfferRow>[]
-        : await BogoOfferRow.db.find(
-            session,
-            where: (t) => t.id.inSet(bogoOfferIds),
-          );
-    final bogoById = {for (final offer in bogoOffers) offer.id!: offer};
 
     final addresses = await OrderAddressRow.db.find(
       session,
@@ -698,8 +687,6 @@ class PostgresOrderService {
         (item) {
           final comboOfferId = item.comboOfferId;
           final combo = comboOfferId == null ? null : comboById[comboOfferId];
-          final bogoOfferId = item.bogoOfferId;
-          final bogo = bogoOfferId == null ? null : bogoById[bogoOfferId];
           final comboItemQuantity = comboOfferId == null
               ? null
               : comboItemQuantityByKey[_comboItemKey(
@@ -725,11 +712,12 @@ class PostgresOrderService {
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
             isFreeItem: item.isFreeItem,
+            isFreeDelivery: item.isFreeDelivery,
             rewardOfferId: item.rewardOfferId,
             rewardOfferName: item.rewardOfferName,
             rewardThreshold: item.rewardThreshold,
             rewardSource: item.rewardSource,
-            triggerProductId: bogo?.triggerProductId.toString(),
+            triggerProductId: item.triggerProductId?.toString(),
             comboId: comboOfferId?.toString(),
             comboName: combo?.name,
             comboDiscountType: combo?.discountType,

@@ -804,7 +804,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'Product Discount',
-                    '-₹${cartController.productDiscountTotal.formatPrice}',
+                    '₹${cartController.productDiscountTotal.formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),
@@ -813,7 +813,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'Combo Savings',
-                    '-₹${cartController.comboDiscountTotal.formatPrice}',
+                    '₹${cartController.comboDiscountTotal.formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),
@@ -822,7 +822,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'BOGO Savings',
-                    '-₹${cartController.bogoDiscountTotal.formatPrice}',
+                    '₹${cartController.bogoDiscountTotal.formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),
@@ -831,7 +831,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'Category Offer Savings',
-                    '-₹${cartController.categoryOfferDiscountTotal.formatPrice}',
+                    '₹${cartController.categoryOfferDiscountTotal.formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),
@@ -846,7 +846,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'Coupon Discount',
-                    '-₹${cartController.couponDiscount.formatPrice}',
+                    '₹${cartController.couponDiscount.formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),
@@ -855,7 +855,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   SizedBox(height: 12.h),
                   _buildBillRow(
                     'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
-                    '-₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
+                    '₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
                     valueColor: Colors.green,
                     cs: cs,
                   ),

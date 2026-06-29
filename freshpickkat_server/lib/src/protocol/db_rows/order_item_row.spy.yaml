@@ -8,6 +8,7 @@ fields:
   productVariantId: UuidValue?
   comboOfferId: UuidValue?
   bogoOfferId: UuidValue?
+  triggerProductId: UuidValue?
   productNameSnapshot: String
   productImageUrlSnapshot: String?
   variantLabelSnapshot: String?
@@ -30,6 +31,7 @@ fields:
   rewardOfferName: String?
   rewardThreshold: double?
   rewardSource: String?
+  isFreeDelivery: bool, default=false
   createdAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:
   order_item_order_idx:

@@ -1125,6 +1125,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildItems(Order order, ColorScheme cs) {
     final grouped = groupOrderItems(order.items);
 
+    final smgmItems = <OrderItem>[];
+    final orphanedPaidItems = <OrderItem>[];
+    final bogoGroups = grouped.bogoGroups.map((g) {
+      final nonSmgm = g.freeItems
+          .where((f) => f.rewardSource != 'SHOP_MORE_GET_MORE')
+          .toList();
+      smgmItems.addAll(
+        g.freeItems.where((f) => f.rewardSource == 'SHOP_MORE_GET_MORE'),
+      );
+      return GroupedOrderItem(item: g.item, freeItems: nonSmgm);
+    }).where((g) {
+      if (g.freeItems.isEmpty) orphanedPaidItems.add(g.item);
+      return g.freeItems.isNotEmpty;
+    }).toList();
+
+    smgmItems.addAll(
+      grouped.individualItems
+          .where((i) => i.rewardSource == 'SHOP_MORE_GET_MORE'),
+    );
+    final combinedItems = [
+      ...orphanedPaidItems,
+      ...grouped.individualItems
+          .where((i) => i.rewardSource != 'SHOP_MORE_GET_MORE'),
+    ];
+    final freeDeliveryItems = combinedItems
+        .where((i) => i.isFreeDelivery && !i.isFreeItem)
+        .toList();
+    final individualItems = combinedItems
+        .where((i) => !i.isFreeDelivery || i.isFreeItem)
+        .toList();
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -1142,10 +1173,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ).copyWith(fontSize: 16.sp),
           ),
           SizedBox(height: 12.h),
-          if (grouped.bogoGroups.isNotEmpty) ...[
+          if (bogoGroups.isNotEmpty) ...[
             _buildOrderSectionTitle('BOGO Offers', cs),
-            ...grouped.bogoGroups.map(
+            ...bogoGroups.map(
               (entry) => _buildOrderRegularItem(entry, cs),
+            ),
+          ],
+          if (smgmItems.isNotEmpty) ...[
+            _buildOrderSectionTitle('Free Gifts', cs),
+            ...smgmItems.map(
+              (item) => _buildSmgmOrderItem(item, cs),
+            ),
+          ],
+          if (freeDeliveryItems.isNotEmpty) ...[
+            _buildOrderSectionTitle('Free Delivery', cs),
+            ...freeDeliveryItems.map(
+              (item) => _buildOrderRegularItem(
+                GroupedOrderItem(item: item, freeItems: const []),
+                cs,
+              ),
             ),
           ],
           if (grouped.comboGroups.isNotEmpty) ...[
@@ -1154,9 +1200,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               (group) => _buildOrderComboGroup(group, cs),
             ),
           ],
-          if (grouped.individualItems.isNotEmpty) ...[
+          if (individualItems.isNotEmpty) ...[
             _buildOrderSectionTitle('Individual Items', cs),
-            ...grouped.individualItems.map(
+            ...individualItems.map(
               (item) => _buildOrderRegularItem(
                 GroupedOrderItem(item: item, freeItems: const []),
                 cs,
@@ -1214,73 +1260,123 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
           ),
           ...entry.freeItems.map(
-            (freeItem) {
-              final isSmgm = freeItem.rewardSource == 'SHOP_MORE_GET_MORE';
-              return Padding(
-                padding: EdgeInsets.only(top: 4.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 6.w,
-                            vertical: 2.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSmgm
-                                ? Colors.orange
-                                : Colors.green.shade600,
-                            borderRadius: BorderRadius.circular(4.r),
-                          ),
-                          child: Text(
-                            isSmgm ? 'REWARD' : 'FREE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.sp,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 6.w),
-                        Expanded(
-                          child: AutoSizeText(
-                            '${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
-                            style: TextStyle(
-                              color: isSmgm
-                                  ? Colors.orange.shade800
-                                  : Colors.green.shade700,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            minFontSize: 9,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+            (freeItem) => Padding(
+              padding: EdgeInsets.only(top: 4.h),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
                     ),
-                    if (isSmgm) ...[
-                      SizedBox(height: 2.h),
-                      Padding(
-                        padding: EdgeInsets.only(left: 2.w),
-                        child: Text(
-                          'Unlocked via ${freeItem.rewardOfferName ?? "Shop More, Get More"}',
-                          style: TextStyle(
-                            color: Colors.orange.shade400,
-                            fontSize: 10.sp,
-                          ),
-                        ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade600,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: Text(
+                      'FREE',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 9.sp,
+                        fontWeight: FontWeight.w900,
                       ),
-                    ],
-                  ],
-                ),
-              );
-            },
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: AutoSizeText(
+                      '${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      minFontSize: 9,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           SizedBox(height: 10.h),
           _buildComplaintControls(item, cs),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmgmOrderItem(OrderItem item, ColorScheme cs) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Text(
+                        'FREE',
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 9.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(
+                        '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (item.rewardOfferName != null &&
+                    item.rewardOfferName!.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(left: 2.w, top: 2.h),
+                    child: Text(
+                      'Unlocked via ${item.rewardOfferName}',
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.7),
+                        fontSize: 10.sp,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (item.rewardValue != null && item.rewardValue! > 0)
+            Padding(
+              padding: EdgeInsets.only(left: 8.w),
+              child: Text(
+                'INR ${item.rewardValue!.formatPrice}',
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.7),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
         ],
       ),
     );

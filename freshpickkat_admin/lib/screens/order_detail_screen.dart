@@ -1186,25 +1186,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   List<Widget> _buildGroupedOrderItemWidgets(
     AdminGroupedOrderSections groupedItems,
   ) {
-    final smgmItems = groupedItems.individualItems
-        .where((item) => item.rewardSource == 'SHOP_MORE_GET_MORE')
+    final smgmItems = <OrderItem>[];
+    final orphanedPaidItems = <OrderItem>[];
+    final bogoGroups = groupedItems.bogoGroups.map((g) {
+      final nonSmgm = g.freeItems
+          .where((f) => f.rewardSource != 'SHOP_MORE_GET_MORE')
+          .toList();
+      smgmItems.addAll(
+        g.freeItems.where((f) => f.rewardSource == 'SHOP_MORE_GET_MORE'),
+      );
+      return AdminGroupedOrderItem(item: g.item, freeItems: nonSmgm);
+    }).where((g) {
+      if (g.freeItems.isEmpty) orphanedPaidItems.add(g.item);
+      return g.freeItems.isNotEmpty;
+    }).toList();
+
+    smgmItems.addAll(
+      groupedItems.individualItems
+          .where((i) => i.rewardSource == 'SHOP_MORE_GET_MORE'),
+    );
+    final combinedItems = [
+      ...orphanedPaidItems,
+      ...groupedItems.individualItems
+          .where((i) => i.rewardSource != 'SHOP_MORE_GET_MORE'),
+    ];
+    final freeDeliveryItems = combinedItems
+        .where((i) => i.isFreeDelivery && !i.isFreeItem)
         .toList();
-    final otherItems = groupedItems.individualItems
-        .where((item) => item.rewardSource != 'SHOP_MORE_GET_MORE')
+    final otherItems = combinedItems
+        .where((i) => !i.isFreeDelivery || i.isFreeItem)
         .toList();
 
     return [
-      if (groupedItems.bogoGroups.isNotEmpty) ...[
+      if (bogoGroups.isNotEmpty) ...[
         _orderItemSectionTitle('BOGO Offers'),
-        ...groupedItems.bogoGroups.map(_buildBogoOrderItem),
+        ...bogoGroups.map(_buildBogoOrderItem),
       ],
       if (groupedItems.comboGroups.isNotEmpty) ...[
         _orderItemSectionTitle('Combo Offers'),
         ...groupedItems.comboGroups.map(_buildComboOrderGroup),
       ],
       if (smgmItems.isNotEmpty) ...[
-        _orderItemSectionTitle('Reward Items (Shop More, Get More)'),
+        _orderItemSectionTitle('Free Gifts'),
         ...smgmItems.map(_buildSmgmRewardItem),
+      ],
+      if (freeDeliveryItems.isNotEmpty) ...[
+        _orderItemSectionTitle('Free Delivery'),
+        ...freeDeliveryItems.map(_buildOrderItemCard),
       ],
       if (otherItems.isNotEmpty) ...[
         _orderItemSectionTitle('Individual Items'),
@@ -1214,60 +1242,64 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildSmgmRewardItem(OrderItem item) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: EdgeInsets.only(bottom: 8.h),
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.08),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        border: Border.all(color: cs.outlineVariant),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Text(
-                  'REWARD',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10.sp.clamp(8.0, 11.0),
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Text(
+              'FREE',
+              style: TextStyle(
+                color: cs.onSurface,
+                fontSize: 10.sp.clamp(8.0, 11.0),
+                fontWeight: FontWeight.w800,
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Text(
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   '${item.productName} x${item.quantity}',
                   style: TextStyle(
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w700,
                     fontSize: 14.sp.clamp(12.0, 16.0),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Offer: ${item.rewardOfferName ?? "Shop More, Get More"}',
-            style: TextStyle(
-              fontSize: 12.sp.clamp(10.0, 13.0),
-              color: Colors.orange.shade800,
+                if (item.rewardOfferName != null &&
+                    item.rewardOfferName!.isNotEmpty)
+                  Text(
+                    'Unlocked via ${item.rewardOfferName}',
+                    style: TextStyle(
+                      fontSize: 12.sp.clamp(10.0, 13.0),
+                      color: cs.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (item.rewardThreshold != null && item.rewardThreshold! > 0)
+          if (item.rewardValue != null && item.rewardValue! > 0)
             Text(
-              'Threshold: ₹${item.rewardThreshold!.toStringAsFixed(0)}',
+              '₹${item.rewardValue!.toStringAsFixed(2)}',
               style: TextStyle(
-                fontSize: 12.sp.clamp(10.0, 13.0),
-                color: Colors.grey.shade600,
+                fontSize: 14.sp.clamp(12.0, 16.0),
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface.withValues(alpha: 0.7),
               ),
             ),
         ],

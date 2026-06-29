@@ -21,6 +21,7 @@ abstract class OrderItemRow
     this.productVariantId,
     this.comboOfferId,
     this.bogoOfferId,
+    this.triggerProductId,
     required this.productNameSnapshot,
     this.productImageUrlSnapshot,
     this.variantLabelSnapshot,
@@ -43,11 +44,13 @@ abstract class OrderItemRow
     this.rewardOfferName,
     this.rewardThreshold,
     this.rewardSource,
+    bool? isFreeDelivery,
     DateTime? createdAt,
   }) : isFreeItem = isFreeItem ?? false,
        isRewardProduct = isRewardProduct ?? false,
        quantityEditable = quantityEditable ?? true,
        priceEditable = priceEditable ?? true,
+       isFreeDelivery = isFreeDelivery ?? false,
        createdAt = createdAt ?? DateTime.now();
 
   factory OrderItemRow({
@@ -57,6 +60,7 @@ abstract class OrderItemRow
     _i1.UuidValue? productVariantId,
     _i1.UuidValue? comboOfferId,
     _i1.UuidValue? bogoOfferId,
+    _i1.UuidValue? triggerProductId,
     required String productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
@@ -79,6 +83,7 @@ abstract class OrderItemRow
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
     DateTime? createdAt,
   }) = _OrderItemRowImpl;
 
@@ -107,6 +112,11 @@ abstract class OrderItemRow
           ? null
           : _i1.UuidValueJsonExtension.fromJson(
               jsonSerialization['bogoOfferId'],
+            ),
+      triggerProductId: jsonSerialization['triggerProductId'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(
+              jsonSerialization['triggerProductId'],
             ),
       productNameSnapshot: jsonSerialization['productNameSnapshot'] as String,
       productImageUrlSnapshot:
@@ -149,6 +159,9 @@ abstract class OrderItemRow
       rewardThreshold: (jsonSerialization['rewardThreshold'] as num?)
           ?.toDouble(),
       rewardSource: jsonSerialization['rewardSource'] as String?,
+      isFreeDelivery: jsonSerialization['isFreeDelivery'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isFreeDelivery']),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -171,6 +184,8 @@ abstract class OrderItemRow
   _i1.UuidValue? comboOfferId;
 
   _i1.UuidValue? bogoOfferId;
+
+  _i1.UuidValue? triggerProductId;
 
   String productNameSnapshot;
 
@@ -216,6 +231,8 @@ abstract class OrderItemRow
 
   String? rewardSource;
 
+  bool isFreeDelivery;
+
   DateTime createdAt;
 
   @override
@@ -231,6 +248,7 @@ abstract class OrderItemRow
     _i1.UuidValue? productVariantId,
     _i1.UuidValue? comboOfferId,
     _i1.UuidValue? bogoOfferId,
+    _i1.UuidValue? triggerProductId,
     String? productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
@@ -253,6 +271,7 @@ abstract class OrderItemRow
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
     DateTime? createdAt,
   });
   @override
@@ -266,6 +285,8 @@ abstract class OrderItemRow
         'productVariantId': productVariantId?.toJson(),
       if (comboOfferId != null) 'comboOfferId': comboOfferId?.toJson(),
       if (bogoOfferId != null) 'bogoOfferId': bogoOfferId?.toJson(),
+      if (triggerProductId != null)
+        'triggerProductId': triggerProductId?.toJson(),
       'productNameSnapshot': productNameSnapshot,
       if (productImageUrlSnapshot != null)
         'productImageUrlSnapshot': productImageUrlSnapshot,
@@ -294,6 +315,7 @@ abstract class OrderItemRow
       if (rewardOfferName != null) 'rewardOfferName': rewardOfferName,
       if (rewardThreshold != null) 'rewardThreshold': rewardThreshold,
       if (rewardSource != null) 'rewardSource': rewardSource,
+      'isFreeDelivery': isFreeDelivery,
       'createdAt': createdAt.toJson(),
     };
   }
@@ -343,6 +365,7 @@ class _OrderItemRowImpl extends OrderItemRow {
     _i1.UuidValue? productVariantId,
     _i1.UuidValue? comboOfferId,
     _i1.UuidValue? bogoOfferId,
+    _i1.UuidValue? triggerProductId,
     required String productNameSnapshot,
     String? productImageUrlSnapshot,
     String? variantLabelSnapshot,
@@ -365,6 +388,7 @@ class _OrderItemRowImpl extends OrderItemRow {
     String? rewardOfferName,
     double? rewardThreshold,
     String? rewardSource,
+    bool? isFreeDelivery,
     DateTime? createdAt,
   }) : super._(
          id: id,
@@ -373,6 +397,7 @@ class _OrderItemRowImpl extends OrderItemRow {
          productVariantId: productVariantId,
          comboOfferId: comboOfferId,
          bogoOfferId: bogoOfferId,
+         triggerProductId: triggerProductId,
          productNameSnapshot: productNameSnapshot,
          productImageUrlSnapshot: productImageUrlSnapshot,
          variantLabelSnapshot: variantLabelSnapshot,
@@ -395,6 +420,7 @@ class _OrderItemRowImpl extends OrderItemRow {
          rewardOfferName: rewardOfferName,
          rewardThreshold: rewardThreshold,
          rewardSource: rewardSource,
+         isFreeDelivery: isFreeDelivery,
          createdAt: createdAt,
        );
 
@@ -409,6 +435,7 @@ class _OrderItemRowImpl extends OrderItemRow {
     Object? productVariantId = _Undefined,
     Object? comboOfferId = _Undefined,
     Object? bogoOfferId = _Undefined,
+    Object? triggerProductId = _Undefined,
     String? productNameSnapshot,
     Object? productImageUrlSnapshot = _Undefined,
     Object? variantLabelSnapshot = _Undefined,
@@ -431,6 +458,7 @@ class _OrderItemRowImpl extends OrderItemRow {
     Object? rewardOfferName = _Undefined,
     Object? rewardThreshold = _Undefined,
     Object? rewardSource = _Undefined,
+    bool? isFreeDelivery,
     DateTime? createdAt,
   }) {
     return OrderItemRow(
@@ -446,6 +474,9 @@ class _OrderItemRowImpl extends OrderItemRow {
       bogoOfferId: bogoOfferId is _i1.UuidValue?
           ? bogoOfferId
           : this.bogoOfferId,
+      triggerProductId: triggerProductId is _i1.UuidValue?
+          ? triggerProductId
+          : this.triggerProductId,
       productNameSnapshot: productNameSnapshot ?? this.productNameSnapshot,
       productImageUrlSnapshot: productImageUrlSnapshot is String?
           ? productImageUrlSnapshot
@@ -488,6 +519,7 @@ class _OrderItemRowImpl extends OrderItemRow {
           ? rewardThreshold
           : this.rewardThreshold,
       rewardSource: rewardSource is String? ? rewardSource : this.rewardSource,
+      isFreeDelivery: isFreeDelivery ?? this.isFreeDelivery,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -527,6 +559,13 @@ class OrderItemRowUpdateTable extends _i1.UpdateTable<OrderItemRowTable> {
     _i1.UuidValue? value,
   ) => _i1.ColumnValue(
     table.bogoOfferId,
+    value,
+  );
+
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> triggerProductId(
+    _i1.UuidValue? value,
+  ) => _i1.ColumnValue(
+    table.triggerProductId,
     value,
   );
 
@@ -652,6 +691,11 @@ class OrderItemRowUpdateTable extends _i1.UpdateTable<OrderItemRowTable> {
         value,
       );
 
+  _i1.ColumnValue<bool, bool> isFreeDelivery(bool value) => _i1.ColumnValue(
+    table.isFreeDelivery,
+    value,
+  );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -680,6 +724,10 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     );
     bogoOfferId = _i1.ColumnUuid(
       'bogoOfferId',
+      this,
+    );
+    triggerProductId = _i1.ColumnUuid(
+      'triggerProductId',
       this,
     );
     productNameSnapshot = _i1.ColumnString(
@@ -774,6 +822,11 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
       'rewardSource',
       this,
     );
+    isFreeDelivery = _i1.ColumnBool(
+      'isFreeDelivery',
+      this,
+      hasDefault: true,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -792,6 +845,8 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
   late final _i1.ColumnUuid comboOfferId;
 
   late final _i1.ColumnUuid bogoOfferId;
+
+  late final _i1.ColumnUuid triggerProductId;
 
   late final _i1.ColumnString productNameSnapshot;
 
@@ -837,6 +892,8 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString rewardSource;
 
+  late final _i1.ColumnBool isFreeDelivery;
+
   late final _i1.ColumnDateTime createdAt;
 
   @override
@@ -847,6 +904,7 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     productVariantId,
     comboOfferId,
     bogoOfferId,
+    triggerProductId,
     productNameSnapshot,
     productImageUrlSnapshot,
     variantLabelSnapshot,
@@ -869,6 +927,7 @@ class OrderItemRowTable extends _i1.Table<_i1.UuidValue?> {
     rewardOfferName,
     rewardThreshold,
     rewardSource,
+    isFreeDelivery,
     createdAt,
   ];
 }

@@ -1491,6 +1491,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           unitPrice: item.product.price,
           totalPrice: item.product.price * item.quantity,
           isFreeItem: false,
+          isFreeDelivery: item.product.isFreeDelivery,
         ),
       );
 
@@ -1530,6 +1531,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               unitPrice: 0,
               totalPrice: 0,
               isFreeItem: true,
+              isFreeDelivery: false,
               triggerProductId: item.product.productId,
             ),
           );
@@ -1553,6 +1555,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           unitPrice: 0,
           totalPrice: 0,
           isFreeItem: true,
+          isFreeDelivery: false,
           isRewardProduct: true,
           quantityEditable: false,
           priceEditable: false,
@@ -1579,6 +1582,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             unitPrice: item.product.price,
             totalPrice: item.product.price * item.quantity,
             isFreeItem: false,
+            isFreeDelivery: item.product.isFreeDelivery,
             comboId: item.comboId,
             comboName: item.comboName,
             comboDiscountType: item.comboDiscountType,
@@ -2360,8 +2364,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final bogoItems = cartController.regularCartItems
         .where((i) => i.bogoFreeProductId != null)
         .toList();
-    final individualItems = cartController.regularCartItems
+    final allIndividualItems = cartController.regularCartItems
         .where((i) => i.bogoFreeProductId == null)
+        .toList();
+    final freeDeliveryItems = allIndividualItems
+        .where((i) => i.product.isFreeDelivery)
+        .toList();
+    final individualItems = allIndividualItems
+        .where((i) => !i.product.isFreeDelivery)
         .toList();
     final comboGroups = cartController.comboGroups;
     final bogoController = BogoController.instance;
@@ -2386,7 +2396,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
     }
-    for (final item in individualItems) {
+    for (final item in allIndividualItems) {
       totalCount += item.quantity;
     }
     for (final group in comboGroups) {
@@ -2432,6 +2442,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             ...smgmFreeItems.map(
               (item) => _buildSmgmCheckoutItem(item, cs),
+            ),
+            SizedBox(height: 12.h),
+          ],
+          if (freeDeliveryItems.isNotEmpty) ...[
+            _buildSectionLabel('Free Delivery', cs),
+            SizedBox(height: 8.h),
+            ...freeDeliveryItems.map(
+              (item) => _buildIndividualCheckoutItem(item, cs),
             ),
             SizedBox(height: 12.h),
           ],
@@ -2875,7 +2893,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Product Discount',
-              '-₹${cartController.productDiscountTotal.formatPrice}',
+              '₹${cartController.productDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2884,7 +2902,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Combo Savings',
-              '-₹${cartController.comboDiscountTotal.formatPrice}',
+              '₹${cartController.comboDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2893,7 +2911,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'BOGO Savings',
-              '-₹${cartController.bogoDiscountTotal.formatPrice}',
+              '₹${cartController.bogoDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2902,7 +2920,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Free Gift Savings',
-              '-₹${cartController.freeGiftSavings.formatPrice}',
+              '₹${cartController.freeGiftSavings.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2911,7 +2929,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Category Offer Savings',
-              '-₹${cartController.categoryOfferDiscountTotal.formatPrice}',
+              '₹${cartController.categoryOfferDiscountTotal.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2926,7 +2944,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'Coupon Discount',
-              '-₹${cartController.couponDiscount.formatPrice}',
+              '₹${cartController.couponDiscount.formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
@@ -2935,7 +2953,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 8.h),
             _buildBillRow(
               'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
-              '-₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
+              '₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
               valueColor: Colors.green,
               cs: cs,
             ),
