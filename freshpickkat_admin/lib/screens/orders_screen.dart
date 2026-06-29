@@ -6,6 +6,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
 import 'package:freshpickkat_admin/services/admin_notification_navigation_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -93,17 +94,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
         _searchQuery = '';
       });
 
-      final messenger = ScaffoldMessenger.of(context);
       final found = await _orderController.loadOrderForFocus(orderId);
       if (!mounted) return;
       if (!found) {
         AdminNotificationNavigationService.instance.markOrderHandled(orderId);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Order $orderId not found.'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Order $orderId not found.');
         return;
       }
 
@@ -147,29 +142,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Order ${order.orderId} updated to ${status.replaceAll('_', ' ')}',
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Order ${order.orderId} updated to ${status.replaceAll('_', ' ')}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update: $e'),
-          backgroundColor: AdminAppTheme.getErrorColor(context),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Failed to update: $e');
     }
   }
 
@@ -177,17 +153,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     try {
       await _orderController.startDelivery(order);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Order moved to out for delivery and customer notified.',
-          ),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Order moved to out for delivery and customer notified.');
 
       await navigateDeferred(
         loadLibrary: live_delivery_map_preview_screen.loadLibrary,
@@ -212,16 +178,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           }
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to start delivery: $e'),
-            backgroundColor: AdminAppTheme.getErrorColor(context),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        AdminSnackbarService.show(context, 'Failed to start delivery: $e');
       }
     }
   }
@@ -257,28 +214,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
             status: 'delivery_otp_pending',
           );
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Delivery OTP generated for order ${order.orderId}'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        AdminSnackbarService.show(context, 'Delivery OTP generated for order ${order.orderId}');
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to generate OTP: $e'),
-          backgroundColor: AdminAppTheme.getErrorColor(context),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Failed to generate OTP: $e');
     }
   }
 
@@ -805,13 +745,7 @@ class _OrderCardState extends State<_OrderCard> {
                     GestureDetector(
                       onLongPress: () {
                         Clipboard.setData(ClipboardData(text: order.userPhone));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Phone number copied'),
-                            duration: Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
+                        AdminSnackbarService.show(context, 'Phone number copied');
                       },
                       child: Row(
                         children: [

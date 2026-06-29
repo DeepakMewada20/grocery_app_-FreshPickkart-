@@ -9,6 +9,7 @@ import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -281,15 +282,15 @@ class _BannersScreenState extends State<BannersScreen>
       final result = await _controller.deleteBanner(banner.bannerId ?? '');
       if (!mounted) return;
       if (result == null) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Banner permanently deleted',
+          'Banner permanently deleted',
           onUndo: () {},
         );
       } else if (result == true) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Banner deactivated',
+          'Banner deactivated',
           onUndo: () {
             _controller.toggleBannerActive(banner.bannerId ?? '', true);
           },
@@ -297,9 +298,7 @@ class _BannersScreenState extends State<BannersScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete banner: $e')));
+        AdminSnackbarService.show(context, 'Failed to delete banner: $e');
       }
     }
   }
@@ -1674,9 +1673,7 @@ class _BannerSheetState extends State<_BannerSheet> {
     if (!_formKey.currentState!.validate() || imageUrl.isEmpty) return;
 
     if (_selectedPlacements.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one screen placement')),
-      );
+      AdminSnackbarService.show(context, 'Select at least one screen placement');
       return;
     }
 

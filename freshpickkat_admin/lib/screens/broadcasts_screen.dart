@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/controller/admin_broadcast_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/controller/active_users_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -491,9 +492,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       if (url != null) setState(() => _imageUrl = url);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(widget.controller.cleanError(e))));
+      AdminSnackbarService.show(context, widget.controller.cleanError(e));
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -527,9 +526,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
     final users = _activeUsersController.activeUsers.value;
 
     if (users.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No users available')));
+      AdminSnackbarService.show(context, 'No users available');
       return;
     }
 
@@ -630,9 +627,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
     // Validate specific_users selection
     if (_targetAudience == 'specific_users') {
       if (_selectedUsers.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select at least one user')),
-        );
+        AdminSnackbarService.show(context, 'Please select at least one user');
         return;
       }
     }
@@ -667,9 +662,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       }
       await widget.controller.refreshAll();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(sendNow ? 'Broadcast queued' : 'Draft saved')),
-      );
+      AdminSnackbarService.show(context, sendNow ? 'Broadcast queued' : 'Draft saved');
       _formKey.currentState!.reset();
       setState(() {
         _imageUrl = null;
@@ -686,9 +679,7 @@ class _CreateBroadcastTabState extends State<_CreateBroadcastTab> {
       _areaCtrl.clear();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(widget.controller.cleanError(e))));
+      AdminSnackbarService.show(context, widget.controller.cleanError(e));
     }
   }
 
@@ -804,14 +795,10 @@ class _BroadcastListTab extends StatelessWidget {
     try {
       await controller.sendDraft(item.id);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Draft queued')));
+      AdminSnackbarService.show(context, 'Draft queued');
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(controller.cleanError(e))));
+      AdminSnackbarService.show(context, controller.cleanError(e));
     }
   }
 
@@ -840,14 +827,10 @@ class _BroadcastListTab extends StatelessWidget {
     try {
       await controller.deleteDraft(item.id);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Draft deleted')));
+      AdminSnackbarService.show(context, 'Draft deleted');
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(controller.cleanError(e))));
+      AdminSnackbarService.show(context, controller.cleanError(e));
     }
   }
 }

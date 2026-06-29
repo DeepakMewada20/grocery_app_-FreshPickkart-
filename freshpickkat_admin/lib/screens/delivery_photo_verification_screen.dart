@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_delivery_verification_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:universal_io/io.dart';
@@ -119,13 +120,7 @@ class _DeliveryPhotoVerificationScreenState
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Order delivered successfully!'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Order delivered successfully!');
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -170,13 +165,7 @@ class _DeliveryPhotoVerificationScreenState
         gpsAccuracy: _gpsAccuracy!,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Order delivered successfully!'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Order delivered successfully!');
         Navigator.pop(context, true);
       }
     } catch (e) {

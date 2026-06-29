@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_cancellation_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -253,29 +254,13 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
         amountOverride: overrideAmount,
       );
       if (mounted) {
-        Get.snackbar(
-          'Approved',
-          actionResult.message ?? 'Cancellation approved successfully.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.shade800,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
+        AdminSnackbarService.show(Get.context!, 'Approved: ${actionResult.message ?? 'Cancellation approved successfully.'}');
         Navigator.pop(context);
         widget.controller.reload();
       }
     } catch (e) {
       if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to approve: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade800,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
+        AdminSnackbarService.show(Get.context!, 'Error: Failed to approve: $e');
       }
     } finally {
       if (mounted) setState(() => _approving = false);
@@ -317,15 +302,7 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
             ElevatedButton(
               onPressed: () {
                 if (rejectNoteController.text.trim().isEmpty) {
-                  Get.snackbar(
-                    'Note Required',
-                    'Please provide a reason for rejection.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.orange.shade800,
-                    colorText: Colors.white,
-                    margin: const EdgeInsets.all(16),
-                    borderRadius: 12,
-                  );
+                  AdminSnackbarService.show(Get.context!, 'Note Required: Please provide a reason for rejection.');
                   return;
                 }
                 Navigator.pop(dialogContext, true);
@@ -350,27 +327,13 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
         adminNote: note,
       );
       if (mounted) {
-        Get.snackbar(
-          'Rejected',
-          actionResult.message ?? 'Cancellation rejected.',
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
+        AdminSnackbarService.show(Get.context!, 'Rejected: ${actionResult.message ?? 'Cancellation rejected.'}');
         Navigator.pop(context);
         widget.controller.reload();
       }
     } catch (e) {
       if (mounted) {
-        Get.snackbar(
-          'Error',
-          'Failed to reject: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade800,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
+        AdminSnackbarService.show(Get.context!, 'Error: Failed to reject: $e');
       }
     } finally {
       if (mounted) setState(() => _rejecting = false);

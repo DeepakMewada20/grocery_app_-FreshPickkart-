@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_coupon_controller.dart';
 import 'package:freshpickkat_admin/widgets/shared_dialogs.dart';
@@ -558,15 +559,15 @@ Future<void> showAddCouponDialog({
     showDragHandle: true,
     constraints: AdminResponsive.bottomSheetConstraints(context),
     builder: (sheetContext) {
-      return _CouponFormBottomSheet(
+      return       _CouponFormBottomSheet(
         onSave: (coupon, draft) async {
           await controller.uploadCoupon(coupon, notificationDraft: draft);
         },
         onSaveSuccess: () {
-          _showCatalogCouponSnackBar(sheetContext, 'Coupon created');
+          AdminSnackbarService.show(sheetContext, 'Coupon created');
         },
         onSaveError: (error) {
-          _showCatalogCouponSnackBar(
+          AdminSnackbarService.show(
             sheetContext,
             'Failed to create coupon: $error',
           );
@@ -1317,10 +1318,10 @@ Future<void> showEditCouponDialog({
           }
         },
         onSaveSuccess: () {
-          _showCatalogCouponSnackBar(sheetContext, 'Coupon updated');
+          AdminSnackbarService.show(sheetContext, 'Coupon updated');
         },
         onSaveError: (error) {
-          _showCatalogCouponSnackBar(sheetContext, 'Failed: $error');
+          AdminSnackbarService.show(sheetContext, 'Failed: $error');
         },
       );
     },
@@ -1336,15 +1337,15 @@ Future<void> showDeleteCouponDialog({
     final result = await controller.deleteCoupon(coupon.code);
     if (!context.mounted) return;
     if (result == null) {
-      showUndoSnackBar(
+      AdminSnackbarService.showUndo(
         context,
-        message: 'Coupon permanently deleted',
+        'Coupon permanently deleted',
         onUndo: () {},
       );
     } else if (result == true) {
-      showUndoSnackBar(
+      AdminSnackbarService.showUndo(
         context,
-        message: 'Coupon deactivated',
+        'Coupon deactivated',
         onUndo: () {
           controller.setCouponActive(coupon.code, true);
         },
@@ -1352,7 +1353,7 @@ Future<void> showDeleteCouponDialog({
     }
   } catch (error) {
     if (!context.mounted) return;
-    _showCatalogCouponSnackBar(context, 'Failed to delete coupon: $error');
+    AdminSnackbarService.show(context, 'Failed to delete coupon: $error');
   }
 }
 
@@ -1363,6 +1364,4 @@ String? _catalogNumberValidator(String? value) {
   return double.tryParse(value.trim()) == null ? 'Invalid number' : null;
 }
 
-void _showCatalogCouponSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-}
+

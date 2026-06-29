@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/services/admin_auth_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -102,7 +103,8 @@ class _LoginScreenState extends State<LoginScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showMessage(value, isError: _looksLikeError(value));
+      AdminSnackbarService.show(context, value,
+          isError: _looksLikeError(value));
     });
   }
 
@@ -115,9 +117,9 @@ class _LoginScreenState extends State<LoginScreen>
         usernameOrEmail: _loginUsernameCtrl.text.trim(),
         password: _loginPasswordCtrl.text.trim(),
       );
-      _showMessage('Login successful.');
+      AdminSnackbarService.show(context, 'Login successful.');
     } catch (e) {
-      _showMessage(_friendlyError(e), isError: true);
+      AdminSnackbarService.show(context, _friendlyError(e), isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -276,11 +278,12 @@ class _LoginScreenState extends State<LoginScreen>
         _awaitingEmailVerification = true;
         _pendingSetupEmail = _setupEmailCtrl.text.trim().toLowerCase();
       });
-      _showMessage(
+      AdminSnackbarService.show(
+        context,
         'Verification email sent. Click the link and app will login automatically.',
       );
     } catch (e) {
-      _showMessage(_friendlyError(e), isError: true);
+      AdminSnackbarService.show(context, _friendlyError(e), isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -292,9 +295,9 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = true);
     try {
       await _authService.sendVerificationEmail();
-      _showMessage('Verification email resent.');
+      AdminSnackbarService.show(context, 'Verification email resent.');
     } catch (e) {
-      _showMessage(_friendlyError(e), isError: true);
+      AdminSnackbarService.show(context, _friendlyError(e), isError: true);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -309,16 +312,6 @@ class _LoginScreenState extends State<LoginScreen>
       _awaitingEmailVerification = false;
       _pendingSetupEmail = null;
     });
-  }
-
-  void _showMessage(String message, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AdminAppTheme.getErrorColor(context) : null,
-      ),
-    );
   }
 
   bool _looksLikeError(String message) {

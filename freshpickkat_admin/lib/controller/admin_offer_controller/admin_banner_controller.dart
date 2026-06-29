@@ -1,3 +1,4 @@
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/network_controller.dart';
 import 'package:freshpickkat_admin/core/exceptions.dart';
@@ -164,32 +165,14 @@ class AdminBannerController extends GetxController {
         totalCount.value++;
         _sortBanners();
       }
-      Get.snackbar(
-        'Success',
-        'Banner created successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.success,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, 'Banner created successfully');
       return true;
     } on NoInternetException {
-      Get.snackbar(
-        'Banner Creation Failed',
-        'No internet connection. Please check your network.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.error,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, 'No internet connection. Please check your network.');
       return false;
     } catch (e) {
       error.value = e.toString();
-      Get.snackbar(
-        'Banner Creation Failed',
-        'An error occurred: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.error,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, 'An error occurred: $e');
       return false;
     } finally {
       isLoading.value = false;
@@ -216,23 +199,11 @@ class AdminBannerController extends GetxController {
         }
         _sortBanners();
       }
-      Get.snackbar(
-        'Success',
-        'Banner updated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.success,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, 'Banner updated successfully');
       return true;
     } catch (e) {
       error.value = e.toString();
-      Get.snackbar(
-        'Banner Update Failed',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.error,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, e.toString());
       return false;
     } finally {
       isLoading.value = false;
@@ -281,13 +252,7 @@ class AdminBannerController extends GetxController {
       }
     } catch (e) {
       error.value = e.toString();
-      Get.snackbar(
-        'Delete Failed',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AdminThemeTokens.error,
-        colorText: AdminThemeTokens.white,
-      );
+      AdminSnackbarService.show(Get.context!, e.toString());
       return false;
     } finally {
       isLoading.value = false;

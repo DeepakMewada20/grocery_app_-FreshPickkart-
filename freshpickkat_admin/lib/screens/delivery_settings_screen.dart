@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_delivery_settings_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -49,20 +50,16 @@ class _DeliverySettingsScreenState extends State<DeliverySettingsScreen> {
   Future<void> _save() async {
     final radius = int.tryParse(_radiusController.text.trim());
     if (radius == null || radius < 10) {
-      Get.snackbar(
-        'Invalid Input',
+      AdminSnackbarService.show(
+        context,
         'Max allowed radius must be at least 10 meters.',
-        backgroundColor: AdminAppTheme.getErrorColor(context),
-        colorText: AdminThemeTokens.white,
       );
       return;
     }
     if (radius > 5000) {
-      Get.snackbar(
-        'Invalid Input',
+      AdminSnackbarService.show(
+        context,
         'Max allowed radius cannot exceed 5000 meters.',
-        backgroundColor: AdminAppTheme.getErrorColor(context),
-        colorText: AdminThemeTokens.white,
       );
       return;
     }
@@ -79,20 +76,16 @@ class _DeliverySettingsScreenState extends State<DeliverySettingsScreen> {
     try {
       await _controller.saveSettings(updated);
       if (context.mounted) {
-        Get.snackbar(
-          'Saved',
+        AdminSnackbarService.show(
+          context,
           'Delivery settings updated successfully.',
-          backgroundColor: AdminAppTheme.getSuccessColor(context),
-          colorText: AdminThemeTokens.white,
         );
       }
     } catch (e) {
       if (context.mounted) {
-        Get.snackbar(
-          'Error',
+        AdminSnackbarService.show(
+          context,
           'Failed to save settings: $e',
-          backgroundColor: AdminAppTheme.getErrorColor(context),
-          colorText: AdminThemeTokens.white,
         );
       }
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_free_delivery_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -152,16 +153,7 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   }
 
   void _showMutationSnack(OfferMutationResult result) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.message ?? (result.success ? 'Updated' : 'Update failed'),
-        ),
-        backgroundColor: result.success
-            ? null
-            : AdminAppTheme.getErrorColor(context),
-      ),
-    );
+    AdminSnackbarService.show(context, result.message ?? (result.success ? 'Updated' : 'Update failed'));
   }
 
   Future<void> _addFreeDeliveryProducts() async {
@@ -627,11 +619,11 @@ class _DeliveryConfigBottomSheetState
         : double.tryParse(thresholdText);
 
     if (baseFee == null || baseFee < 0) {
-      _showError('Base delivery fee must be a valid non-negative number.');
+      AdminSnackbarService.show(context, 'Base delivery fee must be a valid non-negative number.');
       return;
     }
     if (threshold != null && threshold <= 0) {
-      _showError('Free delivery threshold must be greater than 0.');
+      AdminSnackbarService.show(context, 'Free delivery threshold must be greater than 0.');
       return;
     }
 
@@ -643,21 +635,22 @@ class _DeliveryConfigBottomSheetState
       final feeVal = double.tryParse(slab.feeCtrl.text.trim());
 
       if (minVal == null || minVal < 0) {
-        _showError('Each slab must have a valid non-negative minimum amount.');
+        AdminSnackbarService.show(context, 'Each slab must have a valid non-negative minimum amount.');
         return;
       }
       if (maxVal == null || maxVal <= 0) {
-        _showError(
+        AdminSnackbarService.show(
+          context,
           'Each slab must have a valid maximum amount greater than 0.',
         );
         return;
       }
       if (feeVal == null || feeVal < 0) {
-        _showError('Each slab must have a valid non-negative delivery fee.');
+        AdminSnackbarService.show(context, 'Each slab must have a valid non-negative delivery fee.');
         return;
       }
       if (minVal > maxVal && maxVal != 999999) {
-        _showError('Slab minimum amount cannot exceed the maximum amount.');
+        AdminSnackbarService.show(context, 'Slab minimum amount cannot exceed the maximum amount.');
         return;
       }
     }
@@ -690,15 +683,6 @@ class _DeliveryConfigBottomSheetState
     }
   }
 
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AdminAppTheme.getErrorColor(context),
-      ),
-    );
-  }
 }
 
 class _DeliveryRuleBottomSheet extends StatefulWidget {
@@ -979,33 +963,33 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
     final orderCountText = _targetOrderCountController.text.trim();
 
     if (name.isEmpty) {
-      _showError('Rule name is required.');
+      AdminSnackbarService.show(context, 'Rule name is required.');
       return;
     }
     final fee = double.tryParse(feeText);
     if (fee == null || fee < 0) {
-      _showError('Delivery fee must be a valid non-negative number.');
+      AdminSnackbarService.show(context, 'Delivery fee must be a valid non-negative number.');
       return;
     }
     final priority = int.tryParse(priorityText);
     if (priority == null || priority < 1) {
-      _showError('Priority must be a positive integer.');
+      AdminSnackbarService.show(context, 'Priority must be a positive integer.');
       return;
     }
     if (_targetUserType == 'specific_order') {
       final orderCount = int.tryParse(orderCountText);
       if (orderCount == null || orderCount < 1) {
-        _showError('Order count must be a positive integer.');
+        AdminSnackbarService.show(context, 'Order count must be a positive integer.');
         return;
       }
     }
     if (_hasExpiry) {
       if (_startDate == null || _endDate == null) {
-        _showError('Please set both start and end dates');
+        AdminSnackbarService.show(context, 'Please set both start and end dates');
         return;
       }
       if (_endDate!.isBefore(_startDate!)) {
-        _showError('End date must be after start date.');
+        AdminSnackbarService.show(context, 'End date must be after start date.');
         return;
       }
     }
@@ -1055,16 +1039,6 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
         _endDate = picked;
       }
     });
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AdminAppTheme.getErrorColor(context),
-      ),
-    );
   }
 }
 

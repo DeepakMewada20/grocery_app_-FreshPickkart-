@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
@@ -74,12 +75,12 @@ class _FreshPointsAdjustDialogState extends State<FreshPointsAdjustDialog> {
     if (pointsText.isEmpty) return;
     final points = int.tryParse(pointsText);
     if (points == null || points <= 0) {
-      _showSnackBar('Enter a valid positive number');
+      AdminSnackbarService.show(context, 'Enter a valid positive number');
       return;
     }
     final description = _descriptionController.text.trim();
     if (description.isEmpty) {
-      _showSnackBar('Enter a reason for the adjustment');
+      AdminSnackbarService.show(context, 'Enter a reason for the adjustment');
       return;
     }
 
@@ -95,7 +96,8 @@ class _FreshPointsAdjustDialogState extends State<FreshPointsAdjustDialog> {
       );
       await _client.freshPoints.adjustPoints(request, uid, idToken);
       if (mounted) {
-        _showSnackBar(
+        AdminSnackbarService.show(
+          context,
           '${_isDeduction ? "Deducted" : "Added"} $points points ${_isDeduction ? "from" : "to"} ${widget.user.name ?? widget.user.phoneNumber}',
         );
         Navigator.of(context).pop(true);
@@ -106,17 +108,10 @@ class _FreshPointsAdjustDialogState extends State<FreshPointsAdjustDialog> {
         if (AdminAuthFailureHandler.isAuthFailure(e)) {
           await AdminAuthFailureHandler.handle(e);
         } else {
-          _showSnackBar('Error: ${e.toString()}');
+          AdminSnackbarService.show(context, 'Error: ${e.toString()}');
         }
       }
     }
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 
   @override

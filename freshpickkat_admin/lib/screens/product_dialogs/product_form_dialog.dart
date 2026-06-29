@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
 import 'package:universal_io/io.dart';
@@ -1563,9 +1564,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
 
     final variantError = _validateVariantDrafts();
     if (variantError != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(variantError)));
+      AdminSnackbarService.show(context, variantError);
       return;
     }
 
@@ -1601,9 +1600,7 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
         Navigator.pop(context, true);
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save product: $e')));
+        AdminSnackbarService.show(context, 'Failed to save product: $e');
       } finally {
         if (mounted) {
           setState(() => _isSubmitting = false);

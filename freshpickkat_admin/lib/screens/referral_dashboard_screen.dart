@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controller/admin_referral_controller.dart';
+import '../services/admin_snackbar_service.dart';
 import '../theme/admin_app_theme.dart';
 import '../widgets/admin_app_bar.dart';
 import '../utils/admin_responsive.dart';
@@ -27,10 +28,9 @@ class _ReferralDashboardScreenState extends State<ReferralDashboardScreen> {
   Future<void> _approve(String id) async {
     final ok = await _controller.approveReward(id);
     if (mounted) {
-      Get.snackbar(
-        ok ? 'Approved' : 'Error',
+      AdminSnackbarService.show(
+        context,
         ok ? 'Reward approved successfully.' : 'Failed to approve reward.',
-        backgroundColor: ok ? Colors.green.shade50 : Colors.red.shade50,
       );
       if (ok) {
         _controller.loadAnalytics();
@@ -63,10 +63,9 @@ class _ReferralDashboardScreenState extends State<ReferralDashboardScreen> {
 
     final ok = await _controller.rejectReward(id, reason.trim());
     if (mounted) {
-      Get.snackbar(
-        ok ? 'Rejected' : 'Error',
+      AdminSnackbarService.show(
+        context,
         ok ? 'Reward rejected.' : 'Failed to reject reward.',
-        backgroundColor: ok ? Colors.orange.shade50 : Colors.red.shade50,
       );
       if (ok) {
         _controller.loadAnalytics();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:freshpickkat_admin/controller/admin_order_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
@@ -111,41 +112,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           debugPrint(
             'Refund retry failed for order ${_order.orderId}: ${result.failureReason}',
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Refund failed: ${result.failureReason ?? "Unknown error"}',
-              ),
-              backgroundColor: AdminAppTheme.getErrorColor(context),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AdminSnackbarService.show(context, 'Refund failed: ${result.failureReason ?? "Unknown error"}');
         } else {
           setState(() {
             _refund = result;
             _order = _order.copyWith(refundStatus: result.status);
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Refund retried successfully. Amount: ₹${result.amount.toStringAsFixed(2)}',
-              ),
-              backgroundColor: AdminAppTheme.getSuccessColor(context),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AdminSnackbarService.show(context, 'Refund retried successfully. Amount: ₹${result.amount.toStringAsFixed(2)}');
         }
       }
     } catch (e) {
       debugPrint('Refund retry exception for order ${_order.orderId}: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Refund retry: $e'),
-            backgroundColor: AdminAppTheme.getErrorColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Refund retry: $e');
       }
     } finally {
       if (mounted) setState(() => _refundRetrying = false);
@@ -666,19 +645,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         );
                       });
                     }
-                  } catch (e) {
+                    } catch (e) {
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Failed to start photo delivery: $e',
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
+                      AdminSnackbarService.show(context, 'Failed to start photo delivery: $e');
                     }
                     if (mounted) setState(() => _isLoading = false);
                     return;
@@ -717,17 +686,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   try {
                     await _orderController.generateDeliveryOtp(order);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                            'Delivery OTP sent to customer. Waiting for verification.',
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
+                      AdminSnackbarService.show(context, 'Delivery OTP sent to customer. Waiting for verification.');
                       setState(
                         () => _order = _order.copyWith(
                           status: 'delivery_otp_pending',
@@ -736,13 +695,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed: $e'),
-                          backgroundColor: AdminAppTheme.getErrorColor(context),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+                      AdminSnackbarService.show(context, 'Failed: $e');
                     }
                   } finally {
                     if (mounted) setState(() => _otpGenerating = false);
@@ -1030,26 +983,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         deliveryVerificationMethod: null,
                       );
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Photo verification cancelled.'),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
+                    AdminSnackbarService.show(context, 'Photo verification cancelled.');
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed: $e'),
-                        backgroundColor:
-                            AdminAppTheme.getErrorColor(context),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                    AdminSnackbarService.show(context, 'Failed: $e');
                   }
                 }
               },
@@ -1126,16 +1064,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       await _orderController.verifyDeliveryOtp(order, otp);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Order delivered successfully!'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        AdminSnackbarService.show(context, 'Order delivered successfully!');
         setState(() {
           _order = _order.copyWith(
             status: 'delivered',
@@ -1169,35 +1098,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (context.mounted) {
         _startResendCountdown();
         _otpController.clear();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('New OTP sent to customer.'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        AdminSnackbarService.show(context, 'New OTP sent to customer.');
       }
     } on StateError catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: AdminAppTheme.getWarningColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to resend OTP: $e'),
-            backgroundColor: AdminAppTheme.getErrorColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Failed to resend OTP: $e');
       }
     }
   }
@@ -1647,14 +1556,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label copied'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    AdminSnackbarService.show(context, '$label copied');
   }
 
   void _launchPhoneCall(String phone) async {
@@ -1663,12 +1565,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not launch phone dialer'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AdminSnackbarService.show(context, 'Could not launch phone dialer');
     }
   }
 }

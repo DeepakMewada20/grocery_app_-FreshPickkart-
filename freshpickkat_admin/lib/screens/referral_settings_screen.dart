@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import '../controller/admin_referral_controller.dart';
+import '../services/admin_snackbar_service.dart';
 import '../widgets/admin_app_bar.dart';
 import '../utils/admin_responsive.dart';
 
@@ -123,10 +124,9 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
 
     final ok = await _controller.saveSettings(updated);
     if (mounted) {
-      Get.snackbar(
-        ok ? 'Saved' : 'Error',
+      AdminSnackbarService.show(
+        context,
         ok ? 'Referral settings updated.' : 'Failed to save settings.',
-        backgroundColor: ok ? Colors.green.shade50 : Colors.red.shade50,
       );
     }
   }
@@ -138,16 +138,12 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not open documentation')),
-          );
+          AdminSnackbarService.show(context, 'Could not open documentation');
         }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open documentation')),
-        );
+        AdminSnackbarService.show(context, 'Could not open documentation');
       }
     }
   }

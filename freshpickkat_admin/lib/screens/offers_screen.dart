@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -220,9 +221,7 @@ class _OffersScreenState extends State<OffersScreen>
             onSave: (offer) => _bogoController.upsertOffer(offer),
           );
           if (saved == true && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('BOGO offer created successfully')),
-            );
+            AdminSnackbarService.show(context, 'BOGO offer created successfully');
           }
           break;
         case 'combo':
@@ -242,7 +241,7 @@ class _OffersScreenState extends State<OffersScreen>
           await showShopMoreGetMoreDialog(
             context: overlayContext,
             onSave: (offer) async =>
-                _shopMoreGetMoreController.upsertOffer(offer),
+                _shopMoreGetMoreController.upsertOfferWithConflicts(offer),
           );
           break;
       }

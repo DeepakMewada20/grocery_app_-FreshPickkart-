@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
@@ -583,32 +584,22 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
   Future<void> _save() async {
     if (_selectedTriggerProduct == null ||
         _selectedTriggerProduct?.productId?.trim().isEmpty != false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a trigger product')),
-      );
+      AdminSnackbarService.show(context, 'Please select a trigger product');
       return;
     }
 
     if (_selectedProductsById.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one free product'),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Please select at least one free product');
       return;
     }
 
     if (_hasExpiry) {
       if (_startDate == null || _endDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please set both start and end dates')),
-        );
+        AdminSnackbarService.show(context, 'Please set both start and end dates');
         return;
       }
       if (_endDate!.isBefore(_startDate!)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('End date must be after start date')),
-        );
+        AdminSnackbarService.show(context, 'End date must be after start date');
         return;
       }
     }
@@ -655,14 +646,11 @@ class _BogoOfferEditorScreenState extends State<BogoOfferEditorScreen> {
       if (saved) {
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isEditing
-                  ? 'Error updating BOGO offer'
-                  : 'Error creating BOGO offer',
-            ),
-          ),
+        AdminSnackbarService.show(
+          context,
+          isEditing
+              ? 'Error updating BOGO offer'
+              : 'Error creating BOGO offer',
         );
       }
     } finally {

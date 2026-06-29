@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_support_issue_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -323,15 +324,11 @@ class _SupportIssueDetailScreenState extends State<_SupportIssueDetailScreen> {
       final updated = await widget.controller.updateStatus(_issue, status);
       if (mounted) setState(() => _issue = updated);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Status updated to $status')),
-        );
+        AdminSnackbarService.show(context, 'Status updated to $status');
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        AdminSnackbarService.show(context, error.toString());
       }
     } finally {
       if (mounted) setState(() => _busy = false);

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_complaint_controller.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -297,9 +298,7 @@ class _ComplaintDetailAdminScreenState
                             Clipboard.setData(
                               ClipboardData(text: _complaint.orderNumber),
                             );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Order ID copied')),
-                            );
+                            AdminSnackbarService.show(context, 'Order ID copied');
                           },
                           icon: const Icon(Icons.copy_outlined),
                           label: const Text('Copy Order'),
@@ -458,9 +457,7 @@ class _ComplaintDetailAdminScreenState
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        AdminSnackbarService.show(context, error.toString());
       }
     } finally {
       if (mounted) setState(() => _busy = false);

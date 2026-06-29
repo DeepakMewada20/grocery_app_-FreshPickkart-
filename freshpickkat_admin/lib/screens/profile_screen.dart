@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
 import 'package:freshpickkat_admin/services/admin_session_service.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/services/serverpod_client.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -81,13 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         setState(() => _isUploadingPhoto = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Profile photo updated successfully'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Profile photo updated successfully');
       }
     } catch (e) {
       if (mounted) {
@@ -158,13 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         setState(() => _isSavingUsername = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Username updated successfully'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Username updated successfully');
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -223,13 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         setState(() => _isChangingPassword = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Password changed successfully'),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminSnackbarService.show(context, 'Password changed successfully');
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -286,16 +269,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         setState(() => _isChangingEmail = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Verification link sent to $newEmail. '
-              'Email will be updated after you click the link.',
-            ),
-            backgroundColor: AdminAppTheme.getSuccessColor(context),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 5),
-          ),
+        AdminSnackbarService.show(
+          context,
+          'Verification link sent to $newEmail. '
+          'Email will be updated after you click the link.',
         );
       }
     } on FirebaseAuthException catch (e) {

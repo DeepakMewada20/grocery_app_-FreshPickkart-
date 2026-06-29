@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as protocol;
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
@@ -307,16 +308,10 @@ class _DeactivatedTab<T> extends StatelessWidget {
     try {
       await onReactivate(item);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          SnackBar(content: Text('${displayName(item)} reactivated')),
-        );
+      AdminSnackbarService.show(context, '${displayName(item)} reactivated');
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(SnackBar(content: Text('Failed: $e')));
+      AdminSnackbarService.show(context, 'Failed: $e');
     }
   }
 }

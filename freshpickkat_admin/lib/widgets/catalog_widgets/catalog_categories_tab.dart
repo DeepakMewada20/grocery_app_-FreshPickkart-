@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/services/admin_image_upload_service.dart';
@@ -232,7 +233,6 @@ class CatalogCategoriesTab extends StatelessWidget {
     required Future<bool?> Function() onConfirm,
     required Future<bool> Function(String, bool) onUndo,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -249,46 +249,13 @@ class CatalogCategoriesTab extends StatelessWidget {
               try {
                 final ok = await onConfirm();
                 if (ok != true) return;
-                const undoDuration = Duration(seconds: 4);
-                messenger.clearSnackBars();
-                final ctrl = messenger.showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            'Deactivated',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    duration: undoDuration,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    action: SnackBarAction(
-                      label: 'UNDO',
-                      textColor: Colors.white,
-                      onPressed: () => onUndo(categoryName, true),
-                    ),
-                  ),
+                AdminSnackbarService.showUndo(
+                  context,
+                  'Deactivated',
+                  onUndo: () => onUndo(categoryName, true),
                 );
-                Future.delayed(undoDuration, () => ctrl.close());
               } catch (e) {
-                messenger
-                  ..clearSnackBars()
-                  ..showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+                AdminSnackbarService.show(context, 'Delete failed: $e');
               }
             },
             child: Text(
@@ -508,19 +475,12 @@ Future<void> showAddCategoryDialog({
                                   }
 
                                   if (context.mounted) {
-                                    final messenger = ScaffoldMessenger.of(
-                                      context,
-                                    );
                                     Navigator.pop(context);
-                                    messenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          isEdit
-                                              ? 'Category updated'
-                                              : 'Category added',
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
+                                    AdminSnackbarService.show(
+                                      context,
+                                      isEdit
+                                          ? 'Category updated'
+                                          : 'Category added',
                                     );
                                   }
                                 } catch (error) {
@@ -570,7 +530,7 @@ Future<void> showAddSubcategoryDialog({
   SubCategory? subcategoryToEdit,
 }) async {
   if (controller.categories.isEmpty) {
-    _showCatalogSnackBar(context, 'Create category first');
+    AdminSnackbarService.show(context, 'Create category first');
     return;
   }
 
@@ -856,19 +816,12 @@ Future<void> showAddSubcategoryDialog({
                                   }
 
                                   if (context.mounted) {
-                                    final messenger = ScaffoldMessenger.of(
-                                      context,
-                                    );
                                     Navigator.pop(context);
-                                    messenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          isEdit
-                                              ? 'Subcategory updated'
-                                              : 'Subcategory added',
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
+                                    AdminSnackbarService.show(
+                                      context,
+                                      isEdit
+                                          ? 'Subcategory updated'
+                                          : 'Subcategory added',
                                     );
                                   }
                                 } catch (error) {
@@ -916,8 +869,4 @@ Future<void> showAddSubcategoryDialog({
   });
 }
 
-void _showCatalogSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-  );
-}
+

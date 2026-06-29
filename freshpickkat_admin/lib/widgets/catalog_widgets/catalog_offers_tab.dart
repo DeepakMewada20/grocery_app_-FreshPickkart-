@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_shop_more_get_more_controller.dart';
@@ -272,14 +273,11 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       !offer.isActive,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Combo offer ${offer.isActive ? 'deactivated' : 'activated'}'
-              : 'Failed to update combo offer',
-        ),
-      ),
+    AdminSnackbarService.show(
+      context,
+      success
+          ? 'Combo offer ${offer.isActive ? 'deactivated' : 'activated'}'
+          : 'Failed to update combo offer',
     );
   }
 
@@ -294,9 +292,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       onConfirm: () => widget.comboOfferController.deleteComboOffer(comboId),
     );
     if (confirmed != true || !mounted) return;
-    showUndoSnackBar(
+    AdminSnackbarService.showUndo(
       context,
-      message: 'Combo offer removed',
+      'Combo offer removed',
       onUndo: () {
         widget.comboOfferController.toggleComboOffer(comboId, true);
       },
@@ -591,14 +589,11 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       !offer.isActive,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Category offer ${offer.isActive ? 'deactivated' : 'activated'}'
-              : 'Failed to update category offer',
-        ),
-      ),
+    AdminSnackbarService.show(
+      context,
+      success
+          ? 'Category offer ${offer.isActive ? 'deactivated' : 'activated'}'
+          : 'Failed to update category offer',
     );
   }
 
@@ -614,9 +609,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           widget.categoryOfferController.deleteCategoryOffer(offerId),
     );
     if (confirmed != true || !mounted) return;
-    showUndoSnackBar(
+    AdminSnackbarService.showUndo(
       context,
-      message: 'Category offer removed',
+      'Category offer removed',
       onUndo: () {
         widget.categoryOfferController.toggleCategoryOffer(offerId, true);
       },
@@ -1091,14 +1086,11 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       !offer.isActive,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Free gift offer ${offer.isActive ? 'deactivated' : 'activated'}'
-              : 'Failed to update offer status',
-        ),
-      ),
+    AdminSnackbarService.show(
+      context,
+      success
+          ? 'Free gift offer ${offer.isActive ? 'deactivated' : 'activated'}'
+          : 'Failed to update offer status',
     );
   }
 
@@ -1110,11 +1102,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           _smgmController.upsertOfferWithConflicts(updated),
     );
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Free gift offer updated successfully'),
-        ),
-      );
+      AdminSnackbarService.show(context, 'Free gift offer updated successfully');
       await widget.onRefresh();
     }
   }
@@ -1130,9 +1118,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       onConfirm: () => _smgmController.deleteOffer(offerId),
     );
     if (confirmed != true || !mounted) return;
-    showUndoSnackBar(
+    AdminSnackbarService.showUndo(
       context,
-      message: 'Free gift offer removed',
+      'Free gift offer removed',
       onUndo: () {
         _smgmController.setOfferActive(offerId, true);
       },
@@ -1293,9 +1281,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
           onSave: (updated) => _bogoController.upsertOffer(updated),
         );
         if (saved == true && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('BOGO offer updated successfully')),
-          );
+          AdminSnackbarService.show(context, 'BOGO offer updated successfully');
           await widget.onRefresh();
         }
         break;
@@ -1318,9 +1304,7 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
               widget.categoryController.subcategoryOptionsWithImagesFor,
         );
         if (saved == true && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product offer updated')),
-          );
+          AdminSnackbarService.show(context, 'Product offer updated');
         }
         break;
       case _OfferCardActionType.categoryOffer:
@@ -1418,7 +1402,6 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
     List<CategoryOffer> categoryOffers,
     List<ComboOffer> comboOffers,
   ) async {
-    final messenger = ScaffoldMessenger.of(context);
     final actionType = _actionTypeForCurrentFilter(
       product,
       bogoOffers,
@@ -1474,17 +1457,12 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
 
     if (!mounted) return;
     if (success) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '${product.productName} offer ${statusLabel ?? 'updated'}',
-          ),
-        ),
+      AdminSnackbarService.show(
+        context,
+        '${product.productName} offer ${statusLabel ?? 'updated'}',
       );
     } else {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Failed to update offer status')),
-      );
+      AdminSnackbarService.show(context, 'Failed to update offer status');
     }
   }
 
@@ -1513,9 +1491,9 @@ class _CatalogOffersTabState extends State<CatalogOffersTab> {
       _OfferCardActionType.none => 'offer',
     };
 
-    showUndoSnackBar(
+    AdminSnackbarService.showUndo(
       context,
-      message: result == null
+      result == null
           ? '${product.productName} $removeLabel permanently deleted'
           : '${product.productName} $removeLabel removed',
       onUndo: () {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_complaint_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -197,8 +198,9 @@ class _AddressChangeCard extends StatelessWidget {
                             await _callCustomer(phone);
                           } catch (error) {
                             if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(error.toString())),
+                            AdminSnackbarService.show(
+                              context,
+                              error.toString(),
                             );
                           }
                         },
@@ -227,15 +229,11 @@ class _AddressChangeCard extends StatelessWidget {
         adminNote: note.trim().isEmpty ? null : note.trim(),
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Request approved')));
+        AdminSnackbarService.show(context, 'Request approved');
       }
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      AdminSnackbarService.show(context, error.toString());
     }
   }
 
@@ -274,15 +272,11 @@ class _AddressChangeCard extends StatelessWidget {
         adminNote: note.trim().isEmpty ? selected : note.trim(),
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Request rejected')));
+        AdminSnackbarService.show(context, 'Request rejected');
       }
     } catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      AdminSnackbarService.show(context, error.toString());
     }
   }
 

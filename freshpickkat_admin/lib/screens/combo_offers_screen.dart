@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_combo_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
@@ -246,15 +247,15 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
       final result = await _controller.deleteComboOffer(offer.comboId ?? '');
       if (!mounted) return;
       if (result == null) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Combo offer permanently deleted',
+          'Combo offer permanently deleted',
           onUndo: () {},
         );
       } else if (result == true) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Combo offer deactivated',
+          'Combo offer deactivated',
           onUndo: () {
             _controller.toggleComboOffer(offer.comboId ?? '', true);
           },
@@ -262,9 +263,7 @@ class _ComboOffersScreenState extends State<_ComboOffersScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+        AdminSnackbarService.show(context, 'Failed to delete: $e');
       }
     }
   }
@@ -1375,10 +1374,9 @@ class _ComboOfferDialogState extends State<_ComboOfferDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_products.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('At least 2 products are required for a combo offer'),
-        ),
+      AdminSnackbarService.show(
+        context,
+        'At least 2 products are required for a combo offer',
       );
       return;
     }

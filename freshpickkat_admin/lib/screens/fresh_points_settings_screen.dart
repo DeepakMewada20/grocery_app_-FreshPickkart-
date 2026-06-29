@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/controller/admin_fresh_points_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -232,15 +233,15 @@ class _FreshPointsSettingsScreenState extends State<FreshPointsSettingsScreen> {
     final expiryDays = int.tryParse(_expiryDaysCtrl.text.trim());
 
     if (percent == null || percent <= 0 || percent > 100) {
-      _showError('Redemption limit must be between 1 and 100.');
+      AdminSnackbarService.show(context, 'Redemption limit must be between 1 and 100.');
       return;
     }
     if (minOrder == null || minOrder < 0) {
-      _showError('Minimum order amount must be 0 or more.');
+      AdminSnackbarService.show(context, 'Minimum order amount must be 0 or more.');
       return;
     }
     if (_enableExpiry && (expiryDays == null || expiryDays < 1)) {
-      _showError('Expiry days must be at least 1.');
+      AdminSnackbarService.show(context, 'Expiry days must be at least 1.');
       return;
     }
 
@@ -260,24 +261,12 @@ class _FreshPointsSettingsScreenState extends State<FreshPointsSettingsScreen> {
     setState(() => _isSaving = false);
 
     if (success) {
-      Get.snackbar(
-        'Success',
+      AdminSnackbarService.show(
+        context,
         'FreshPoints settings saved.',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
       );
     } else {
-      _showError('Failed to save settings. Please try again.');
+      AdminSnackbarService.show(context, 'Failed to save settings. Please try again.');
     }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    Get.snackbar(
-      'Error',
-      message,
-      backgroundColor: Theme.of(context).colorScheme.error,
-      colorText: Colors.white,
-    );
   }
 }

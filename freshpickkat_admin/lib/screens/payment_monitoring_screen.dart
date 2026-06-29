@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/controller/admin_payment_monitoring_controller.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
@@ -353,9 +354,7 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
     final razorpayPaymentId = order.razorpayPaymentId;
     if (razorpayPaymentId == null || razorpayPaymentId.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No Razorpay payment ID available')),
-        );
+        AdminSnackbarService.show(context, 'No Razorpay payment ID available');
       }
       return;
     }
@@ -808,16 +807,12 @@ class _PaymentOrderDetailScreenState extends State<_PaymentOrderDetailScreen> {
     try {
       final result = await widget.controller.reconcileAll();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Reconciliation complete')),
-        );
+        AdminSnackbarService.show(context, result.message ?? 'Reconciliation complete');
         _load();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Reconciliation failed: $e')));
+        AdminSnackbarService.show(context, 'Reconciliation failed: $e');
       }
     } finally {
       if (mounted) setState(() => _reconciling = false);
@@ -832,16 +827,12 @@ class _PaymentOrderDetailScreenState extends State<_PaymentOrderDetailScreen> {
       );
       final decoded = jsonDecode(json) as Map<String, dynamic>;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(decoded['message']?.toString() ?? 'Done')),
-        );
+        AdminSnackbarService.show(context, decoded['message']?.toString() ?? 'Done');
         _load();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment link reconcile failed: $e')),
-        );
+        AdminSnackbarService.show(context, 'Payment link reconcile failed: $e');
       }
     } finally {
       if (mounted) setState(() => _reconcilingPaymentLink = false);
@@ -855,18 +846,12 @@ class _PaymentOrderDetailScreenState extends State<_PaymentOrderDetailScreen> {
       );
       final decoded = jsonDecode(result) as Map<String, dynamic>;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(decoded['message'] as String? ?? 'Retry initiated'),
-          ),
-        );
+        AdminSnackbarService.show(context, decoded['message'] as String? ?? 'Retry initiated');
         _loadAutoRefundJobs();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Retry failed: $e')));
+        AdminSnackbarService.show(context, 'Retry failed: $e');
       }
     }
   }
@@ -878,20 +863,12 @@ class _PaymentOrderDetailScreenState extends State<_PaymentOrderDetailScreen> {
       );
       final decoded = jsonDecode(result) as Map<String, dynamic>;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              decoded['message'] as String? ?? 'Marked as reviewed',
-            ),
-          ),
-        );
+        AdminSnackbarService.show(context, decoded['message'] as String? ?? 'Marked as reviewed');
         _loadAutoRefundJobs();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Mark reviewed failed: $e')));
+        AdminSnackbarService.show(context, 'Mark reviewed failed: $e');
       }
     }
   }
@@ -1433,8 +1410,7 @@ class _QuickActionsPanel extends StatelessWidget {
                   ],
                 );
                 final url = uri.toString();
-                final snack = SnackBar(content: Text('URL copied: $url'));
-                ScaffoldMessenger.of(context).showSnackBar(snack);
+                AdminSnackbarService.show(context, 'URL copied: $url');
               },
               icon: const Icon(Icons.open_in_new_outlined),
               label: const Text('Open Razorpay'),

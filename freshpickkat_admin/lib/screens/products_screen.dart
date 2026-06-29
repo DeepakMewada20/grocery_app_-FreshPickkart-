@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_bogo_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../widgets/admin_app_bar.dart';
 import 'package:freshpickkat_admin/screens/product_dialogs/product_form_dialog.dart';
@@ -151,14 +152,10 @@ class _ProductsScreenState extends State<ProductsScreen>
       if (saved != true) return;
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Product added')));
+      AdminSnackbarService.show(context, 'Product added');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to add product: $e')));
+      AdminSnackbarService.show(context, 'Failed to add product: $e');
     } finally {
       _isOpeningDialog = false;
     }
@@ -192,14 +189,10 @@ class _ProductsScreenState extends State<ProductsScreen>
       if (saved != true) return;
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Product updated')));
+      AdminSnackbarService.show(context, 'Product updated');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update product: $e')));
+      AdminSnackbarService.show(context, 'Failed to update product: $e');
     } finally {
       _isOpeningDialog = false;
     }
@@ -237,9 +230,7 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   Future<void> _deleteProduct(Product product) async {
     if (product.productId == null || product.productId!.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid product id')));
+      AdminSnackbarService.show(context, 'Invalid product id');
       return;
     }
 
@@ -247,15 +238,15 @@ class _ProductsScreenState extends State<ProductsScreen>
       final result = await _productController.deleteProduct(product.productId!);
       if (!mounted) return;
       if (result == null) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Product permanently deleted',
+          'Product permanently deleted',
           onUndo: () {},
         );
       } else if (result == true) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Product deactivated',
+          'Product deactivated',
           onUndo: () {
             _productController.deactivateProduct(product.productId!, true);
           },
@@ -263,9 +254,7 @@ class _ProductsScreenState extends State<ProductsScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete product: $e')));
+        AdminSnackbarService.show(context, 'Failed to delete product: $e');
       }
     }
   }

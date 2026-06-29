@@ -3,6 +3,7 @@ import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_admin/controller/admin_offer_controller/admin_category_offer_controller.dart';
 import 'package:freshpickkat_admin/controller/admin_category_controller.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -239,15 +240,15 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
       final result = await _controller.deleteCategoryOffer(offer.offerId ?? '');
       if (!mounted) return;
       if (result == null) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Category offer permanently deleted',
+          'Category offer permanently deleted',
           onUndo: () {},
         );
       } else if (result == true) {
-        showUndoSnackBar(
+        AdminSnackbarService.showUndo(
           context,
-          message: 'Category offer deactivated',
+          'Category offer deactivated',
           onUndo: () {
             _controller.toggleCategoryOffer(offer.offerId ?? '', true);
           },
@@ -255,9 +256,7 @@ class _CategoryOffersScreenState extends State<_CategoryOffersScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+        AdminSnackbarService.show(context, 'Failed to delete: $e');
       }
     }
   }
@@ -877,9 +876,7 @@ class _CategoryOfferDialogState extends State<_CategoryOfferDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
+      AdminSnackbarService.show(context, 'Please select a category');
       return;
     }
 

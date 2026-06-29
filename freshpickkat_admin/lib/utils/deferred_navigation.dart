@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../services/admin_snackbar_service.dart';
 
 Future<T?> navigateDeferred<T>({
   required Future<void> Function() loadLibrary,
@@ -27,11 +28,9 @@ Future<T?> navigateDeferred<T>({
   } catch (e) {
     Get.back();
 
-    Get.snackbar(
-      'Error',
+    AdminSnackbarService.show(
+      Get.context!,
       'Unable to load this feature. Please try again.',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 3),
     );
 
     return null;

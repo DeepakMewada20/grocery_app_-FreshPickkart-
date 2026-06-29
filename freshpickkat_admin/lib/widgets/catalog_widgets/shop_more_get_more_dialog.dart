@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/theme/admin_app_theme.dart';
 import 'package:freshpickkat_admin/controller/admin_product_controller.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_admin/widgets/product_selection_dialog.dart';
-import 'package:freshpickkat_admin/widgets/confirm_action_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 Future<bool?> showShopMoreGetMoreDialog({
@@ -186,21 +186,21 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
 
   Future<void> _save() async {
     if (_selectedProduct == null || _selectedProduct!.productId == null) {
-      _showError('Please select a reward product');
+      AdminSnackbarService.show(context, 'Please select a reward product');
       return;
     }
     final minAmount = double.tryParse(_minAmountController.text.trim());
     if (minAmount == null || minAmount < 0) {
-      _showError('Please enter a valid minimum order amount');
+      AdminSnackbarService.show(context, 'Please enter a valid minimum order amount');
       return;
     }
     if (_hasExpiry) {
       if (_startDate == null || _endDate == null) {
-        _showError('Please set both start and end dates');
+        AdminSnackbarService.show(context, 'Please set both start and end dates');
         return;
       }
       if (_endDate!.isBefore(_startDate!)) {
-        _showError('End date must be after start date');
+        AdminSnackbarService.show(context, 'End date must be after start date');
         return;
       }
     }
@@ -265,17 +265,13 @@ class _ShopMoreGetMoreDialogState extends State<ShopMoreGetMoreDialog> {
         return;
       }
 
-      _showError(result.message ?? 'Error saving offer');
+      AdminSnackbarService.show(context, result.message ?? 'Error saving offer');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
