@@ -16,16 +16,19 @@ class ReferralInviteRoute extends Route {
     final appStoreUrl = 'https://apps.apple.com/app/freshpickkart/idXXXXXXXXXX';
     final playStoreUrl = 'https://play.google.com/store/apps/details?id=com.freshpickkart.customer';
     final inviteLink = 'https://freshpickkart.com/invite/$code';
+    final path = 'invite/$code';
+    final encodedPlayStore = Uri.encodeComponent(playStoreUrl);
+    final intentUrl = 'intent://$path#Intent;scheme=https;host=freshpickkart.com;package=com.freshpickkart.customer;S.browser_fallback_url=$encodedPlayStore;end';
 
     return Response.ok(
       body: Body.fromString(
-        _buildHtml(code, inviteLink, appStoreUrl, playStoreUrl),
+        _buildHtml(code, inviteLink, intentUrl, appStoreUrl, playStoreUrl),
         mimeType: MimeType.html,
       ),
     );
   }
 
-  String _buildHtml(String code, String inviteLink, String appStoreUrl, String playStoreUrl) {
+  String _buildHtml(String code, String inviteLink, String intentUrl, String appStoreUrl, String playStoreUrl) {
     return '''
 <!DOCTYPE html>
 <html lang="en-IN">
@@ -107,7 +110,12 @@ class ReferralInviteRoute extends Route {
       btn.disabled = true;
       btnText.style.display = 'none';
       btnLoader.style.display = 'block';
-      window.location.href = '$inviteLink';
+      var ua = navigator.userAgent.toLowerCase();
+      if (/android/.test(ua)) {
+        window.location.href = '${_escapeJs(intentUrl)}';
+      } else {
+        window.location.href = '$inviteLink';
+      }
       var start = Date.now();
       setTimeout(function() {
         if (Date.now() - start < 2500) {

@@ -18,6 +18,9 @@ class DeepLinkFallbackRoute extends Route {
     final appStoreUrl = 'https://apps.apple.com/app/freshpickkart/idXXXXXXXXXX';
     final playStoreUrl = 'https://play.google.com/store/apps/details?id=com.freshpickkart.customer';
     final deepLink = 'https://freshpickkart.com/$routeType/$id';
+    final path = '$routeType/$id';
+    final encodedPlayStore = Uri.encodeComponent(playStoreUrl);
+    final intentUrl = 'intent://$path#Intent;scheme=https;host=freshpickkart.com;package=com.freshpickkart.customer;S.browser_fallback_url=$encodedPlayStore;end';
 
     final (icon, title, subtitle) = switch (routeType) {
       'offer' => ('🏷️', 'Special Offer!', 'Someone shared an exclusive offer with you.'),
@@ -27,7 +30,7 @@ class DeepLinkFallbackRoute extends Route {
 
     return Response.ok(
       body: Body.fromString(
-        _buildHtml(icon, title, subtitle, deepLink, id, appStoreUrl, playStoreUrl),
+        _buildHtml(icon, title, subtitle, deepLink, intentUrl, appStoreUrl, playStoreUrl),
         mimeType: MimeType.html,
       ),
     );
@@ -38,7 +41,7 @@ class DeepLinkFallbackRoute extends Route {
     String title,
     String subtitle,
     String deepLink,
-    String id,
+    String intentUrl,
     String appStoreUrl,
     String playStoreUrl,
   ) {
@@ -115,7 +118,12 @@ class DeepLinkFallbackRoute extends Route {
       btn.disabled = true;
       btnText.style.display = 'none';
       btnLoader.style.display = 'block';
-      window.location.href = '${_escapeJs(deepLink)}';
+      var ua = navigator.userAgent.toLowerCase();
+      if (/android/.test(ua)) {
+        window.location.href = '${_escapeJs(intentUrl)}';
+      } else {
+        window.location.href = '${_escapeJs(deepLink)}';
+      }
       var start = Date.now();
       setTimeout(function() {
         if (Date.now() - start < 2500) {
