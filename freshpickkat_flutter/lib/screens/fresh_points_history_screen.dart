@@ -191,6 +191,10 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
     );
   }
 
+  bool _isEarnType(String type) {
+    return type == 'EARNED' || type == 'REFERRAL' || type == 'ADMIN_ADD' || type == 'REFUND_RESTORE';
+  }
+
   String _labelForType(String type) {
     switch (type) {
       case 'ADMIN_ADD':
@@ -201,6 +205,10 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
         return 'Earned via Order';
       case 'REFERRAL':
         return 'Referral Reward';
+      case 'REFUND_RESTORE':
+        return 'Refund Restore';
+      case 'REDEEM_ORDER':
+        return 'Redeemed on Order';
       case 'REWARD_REVERSAL':
         return 'Reward Reversal';
       default:
@@ -213,8 +221,9 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
     ColorScheme cs,
     FreshPointsTransaction txn,
   ) {
-    final isPositive = txn.points > 0;
+    final isPositive = _isEarnType(txn.transactionType);
     final isAdmin = txn.transactionType == 'ADMIN_ADD' || txn.transactionType == 'ADMIN_DEDUCT';
+    final isRedeemOrder = txn.transactionType == 'REDEEM_ORDER';
     final icon = isPositive ? Icons.add_circle_outline : Icons.remove_circle_outline;
     final color = isPositive ? cs.primary : cs.error;
     final hasLongText = (txn.description?.length ?? 0) > 30;
@@ -255,7 +264,9 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                     Text(
                       isAdmin && txn.description != null
                           ? txn.description!
-                          : _labelForType(txn.transactionType),
+                          : isRedeemOrder && txn.description != null
+                              ? txn.description!
+                              : _labelForType(txn.transactionType),
                       style: TextStyle(
                         color: cs.onSurface,
                         fontSize: 14.sp,
@@ -299,7 +310,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
               Padding(
                 padding: EdgeInsets.only(top: 2.h),
                 child: Text(
-                  '${isPositive ? '+' : ''}${txn.points}',
+                  '${isPositive ? '+' : '-'}${txn.points}',
                   style: TextStyle(
                     color: color,
                     fontSize: 16.sp,

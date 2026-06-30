@@ -6493,13 +6493,6 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '50',
         ),
         _i2.ColumnDefinition(
-          name: 'minimumQualifyingAmount',
-          columnType: _i2.ColumnType.doublePrecision,
-          isNullable: false,
-          dartType: 'double',
-          columnDefault: '0.0',
-        ),
-        _i2.ColumnDefinition(
           name: 'rewardTriggerStatus',
           columnType: _i2.ColumnType.text,
           isNullable: false,
@@ -6519,6 +6512,20 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'bool',
           columnDefault: 'true',
+        ),
+        _i2.ColumnDefinition(
+          name: 'inviteeCouponMinOrderAmount',
+          columnType: _i2.ColumnType.doublePrecision,
+          isNullable: false,
+          dartType: 'double',
+          columnDefault: '199.0',
+        ),
+        _i2.ColumnDefinition(
+          name: 'inviteeCouponValidityDays',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+          columnDefault: '15',
         ),
         _i2.ColumnDefinition(
           name: 'enableReferralExpiry',
@@ -6652,20 +6659,6 @@ class Protocol extends _i1.SerializationManagerServer {
           isNullable: false,
           dartType: 'int',
           columnDefault: '3',
-        ),
-        _i2.ColumnDefinition(
-          name: 'newAccountScore',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-          columnDefault: '20',
-        ),
-        _i2.ColumnDefinition(
-          name: 'newAccountHours',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-          columnDefault: '48',
         ),
         _i2.ColumnDefinition(
           name: 'autoReversalWindowDays',

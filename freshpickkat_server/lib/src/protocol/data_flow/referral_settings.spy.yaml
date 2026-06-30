@@ -6,9 +6,10 @@ fields:
   inviteeCouponCodeTemplate: String
   referrerPointsEnabled: bool
   referrerRewardPoints: int
-  minimumQualifyingAmount: double
   rewardTriggerStatus: String
   maxRewardedPerMonth: int
+  inviteeCouponMinOrderAmount: double
+  inviteeCouponValidityDays: int
   enableFraudProtection: bool
   enableReferralExpiry: bool
   referralExpiryDays: int
@@ -28,8 +29,6 @@ fields:
   referralVelocityScore: int
   velocityTimeWindowHours: int
   velocityThreshold: int
-  newAccountScore: int
-  newAccountHours: int
   autoReversalWindowDays: int
   termsText: String?
   updatedAt: DateTime

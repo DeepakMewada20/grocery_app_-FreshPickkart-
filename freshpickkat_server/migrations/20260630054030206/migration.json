@@ -1,0 +1,48 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "referral_settings",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "minimumQualifyingAmount"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"minimumQualifyingAmount\" of table \"referral_settings\" will be dropped.",
+            "table": "referral_settings",
+            "columns": [
+              "minimumQualifyingAmount"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"minimumQualifyingAmount\" of table \"referral_settings\" will be dropped.",
+      "table": "referral_settings",
+      "columns": [
+        "minimumQualifyingAmount"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

@@ -6,6 +6,7 @@ import 'package:freshpickkat_admin/services/admin_snackbar_service.dart';
 import 'package:freshpickkat_admin/utils/admin_responsive.dart';
 import 'package:freshpickkat_admin/utils/admin_text_styles.dart';
 import 'package:freshpickkat_admin/widgets/admin_app_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FreshPointsSettingsScreen extends StatefulWidget {
   const FreshPointsSettingsScreen({super.key});
@@ -74,7 +75,22 @@ class _FreshPointsSettingsScreenState extends State<FreshPointsSettingsScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const AdminAppBar(title: Text('FreshPoints Settings')),
+      appBar: AdminAppBar(
+        title: const Text('FreshPoints Settings'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Settings Help',
+            onPressed: () async {
+              const url = 'https://freshpickkart.com/docs/fresh-points-settings-help.html';
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+        ],
+      ),
       body: AdminResponsive.constrainContent(
         context: context,
         child: Obx(() {

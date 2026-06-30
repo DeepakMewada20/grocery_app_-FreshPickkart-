@@ -22,10 +22,11 @@ abstract class ReferralSettingsRow
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
     bool? enableFraudProtection,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
@@ -45,8 +46,6 @@ abstract class ReferralSettingsRow
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     this.termsText,
     DateTime? updatedAt,
@@ -56,10 +55,11 @@ abstract class ReferralSettingsRow
        inviteeCouponCodeTemplate = inviteeCouponCodeTemplate ?? 'WELCOME{CODE}',
        referrerPointsEnabled = referrerPointsEnabled ?? true,
        referrerRewardPoints = referrerRewardPoints ?? 50,
-       minimumQualifyingAmount = minimumQualifyingAmount ?? 0.0,
        rewardTriggerStatus = rewardTriggerStatus ?? 'DELIVERED',
        maxRewardedPerMonth = maxRewardedPerMonth ?? 20,
        enableFraudProtection = enableFraudProtection ?? true,
+       inviteeCouponMinOrderAmount = inviteeCouponMinOrderAmount ?? 199.0,
+       inviteeCouponValidityDays = inviteeCouponValidityDays ?? 15,
        enableReferralExpiry = enableReferralExpiry ?? false,
        referralExpiryDays = referralExpiryDays ?? 90,
        shareMessageTemplate =
@@ -81,8 +81,6 @@ abstract class ReferralSettingsRow
        referralVelocityScore = referralVelocityScore ?? 30,
        velocityTimeWindowHours = velocityTimeWindowHours ?? 24,
        velocityThreshold = velocityThreshold ?? 3,
-       newAccountScore = newAccountScore ?? 20,
-       newAccountHours = newAccountHours ?? 48,
        autoReversalWindowDays = autoReversalWindowDays ?? 30,
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -94,10 +92,11 @@ abstract class ReferralSettingsRow
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
     bool? enableFraudProtection,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
@@ -117,8 +116,6 @@ abstract class ReferralSettingsRow
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     String? termsText,
     DateTime? updatedAt,
@@ -147,8 +144,6 @@ abstract class ReferralSettingsRow
               jsonSerialization['referrerPointsEnabled'],
             ),
       referrerRewardPoints: jsonSerialization['referrerRewardPoints'] as int?,
-      minimumQualifyingAmount:
-          (jsonSerialization['minimumQualifyingAmount'] as num?)?.toDouble(),
       rewardTriggerStatus: jsonSerialization['rewardTriggerStatus'] as String?,
       maxRewardedPerMonth: jsonSerialization['maxRewardedPerMonth'] as int?,
       enableFraudProtection: jsonSerialization['enableFraudProtection'] == null
@@ -156,6 +151,11 @@ abstract class ReferralSettingsRow
           : _i1.BoolJsonExtension.fromJson(
               jsonSerialization['enableFraudProtection'],
             ),
+      inviteeCouponMinOrderAmount:
+          (jsonSerialization['inviteeCouponMinOrderAmount'] as num?)
+              ?.toDouble(),
+      inviteeCouponValidityDays:
+          jsonSerialization['inviteeCouponValidityDays'] as int?,
       enableReferralExpiry: jsonSerialization['enableReferralExpiry'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(
@@ -199,8 +199,6 @@ abstract class ReferralSettingsRow
       velocityTimeWindowHours:
           jsonSerialization['velocityTimeWindowHours'] as int?,
       velocityThreshold: jsonSerialization['velocityThreshold'] as int?,
-      newAccountScore: jsonSerialization['newAccountScore'] as int?,
-      newAccountHours: jsonSerialization['newAccountHours'] as int?,
       autoReversalWindowDays:
           jsonSerialization['autoReversalWindowDays'] as int?,
       termsText: jsonSerialization['termsText'] as String?,
@@ -229,13 +227,15 @@ abstract class ReferralSettingsRow
 
   int referrerRewardPoints;
 
-  double minimumQualifyingAmount;
-
   String rewardTriggerStatus;
 
   int maxRewardedPerMonth;
 
   bool enableFraudProtection;
+
+  double inviteeCouponMinOrderAmount;
+
+  int inviteeCouponValidityDays;
 
   bool enableReferralExpiry;
 
@@ -275,10 +275,6 @@ abstract class ReferralSettingsRow
 
   int velocityThreshold;
 
-  int newAccountScore;
-
-  int newAccountHours;
-
   int autoReversalWindowDays;
 
   String? termsText;
@@ -299,10 +295,11 @@ abstract class ReferralSettingsRow
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
     bool? enableFraudProtection,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
@@ -322,8 +319,6 @@ abstract class ReferralSettingsRow
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     String? termsText,
     DateTime? updatedAt,
@@ -339,10 +334,11 @@ abstract class ReferralSettingsRow
       'inviteeCouponCodeTemplate': inviteeCouponCodeTemplate,
       'referrerPointsEnabled': referrerPointsEnabled,
       'referrerRewardPoints': referrerRewardPoints,
-      'minimumQualifyingAmount': minimumQualifyingAmount,
       'rewardTriggerStatus': rewardTriggerStatus,
       'maxRewardedPerMonth': maxRewardedPerMonth,
       'enableFraudProtection': enableFraudProtection,
+      'inviteeCouponMinOrderAmount': inviteeCouponMinOrderAmount,
+      'inviteeCouponValidityDays': inviteeCouponValidityDays,
       'enableReferralExpiry': enableReferralExpiry,
       'referralExpiryDays': referralExpiryDays,
       'shareMessageTemplate': shareMessageTemplate,
@@ -363,8 +359,6 @@ abstract class ReferralSettingsRow
       'referralVelocityScore': referralVelocityScore,
       'velocityTimeWindowHours': velocityTimeWindowHours,
       'velocityThreshold': velocityThreshold,
-      'newAccountScore': newAccountScore,
-      'newAccountHours': newAccountHours,
       'autoReversalWindowDays': autoReversalWindowDays,
       if (termsText != null) 'termsText': termsText,
       'updatedAt': updatedAt.toJson(),
@@ -417,10 +411,11 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
     bool? enableFraudProtection,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
@@ -440,8 +435,6 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     String? termsText,
     DateTime? updatedAt,
@@ -453,10 +446,11 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
          inviteeCouponCodeTemplate: inviteeCouponCodeTemplate,
          referrerPointsEnabled: referrerPointsEnabled,
          referrerRewardPoints: referrerRewardPoints,
-         minimumQualifyingAmount: minimumQualifyingAmount,
          rewardTriggerStatus: rewardTriggerStatus,
          maxRewardedPerMonth: maxRewardedPerMonth,
          enableFraudProtection: enableFraudProtection,
+         inviteeCouponMinOrderAmount: inviteeCouponMinOrderAmount,
+         inviteeCouponValidityDays: inviteeCouponValidityDays,
          enableReferralExpiry: enableReferralExpiry,
          referralExpiryDays: referralExpiryDays,
          shareMessageTemplate: shareMessageTemplate,
@@ -477,8 +471,6 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
          referralVelocityScore: referralVelocityScore,
          velocityTimeWindowHours: velocityTimeWindowHours,
          velocityThreshold: velocityThreshold,
-         newAccountScore: newAccountScore,
-         newAccountHours: newAccountHours,
          autoReversalWindowDays: autoReversalWindowDays,
          termsText: termsText,
          updatedAt: updatedAt,
@@ -496,10 +488,11 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
     bool? enableFraudProtection,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
     String? shareMessageTemplate,
@@ -519,8 +512,6 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     Object? termsText = _Undefined,
     DateTime? updatedAt,
@@ -535,12 +526,14 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
       referrerPointsEnabled:
           referrerPointsEnabled ?? this.referrerPointsEnabled,
       referrerRewardPoints: referrerRewardPoints ?? this.referrerRewardPoints,
-      minimumQualifyingAmount:
-          minimumQualifyingAmount ?? this.minimumQualifyingAmount,
       rewardTriggerStatus: rewardTriggerStatus ?? this.rewardTriggerStatus,
       maxRewardedPerMonth: maxRewardedPerMonth ?? this.maxRewardedPerMonth,
       enableFraudProtection:
           enableFraudProtection ?? this.enableFraudProtection,
+      inviteeCouponMinOrderAmount:
+          inviteeCouponMinOrderAmount ?? this.inviteeCouponMinOrderAmount,
+      inviteeCouponValidityDays:
+          inviteeCouponValidityDays ?? this.inviteeCouponValidityDays,
       enableReferralExpiry: enableReferralExpiry ?? this.enableReferralExpiry,
       referralExpiryDays: referralExpiryDays ?? this.referralExpiryDays,
       shareMessageTemplate: shareMessageTemplate ?? this.shareMessageTemplate,
@@ -567,8 +560,6 @@ class _ReferralSettingsRowImpl extends ReferralSettingsRow {
       velocityTimeWindowHours:
           velocityTimeWindowHours ?? this.velocityTimeWindowHours,
       velocityThreshold: velocityThreshold ?? this.velocityThreshold,
-      newAccountScore: newAccountScore ?? this.newAccountScore,
-      newAccountHours: newAccountHours ?? this.newAccountHours,
       autoReversalWindowDays:
           autoReversalWindowDays ?? this.autoReversalWindowDays,
       termsText: termsText is String? ? termsText : this.termsText,
@@ -615,12 +606,6 @@ class ReferralSettingsRowUpdateTable
     value,
   );
 
-  _i1.ColumnValue<double, double> minimumQualifyingAmount(double value) =>
-      _i1.ColumnValue(
-        table.minimumQualifyingAmount,
-        value,
-      );
-
   _i1.ColumnValue<String, String> rewardTriggerStatus(String value) =>
       _i1.ColumnValue(
         table.rewardTriggerStatus,
@@ -635,6 +620,18 @@ class ReferralSettingsRowUpdateTable
   _i1.ColumnValue<bool, bool> enableFraudProtection(bool value) =>
       _i1.ColumnValue(
         table.enableFraudProtection,
+        value,
+      );
+
+  _i1.ColumnValue<double, double> inviteeCouponMinOrderAmount(double value) =>
+      _i1.ColumnValue(
+        table.inviteeCouponMinOrderAmount,
+        value,
+      );
+
+  _i1.ColumnValue<int, int> inviteeCouponValidityDays(int value) =>
+      _i1.ColumnValue(
+        table.inviteeCouponValidityDays,
         value,
       );
 
@@ -740,16 +737,6 @@ class ReferralSettingsRowUpdateTable
     value,
   );
 
-  _i1.ColumnValue<int, int> newAccountScore(int value) => _i1.ColumnValue(
-    table.newAccountScore,
-    value,
-  );
-
-  _i1.ColumnValue<int, int> newAccountHours(int value) => _i1.ColumnValue(
-    table.newAccountHours,
-    value,
-  );
-
   _i1.ColumnValue<int, int> autoReversalWindowDays(int value) =>
       _i1.ColumnValue(
         table.autoReversalWindowDays,
@@ -802,11 +789,6 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
-    minimumQualifyingAmount = _i1.ColumnDouble(
-      'minimumQualifyingAmount',
-      this,
-      hasDefault: true,
-    );
     rewardTriggerStatus = _i1.ColumnString(
       'rewardTriggerStatus',
       this,
@@ -819,6 +801,16 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
     );
     enableFraudProtection = _i1.ColumnBool(
       'enableFraudProtection',
+      this,
+      hasDefault: true,
+    );
+    inviteeCouponMinOrderAmount = _i1.ColumnDouble(
+      'inviteeCouponMinOrderAmount',
+      this,
+      hasDefault: true,
+    );
+    inviteeCouponValidityDays = _i1.ColumnInt(
+      'inviteeCouponValidityDays',
       this,
       hasDefault: true,
     );
@@ -916,16 +908,6 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
       this,
       hasDefault: true,
     );
-    newAccountScore = _i1.ColumnInt(
-      'newAccountScore',
-      this,
-      hasDefault: true,
-    );
-    newAccountHours = _i1.ColumnInt(
-      'newAccountHours',
-      this,
-      hasDefault: true,
-    );
     autoReversalWindowDays = _i1.ColumnInt(
       'autoReversalWindowDays',
       this,
@@ -956,13 +938,15 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt referrerRewardPoints;
 
-  late final _i1.ColumnDouble minimumQualifyingAmount;
-
   late final _i1.ColumnString rewardTriggerStatus;
 
   late final _i1.ColumnInt maxRewardedPerMonth;
 
   late final _i1.ColumnBool enableFraudProtection;
+
+  late final _i1.ColumnDouble inviteeCouponMinOrderAmount;
+
+  late final _i1.ColumnInt inviteeCouponValidityDays;
 
   late final _i1.ColumnBool enableReferralExpiry;
 
@@ -1002,10 +986,6 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnInt velocityThreshold;
 
-  late final _i1.ColumnInt newAccountScore;
-
-  late final _i1.ColumnInt newAccountHours;
-
   late final _i1.ColumnInt autoReversalWindowDays;
 
   late final _i1.ColumnString termsText;
@@ -1021,10 +1001,11 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
     inviteeCouponCodeTemplate,
     referrerPointsEnabled,
     referrerRewardPoints,
-    minimumQualifyingAmount,
     rewardTriggerStatus,
     maxRewardedPerMonth,
     enableFraudProtection,
+    inviteeCouponMinOrderAmount,
+    inviteeCouponValidityDays,
     enableReferralExpiry,
     referralExpiryDays,
     shareMessageTemplate,
@@ -1044,8 +1025,6 @@ class ReferralSettingsRowTable extends _i1.Table<_i1.UuidValue?> {
     referralVelocityScore,
     velocityTimeWindowHours,
     velocityThreshold,
-    newAccountScore,
-    newAccountHours,
     autoReversalWindowDays,
     termsText,
     updatedAt,

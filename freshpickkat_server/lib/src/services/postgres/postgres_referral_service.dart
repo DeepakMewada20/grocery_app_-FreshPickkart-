@@ -162,6 +162,37 @@ class PostgresReferralService {
         'source': source ?? 'onboarding',
       },
     );
+
+    // ── Instant welcome coupon ──
+    final settingsRow = await getOrCreateSettingsRow(session);
+    if (settingsRow.inviteeCouponEnabled) {
+      final couponCode = settingsRow.inviteeCouponCodeTemplate.replaceAll('{CODE}', normalized);
+      final existingCoupon = await CouponRow.db.findFirstRow(
+        session,
+        where: (t) => t.code.equals(couponCode),
+      );
+      if (existingCoupon == null) {
+        await CouponRow.db.insertRow(
+          session,
+          CouponRow(
+            code: couponCode,
+            description: 'Welcome reward for using referral code $normalized',
+            couponType: 'FLAT_DISCOUNT',
+            discountValue: settingsRow.inviteeCouponAmount,
+            minOrderAmount: settingsRow.inviteeCouponMinOrderAmount,
+            maxUsageTotal: 1,
+            maxUsagePerUser: 1,
+            startsAt: now,
+            endsAt: now.add(Duration(days: settingsRow.inviteeCouponValidityDays)),
+            status: 'active',
+            assignedUserId: inviteeUserId,
+            assignedPhone: inviteePhone,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+    }
   }
 
   // ── Lookup ────────────────────────────────────────────────────────────────
@@ -406,8 +437,6 @@ class PostgresReferralService {
       where: (t) => t.orderNumber.equals(orderId),
     );
     if (order == null) return;
-    if (order.userId == null) return;
-    if (order.finalAmount == null) return;
 
     final referral = await ReferralRow.db.findFirstRow(
       session,
@@ -421,19 +450,17 @@ class PostgresReferralService {
 
     final settings = await getOrCreateSettings(session);
     if (!settings.isEnabled) return;
-    if ((order.finalAmount ?? 0) < settings.minimumQualifyingAmount) return;
-    if (settings.minimumActualPaymentForQualification > 0 &&
-        (order.finalAmount ?? 0) < settings.minimumActualPaymentForQualification) return;
+
+    // ── New trigger: coupon must be redeemed on this order ──
+    final couponCode = settings.inviteeCouponCodeTemplate.replaceAll('{CODE}', referral.referralCodeUsed);
+    final referralCoupon = await CouponRow.db.findFirstRow(
+      session,
+      where: (t) => t.code.equals(couponCode),
+    );
+    if (referralCoupon == null) return;
+    if (order.couponId == null || order.couponId != referralCoupon.id) return;
     if (!_isStatusAtOrAfter(
         order.orderStatus, settings.rewardTriggerStatus)) return;
-
-    final alreadyRewarded = await ReferralRow.db.findFirstRow(
-      session,
-      where: (t) =>
-          t.inviteeUserId.equals(order.userId) &
-          t.status.equals('REWARDED'),
-    );
-    if (alreadyRewarded != null) return;
 
     if (settings.maxRewardedPerMonth > 0) {
       final now = DateTime.now().toUtc();
@@ -574,8 +601,6 @@ class PostgresReferralService {
   ) async {
     final settings = settingsRow ?? await getOrCreateSettingsRow(session);
     final now = DateTime.now().toUtc();
-    final couponCode =
-        settings.inviteeCouponCodeTemplate.replaceAll('{CODE}', referral.referralCodeUsed);
 
     var pointsIssued = 0;
 
@@ -598,39 +623,7 @@ class PostgresReferralService {
         return; // Already processed by another concurrent request
       }
 
-      // 1 — Invitee coupon
-      if (settings.inviteeCouponEnabled) {
-        final existing = await CouponRow.db.findFirstRow(
-          session,
-          where: (t) => t.code.equals(couponCode),
-          transaction: transaction,
-        );
-        if (existing == null) {
-          await CouponRow.db.insertRow(
-            session,
-            CouponRow(
-              code: couponCode,
-              description:
-                  'Welcome reward for using referral code ${referral.referralCodeUsed}',
-              couponType: 'FLAT_DISCOUNT',
-              discountValue: settings.inviteeCouponAmount,
-              minOrderAmount: 0,
-              maxUsageTotal: 1,
-              maxUsagePerUser: 1,
-              startsAt: now,
-              endsAt: now.add(const Duration(days: 30)),
-              status: 'active',
-              assignedUserId: referral.inviteeUserId,
-              assignedPhone: referral.inviteePhone,
-              createdAt: now,
-              updatedAt: now,
-            ),
-            transaction: transaction,
-          );
-        }
-      }
-
-      // 2 — Referrer FreshPoints (directly within transaction)
+      // 1 — Referrer FreshPoints (directly within transaction)
       if (settings.referrerPointsEnabled && settings.referrerRewardPoints > 0) {
         // Idempotency check: skip if ledger entry already exists for this referral
         final existingLedger = await FreshPointsTransactionRow.db.findFirstRow(
@@ -706,10 +699,8 @@ class PostgresReferralService {
           'referrerUserId': referral.referrerUserId.toString(),
           'inviteeUserId': referral.inviteeUserId?.toString() ?? '',
           'orderId': order.id.toString(),
-          'orderAmount': (order.finalAmount ?? 0).toString(),
+          'orderAmount': order.finalAmount.toString(),
           'pointsIssued': pointsIssued.toString(),
-          'couponCode':
-              settings.inviteeCouponEnabled ? couponCode : 'disabled',
         },
       );
     });
@@ -757,9 +748,10 @@ class PostgresReferralService {
         inviteeCouponEnabled: true,
         inviteeCouponAmount: 50.0,
         inviteeCouponCodeTemplate: 'WELCOME{CODE}',
+        inviteeCouponMinOrderAmount: 199.0,
+        inviteeCouponValidityDays: 15,
         referrerPointsEnabled: true,
         referrerRewardPoints: 50,
-        minimumQualifyingAmount: 0.0,
         rewardTriggerStatus: 'DELIVERED',
         maxRewardedPerMonth: 20,
         enableFraudProtection: true,
@@ -791,9 +783,10 @@ class PostgresReferralService {
         inviteeCouponEnabled: settings.inviteeCouponEnabled,
         inviteeCouponAmount: settings.inviteeCouponAmount,
         inviteeCouponCodeTemplate: settings.inviteeCouponCodeTemplate,
+        inviteeCouponMinOrderAmount: settings.inviteeCouponMinOrderAmount,
+        inviteeCouponValidityDays: settings.inviteeCouponValidityDays,
         referrerPointsEnabled: settings.referrerPointsEnabled,
         referrerRewardPoints: settings.referrerRewardPoints,
-        minimumQualifyingAmount: settings.minimumQualifyingAmount,
         rewardTriggerStatus: settings.rewardTriggerStatus,
         maxRewardedPerMonth: settings.maxRewardedPerMonth,
         enableFraudProtection: settings.enableFraudProtection,
@@ -1426,9 +1419,10 @@ class PostgresReferralService {
       inviteeCouponEnabled: row.inviteeCouponEnabled,
       inviteeCouponAmount: row.inviteeCouponAmount,
       inviteeCouponCodeTemplate: row.inviteeCouponCodeTemplate,
+      inviteeCouponMinOrderAmount: row.inviteeCouponMinOrderAmount,
+      inviteeCouponValidityDays: row.inviteeCouponValidityDays,
       referrerPointsEnabled: row.referrerPointsEnabled,
       referrerRewardPoints: row.referrerRewardPoints,
-      minimumQualifyingAmount: row.minimumQualifyingAmount,
       rewardTriggerStatus: row.rewardTriggerStatus,
       maxRewardedPerMonth: row.maxRewardedPerMonth,
       enableFraudProtection: row.enableFraudProtection,
@@ -1451,8 +1445,6 @@ class PostgresReferralService {
       referralVelocityScore: row.referralVelocityScore,
       velocityTimeWindowHours: row.velocityTimeWindowHours,
       velocityThreshold: row.velocityThreshold,
-      newAccountScore: row.newAccountScore,
-      newAccountHours: row.newAccountHours,
       autoReversalWindowDays: row.autoReversalWindowDays,
       termsText: row.termsText,
       updatedAt: row.updatedAt,

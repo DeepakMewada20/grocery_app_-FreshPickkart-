@@ -246,44 +246,6 @@ void main() {
 
     // ── Check Order For Reward — Edge Cases ────────────────────────────────
 
-    test('checkOrderForReward does nothing below min amount', () async {
-      final session = sessionBuilder.build();
-      try {
-        await _seedSettingsRow(sessionBuilder, minimumQualifyingAmount: 500);
-        final referrer = await _seedUser(sessionBuilder, '9999999019', referralCode: 'FPKMIN');
-        final invitee = await _seedUser(sessionBuilder, '9999999020');
-        final now = DateTime.now().toUtc();
-        final order = await protocol.CustomerOrderRow.db.insertRow(session,
-            protocol.CustomerOrderRow(
-              orderNumber: 'min-${now.microsecondsSinceEpoch}',
-              userId: invitee.id!,
-              orderStatus: 'delivered',
-              paymentStatus: 'paid',
-              refundStatus: 'none',
-              itemCount: 1,
-              totalAmount: 100.0,
-              discountAmount: 0.0,
-              deliveryFee: 0.0,
-              finalAmount: 100.0,
-              orderType: 'regular',
-              paymentMode: 'standard',
-              orderedAt: now.subtract(const Duration(hours: 2)),
-            ));
-        await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!, '9999999020',
-            'FPKMIN', 'SIGNED_UP');
-
-        await referralService.checkOrderForReward(session, order.orderNumber);
-
-        final updated = await protocol.ReferralRow.db.findFirstRow(
-          session,
-          where: (t) => t.inviteeUserId.equals(invitee.id!),
-        );
-        expect(updated!.status, equals('SIGNED_UP'));
-      } finally {
-        await session.close();
-      }
-    });
-
     test('checkOrderForReward does nothing before trigger status', () async {
       final session = sessionBuilder.build();
       try {
@@ -494,9 +456,10 @@ void main() {
             inviteeCouponEnabled: false,
             inviteeCouponAmount: 100.0,
             inviteeCouponCodeTemplate: 'TEST{CODE}',
+            inviteeCouponMinOrderAmount: 199.0,
+            inviteeCouponValidityDays: 15,
             referrerPointsEnabled: true,
             referrerRewardPoints: 75,
-            minimumQualifyingAmount: 50.0,
             rewardTriggerStatus: 'OUT_FOR_DELIVERY',
             maxRewardedPerMonth: 5,
             enableFraudProtection: false,
@@ -518,8 +481,6 @@ void main() {
             referralVelocityScore: 30,
             velocityTimeWindowHours: 24,
             velocityThreshold: 3,
-            newAccountScore: 20,
-            newAccountHours: 48,
             autoReversalWindowDays: 30,
             updatedAt: DateTime.now().toUtc(),
           ),
@@ -550,9 +511,10 @@ void main() {
             inviteeCouponEnabled: true,
             inviteeCouponAmount: 25.0,
             inviteeCouponCodeTemplate: 'WELCOME{CODE}',
+            inviteeCouponMinOrderAmount: 199.0,
+            inviteeCouponValidityDays: 15,
             referrerPointsEnabled: true,
             referrerRewardPoints: 30,
-            minimumQualifyingAmount: 0.0,
             rewardTriggerStatus: 'DELIVERED',
             maxRewardedPerMonth: 10,
             enableFraudProtection: true,
@@ -574,8 +536,6 @@ void main() {
             referralVelocityScore: 30,
             velocityTimeWindowHours: 24,
             velocityThreshold: 3,
-            newAccountScore: 20,
-            newAccountHours: 48,
             autoReversalWindowDays: 30,
             updatedAt: DateTime.now().toUtc(),
           ),
@@ -757,7 +717,6 @@ Future<protocol.AppUserRow> _seedUser(
 
 Future<protocol.ReferralSettingsRow> _seedSettingsRow(
   TestSessionBuilder sessionBuilder, {
-  double minimumQualifyingAmount = 0.0,
   int maxRewardedPerMonth = 20,
   String rewardTriggerStatus = 'DELIVERED',
   bool enableFraudScoring = false,
@@ -767,7 +726,6 @@ Future<protocol.ReferralSettingsRow> _seedSettingsRow(
     return await protocol.ReferralSettingsRow.db.insertRow(
       session,
       protocol.ReferralSettingsRow(
-        minimumQualifyingAmount: minimumQualifyingAmount,
         maxRewardedPerMonth: maxRewardedPerMonth,
         rewardTriggerStatus: rewardTriggerStatus,
         enableFraudScoring: enableFraudScoring,

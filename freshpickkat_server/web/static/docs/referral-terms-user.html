@@ -202,7 +202,7 @@
 <!-- ════════════════════════════════════════════════════════════════ -->
 <h2>1. How the Referral Program Works</h2>
 
-<p>Invite your friends to join FreshPickKat, and when they place their first qualifying order, you earn <strong>FreshPoints</strong>. Your friend gets a <strong>welcome coupon</strong> too.</p>
+<p>Invite your friends to join FreshPickKat! When your friend signs up using your referral code, they get a <strong>welcome coupon instantly</strong>. You earn <strong>FreshPoints</strong> when your friend uses that coupon on a delivered order.</p>
 
 <ol class="step-list">
   <li>
@@ -214,8 +214,18 @@
     <br>Your friend installs FreshPickKat and enters your referral code during onboarding or in their profile.
   </li>
   <li>
-    <strong>Friend places an order</strong>
-    <br>Your friend places their first order and it reaches the required status (usually <strong>DELIVERED</strong>).
+    <strong>Friend places an order with the coupon</strong>
+    <br>Your friend places their first order and applies the <strong>WELCOME</strong> coupon at checkout.
+    The coupon only works if the cart meets the minimum order amount.
+  </li>
+  <li>
+    <strong>Coupon redemption check</strong>
+    <br>Our system verifies that the WELCOME coupon was actually used on this order.
+    Reward is only triggered when the coupon is redeemed.
+  </li>
+  <li>
+    <strong>Order gets delivered</strong>
+    <br>The order must reach <strong>DELIVERED</strong> status for the reward to process.
   </li>
   <li>
     <strong>Reward is evaluated</strong>
@@ -223,7 +233,7 @@
   </li>
   <li>
     <strong>You earn FreshPoints</strong>
-    <br>If everything passes, FreshPoints are credited to your account. Your friend receives a welcome coupon too.
+    <br>If everything passes, FreshPoints are credited to your account.
   </li>
 </ol>
 
@@ -231,8 +241,10 @@
   <h3>📌 Quick Facts</h3>
   <table style="width:auto;">
     <tr><td><strong>1 FreshPoint</strong></td><td>= <strong>₹1</strong> in value</td></tr>
-    <tr><td><strong>Reward points</strong></td><td>Credited after friend's first qualifying order</td></tr>
-    <tr><td><strong>Friend's coupon</strong></td><td>Flat discount, valid for 30 days</td></tr>
+    <tr><td><strong>Reward points</strong></td><td>Credited after friend's order is delivered with the WELCOME coupon applied</td></tr>
+    <tr><td><strong>Friend's coupon</strong></td><td>Flat discount, credited instantly on signup</td></tr>
+    <tr><td><strong>Coupon min order</strong></td><td>Cart must meet the minimum amount (configurable, e.g. ₹199)</td></tr>
+    <tr><td><strong>Coupon validity</strong></td><td>Valid for a limited number of days from signup (configurable, e.g. 15 days)</td></tr>
     <tr><td><strong>Referral window</strong></td><td>You must apply a referral code within 7 days of signing up or before your first order (whichever comes first)</td></tr>
   </table>
 </div>
@@ -244,7 +256,8 @@
 
 <h3>What happens after your friend orders?</h3>
 <ol>
-  <li><strong>Qualification Check</strong> — The order must meet the minimum amount requirement and reach the configured status.</li>
+  <li><strong>Coupon Redemption Check</strong> — Our system verifies the friend used the WELCOME coupon on their order. If they didn't, no reward is triggered.</li>
+  <li><strong>Qualification Check</strong> — The order must meet the minimum actual payment requirement and reach <strong>DELIVERED</strong> status.</li>
   <li><strong>Fraud Evaluation</strong> — Our system checks for suspicious patterns (see section 5 below).</li>
   <li><strong>Outcome</strong> — Based on the evaluation, the reward is either approved, held, or rejected.</li>
 </ol>
@@ -302,8 +315,10 @@
 
 <ul>
   <li>The invited friend must be a <strong>new user</strong> — someone who has never had a FreshPickKat account before.</li>
-  <li>The friend's order must meet the <strong>minimum qualifying amount</strong> (after discounts and coupons).</li>
-  <li>The order must reach the required status (typically <strong>DELIVERED</strong>).</li>
+  <li>The friend must <strong>use the WELCOME coupon</strong> on their qualifying order. If the coupon is not applied, the reward will not trigger.</li>
+  <li>The order total must meet the <strong>coupon's minimum order amount</strong> (e.g. ₹199). If the cart is below this amount, the coupon won't apply.</li>
+  <li>The friend's payment amount must meet the <strong>minimum actual payment</strong> requirement (if enabled).</li>
+  <li>The order must reach <strong>DELIVERED</strong> status.</li>
   <li>Each new user can only be referred <strong>once</strong> — duplicate referrals are not allowed.</li>
   <li>You cannot refer <strong>yourself</strong>. Self-referral is strictly prohibited and will result in immediate rejection.</li>
 </ul>
@@ -371,10 +386,7 @@
     <div class="name">Referral Velocity</div>
     <div class="detail">If you refer too many people in a short time (e.g., 5+ in 24 hours), each extra referral adds fraud points.</div>
   </div>
-  <div class="rule-card">
-    <div class="name">New Account</div>
-    <div class="detail">If your account or your friend's account is very new (less than 48 hours old), it adds +20 fraud points per new account.</div>
-  </div>
+
 </div>
 
 <h3>What happens based on the total fraud score?</h3>
@@ -422,10 +434,17 @@
 
 <h3>Welcome Coupon (for your friend)</h3>
 <ul>
-  <li>Your friend receives a <strong>flat discount coupon</strong> when the referral qualifies</li>
-  <li>The coupon code is sent automatically — no manual action needed</li>
-  <li>The coupon is valid for <strong>30 days</strong> from the date of issue</li>
-  <li>The coupon is assigned to your friend's account and cannot be transferred</li>
+  <li>Your friend receives a <strong>flat discount coupon</strong> <strong>instantly</strong> when they sign up using your referral code — no need to wait for an order</li>
+  <li>The coupon code (e.g. <strong>WELCOMEFPKAB12</strong>) is created automatically and appears in your friend's <strong>My Coupons</strong> screen right away</li>
+  <li>The coupon is valid for a limited number of days from signup (configurable, e.g. <strong>15 days</strong>)</li>
+  <li>The coupon has a <strong>minimum order amount</strong> (configurable, e.g. <strong>₹199</strong>) — the cart must meet this amount for the coupon to apply</li>
+  <li>The coupon is assigned to your friend's account and cannot be transferred or shared</li>
+  <li><strong>Important:</strong> The referrer earns FreshPoints <strong>only</strong> when:
+    <ol style="margin-top:6px;">
+      <li>The friend uses the WELCOME coupon on their order</li>
+      <li>The order reaches <strong>DELIVERED</strong> status</li>
+    </ol>
+  </li>
 </ul>
 
 <!-- ════════════════════════════════════════════════════════════════ -->

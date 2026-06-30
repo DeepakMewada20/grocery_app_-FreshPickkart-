@@ -88,7 +88,7 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 ### Hardening Phase B — Fraud Scoring Engine
 - **Abstract rule interface** `FraudRule` + `FraudRuleResult` in `fraud_rule.dart`
 - **Hard reject rules** (`hard_reject_rules.dart`): `SameUidRule`, `SamePhoneRule`, `AlreadyRewardedRule` — score 999 on match, stops further evaluation
-- **Soft score rules** (`soft_score_rules.dart`): `SameAddressRule` (escalating 20/40/70), `SamePaymentContactRule` (+30), `SamePayerNameRule` (+20), `ReferralVelocityRule` (configurable window × score), `NewAccountRule` (configurable hours × score)
+- **Soft score rules** (`soft_score_rules.dart`): `SameAddressRule` (escalating 20/40/70), `SamePaymentContactRule` (+30), `SamePayerNameRule` (+20), `ReferralVelocityRule` (configurable window × score)
 - **`PostgresFraudScoreService`** orchestrator — two-phase evaluation (hard reject first, then soft scoring if passed)
 - **Hybrid outcome routing**: score <40 AUTO_APPROVE, 40–69 MANUAL_REVIEW, 70–89 AUTO_HOLD (72h), ≥90 AUTO_REJECT; respects `enableAutoReject`/`enableRewardHold` overrides
 ### Hardening Phase C — Hybrid Reward Flow
@@ -352,7 +352,7 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 - `freshpickkat_server/test/integration/referral_test.dart`: 26 integration tests for full referral system
 - `freshpickkat_server/lib/src/services/fraud/fraud_rule.dart`: abstract rule interface + `FraudRuleResult`
 - `freshpickkat_server/lib/src/services/fraud/rules/hard_reject_rules.dart`: `SameUidRule`, `SamePhoneRule`, `AlreadyRewardedRule`
-- `freshpickkat_server/lib/src/services/fraud/rules/soft_score_rules.dart`: `SameAddressRule`, `SamePaymentContactRule`, `SamePayerNameRule`, `ReferralVelocityRule`, `NewAccountRule`
+- `freshpickkat_server/lib/src/services/fraud/rules/soft_score_rules.dart`: `SameAddressRule`, `SamePaymentContactRule`, `SamePayerNameRule`, `ReferralVelocityRule`
 - `freshpickkat_server/lib/src/services/fraud/postgres_fraud_score_service.dart`: orchestrator — two-phase evaluation, hybrid outcome routing
 - `freshpickkat_server/lib/src/services/fraud/postgres_fraud_score_service.dart`: `FraudOutcome` with `ruleResults` list for JSON serialization
 - `freshpickkat_server/lib/src/protocol/db_rows/coupon_row.spy.yaml`: added `assignedUserId`, `assignedPhone`

@@ -19,8 +19,9 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
 
   late TextEditingController _inviteeAmountCtrl;
   late TextEditingController _couponTemplateCtrl;
+  late TextEditingController _couponMinOrderCtrl;
+  late TextEditingController _couponValidityDaysCtrl;
   late TextEditingController _referrerPointsCtrl;
-  late TextEditingController _minOrderCtrl;
   late TextEditingController _maxMonthlyCtrl;
   late TextEditingController _expiryDaysCtrl;
   late TextEditingController _shareMessageCtrl;
@@ -46,8 +47,9 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
     final s = _controller.settings.value;
     _inviteeAmountCtrl = TextEditingController(text: s?.inviteeCouponAmount.toString() ?? '50');
     _couponTemplateCtrl = TextEditingController(text: s?.inviteeCouponCodeTemplate ?? 'WELCOME{CODE}');
+    _couponMinOrderCtrl = TextEditingController(text: s?.inviteeCouponMinOrderAmount.toString() ?? '199');
+    _couponValidityDaysCtrl = TextEditingController(text: s?.inviteeCouponValidityDays.toString() ?? '15');
     _referrerPointsCtrl = TextEditingController(text: s?.referrerRewardPoints.toString() ?? '50');
-    _minOrderCtrl = TextEditingController(text: s?.minimumQualifyingAmount.toString() ?? '0');
     _maxMonthlyCtrl = TextEditingController(text: s?.maxRewardedPerMonth.toString() ?? '20');
     _expiryDaysCtrl = TextEditingController(text: s?.referralExpiryDays.toString() ?? '90');
     _shareMessageCtrl = TextEditingController(
@@ -71,8 +73,9 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
   void dispose() {
     _inviteeAmountCtrl.dispose();
     _couponTemplateCtrl.dispose();
+    _couponMinOrderCtrl.dispose();
+    _couponValidityDaysCtrl.dispose();
     _referrerPointsCtrl.dispose();
-    _minOrderCtrl.dispose();
     _maxMonthlyCtrl.dispose();
     _expiryDaysCtrl.dispose();
     _shareMessageCtrl.dispose();
@@ -91,9 +94,10 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
       inviteeCouponEnabled: _inviteeCouponEnabled,
       inviteeCouponAmount: double.tryParse(_inviteeAmountCtrl.text) ?? 50,
       inviteeCouponCodeTemplate: _couponTemplateCtrl.text,
+      inviteeCouponMinOrderAmount: double.tryParse(_couponMinOrderCtrl.text) ?? 199.0,
+      inviteeCouponValidityDays: int.tryParse(_couponValidityDaysCtrl.text) ?? 15,
       referrerPointsEnabled: _referrerPointsEnabled,
       referrerRewardPoints: int.tryParse(_referrerPointsCtrl.text) ?? 50,
-      minimumQualifyingAmount: double.tryParse(_minOrderCtrl.text) ?? 0,
       rewardTriggerStatus: _rewardTriggerStatus,
       maxRewardedPerMonth: int.tryParse(_maxMonthlyCtrl.text) ?? 20,
       enableFraudProtection: _enableFraudProtection,
@@ -116,8 +120,6 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
       referralVelocityScore: _controller.settings.value?.referralVelocityScore ?? 30,
       velocityTimeWindowHours: _controller.settings.value?.velocityTimeWindowHours ?? 24,
       velocityThreshold: _controller.settings.value?.velocityThreshold ?? 3,
-      newAccountScore: _controller.settings.value?.newAccountScore ?? 20,
-      newAccountHours: _controller.settings.value?.newAccountHours ?? 48,
       termsText: _termsTextCtrl.text.isNotEmpty ? _termsTextCtrl.text : null,
       updatedAt: DateTime.now(),
     );
@@ -179,6 +181,8 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
               _buildSectionHeader(context, 'Invitee Coupon'),
               _buildSwitchTile(cs, 'Enable Invitee Coupon', _inviteeCouponEnabled, (v) => setState(() => _inviteeCouponEnabled = v)),
               _buildTextField(_inviteeAmountCtrl, 'Coupon Discount Amount (INR)', '50', enabled: _inviteeCouponEnabled),
+              _buildTextField(_couponMinOrderCtrl, 'Coupon Min Order Amount (INR)', '199', enabled: _inviteeCouponEnabled),
+              _buildTextField(_couponValidityDaysCtrl, 'Coupon Validity (days)', '15', enabled: _inviteeCouponEnabled),
               _buildTextField(_couponTemplateCtrl, 'Coupon Code Template (\'{CODE}\' will be replaced)', 'WELCOME{CODE}', enabled: _inviteeCouponEnabled),
               const SizedBox(height: 16),
               _buildSectionHeader(context, 'Referrer Rewards'),
@@ -186,7 +190,6 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
               _buildTextField(_referrerPointsCtrl, 'Reward Points per Referral', '50', enabled: _referrerPointsEnabled),
               const SizedBox(height: 16),
               _buildSectionHeader(context, 'Qualification Rules'),
-              _buildTextField(_minOrderCtrl, 'Minimum Qualifying Order Amount (INR)', '0'),
               _buildTriggerDropdown(cs),
               _buildTextField(_maxMonthlyCtrl, 'Max Rewards per Referrer per Month', '20'),
               const SizedBox(height: 16),
@@ -236,10 +239,6 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
                   _controller.settings.value?.velocityTimeWindowHours.toString() ?? '24'),
               _buildReadOnlyField(context, 'Velocity Threshold (referrals)',
                   _controller.settings.value?.velocityThreshold.toString() ?? '3'),
-              _buildReadOnlyField(context, 'New Account Score',
-                  _controller.settings.value?.newAccountScore.toString() ?? '20'),
-              _buildReadOnlyField(context, 'New Account Threshold (hours)',
-                  _controller.settings.value?.newAccountHours.toString() ?? '48'),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: _isSaving ? null : _save,

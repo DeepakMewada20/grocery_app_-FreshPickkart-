@@ -9,10 +9,11 @@ fields:
   inviteeCouponCodeTemplate: String, default='WELCOME{CODE}'
   referrerPointsEnabled: bool, default=true
   referrerRewardPoints: int, default=50
-  minimumQualifyingAmount: double, default=0.0
   rewardTriggerStatus: String, default='DELIVERED'
   maxRewardedPerMonth: int, default=20
   enableFraudProtection: bool, default=true
+  inviteeCouponMinOrderAmount: double, default=199.0
+  inviteeCouponValidityDays: int, default=15
   enableReferralExpiry: bool, default=false
   referralExpiryDays: int, default=90
   shareMessageTemplate: String, default='Join FreshPickKat using my referral code {CODE}. Get ₹50 OFF on your first order!'
@@ -32,8 +33,6 @@ fields:
   referralVelocityScore: int, default=30
   velocityTimeWindowHours: int, default=24
   velocityThreshold: int, default=3
-  newAccountScore: int, default=20
-  newAccountHours: int, default=48
   autoReversalWindowDays: int, default=30
   termsText: String?
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

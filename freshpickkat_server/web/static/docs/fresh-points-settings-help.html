@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f7a3b">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <meta name="author" content="FreshPickKat">
+  <title>FreshPoints Settings — Field Reference</title>
+  <style>
+    :root {
+      --bg: #f6f8f5;
+      --surface: #ffffff;
+      --surface-soft: #eef5ef;
+      --text: #142018;
+      --muted: #5f6f65;
+      --border: #dce7de;
+      --primary: #0f7a3b;
+      --primary-strong: #09622d;
+      --header-bg: rgba(255, 255, 255, 0.94);
+      --primary-tint: #eaf6ee;
+      --primary-border: #b9d8c3;
+      --warn-bg: #fff8e1;
+      --warn-border: #ffcd5c;
+      --example-bg: #f0f7f2;
+      --shadow: 0 16px 42px rgba(15, 51, 31, 0.09);
+      --radius: 18px;
+      --max-width: 920px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1511;
+        --surface: #17211a;
+        --surface-soft: #1d2a21;
+        --text: #edf5ee;
+        --muted: #b7c7bb;
+        --border: #2d3b31;
+        --primary: #6ad58c;
+        --primary-strong: #8be6a5;
+        --header-bg: rgba(23, 33, 26, 0.94);
+        --primary-tint: #1f3327;
+        --primary-border: #42624b;
+        --warn-bg: #332b0c;
+        --warn-border: #665500;
+        --example-bg: #1a2b1f;
+        --shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, rgba(15, 122, 59, 0.10), transparent 34rem), var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    a { color: var(--primary-strong); text-decoration-thickness: 0.09em; text-underline-offset: 0.18em; }
+
+    .app-header {
+      position: sticky; top: 0; z-index: 10;
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .header-inner {
+      display: flex; align-items: center; gap: 12px;
+      width: min(100%, var(--max-width)); margin: 0 auto;
+    }
+
+    .back-button {
+      display: grid; width: 42px; height: 42px; min-width: 42px;
+      place-items: center; border: 1px solid var(--border);
+      border-radius: 14px; background: var(--surface-soft); color: var(--text);
+      font-size: 24px; line-height: 1; cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .back-button:disabled { opacity: 0.45; cursor: default; }
+    .back-button:not(:disabled):active { transform: scale(0.96); }
+
+    .brand-block { min-width: 0; flex: 1; }
+    .brand { display: block; font-size: 18px; font-weight: 800; letter-spacing: 0; line-height: 1.2; }
+    .updated { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.3; }
+
+    .page {
+      width: min(100% - 32px, var(--max-width)); margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    h1 { margin: 0 0 8px; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
+    .subtitle { margin: 0 0 28px; color: var(--muted); }
+
+    .section { margin-bottom: 32px; }
+    .section-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .section-header h2 { margin: 0; font-size: 19px; font-weight: 700; }
+    .section-header .badge {
+      font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 100px;
+      background: var(--primary-tint); color: var(--primary-strong);
+      border: 1px solid var(--primary-border);
+    }
+
+    .field-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px; margin-bottom: 14px;
+    }
+    .field-card .field-name {
+      font-weight: 700; font-size: 15px; font-family: "SF Mono", "Cascadia Code", "Menlo", monospace;
+      color: var(--primary-strong);
+    }
+    .field-card .meta { margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
+    .field-card .desc { margin: 0 0 8px; }
+    .field-card .example {
+      background: var(--example-bg); border-radius: 10px; padding: 12px;
+      font-size: 14px; border-left: 3px solid var(--primary);
+      margin: 8px 0 0;
+    }
+    .field-card .example strong { color: var(--primary-strong); }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+      background: var(--surface); border-radius: 14px; overflow: hidden;
+    }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--surface-soft); font-weight: 600; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+
+    .note {
+      background: var(--warn-bg); border: 1px solid var(--warn-border);
+      border-radius: 12px; padding: 14px; font-size: 14px; margin: 16px 0;
+    }
+
+    .toc { margin-bottom: 28px; }
+    .toc a { display: block; padding: 4px 0; }
+    .toc .sub { padding-left: 20px; font-size: 14px; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    .flow {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; font-size: 13px; overflow-x: auto;
+      font-family: "SF Mono", "Cascadia Code", "Menlo", monospace;
+      line-height: 1.7;
+    }
+
+    .footer-nav {
+      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+      margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .footer-nav a { font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <button class="back-button" onclick="history.back()" aria-label="Back">←</button>
+    <div class="brand-block">
+      <span class="brand">FreshPickKat</span>
+      <span class="updated">FreshPoints Settings — Field Reference</span>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+<h1>FreshPoints Settings — Complete Field Reference</h1>
+<p class="subtitle">Detailed explanation of every FreshPoints setting with examples. Use this guide to configure the points loyalty program correctly.</p>
+
+<div class="toc">
+  <strong>Table of Contents</strong>
+  <a href="#general">1. General</a>
+  <a href="#redemption">2. Redemption Rules</a>
+  <a href="#expiry">3. Point Expiry</a>
+  <a href="#admin">4. Admin Controls</a>
+  <a href="#pricing-flow">5. Pricing Calculation Flow</a>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="section" id="general">
+  <div class="section-header">
+    <h2>1. General</h2>
+    <span class="badge">Editable</span>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">isEnabled</div>
+    <div class="meta">Type: Boolean &nbsp;|&nbsp; Default: true</div>
+    <div class="desc">
+      Master switch for the entire FreshPoints loyalty system. When <strong>false</strong>:
+      <ul>
+        <li>Users cannot earn or redeem points</li>
+        <li>The FreshPoints section is hidden at checkout</li>
+        <li>All point-related pricing steps are skipped</li>
+        <li>Existing points are preserved (not deleted)</li>
+      </ul>
+    </div>
+    <div class="example">
+      <strong>Example:</strong> Set to <strong>false</strong> temporarily during a system migration.
+      Users see no points option at checkout, but their balances are safe.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="section" id="redemption">
+  <div class="section-header">
+    <h2>2. Redemption Rules</h2>
+    <span class="badge">Editable</span>
+  </div>
+  <p style="margin:-8px 0 16px;color:var(--muted);font-size:14px;">
+    These settings control how and when users can redeem their FreshPoints.
+  </p>
+
+  <div class="field-card">
+    <div class="field-name">redemptionPercentageLimit</div>
+    <div class="meta">Type: Double (Percentage) &nbsp;|&nbsp; Default: 50.0</div>
+    <div class="desc">
+      The maximum percentage of the payable amount that can be paid using FreshPoints.
+      <br><br>
+      <strong>Formula:</strong>
+      <br>
+      <code>maxRedeemable = (payableAmount × redemptionPercentageLimit / 100)</code>
+      <br><br>
+      For example, at 50%, if the payable amount is ₹200, the user can redeem at most ₹100 worth of points (100 points). The remaining ₹100 must be paid with cash/UPI.
+      <br><br>
+      The user's current point balance is also a limiting factor — the actual redeemable amount is the <strong>lower</strong> of the limit and their balance.
+    </div>
+    <div class="example">
+      <strong>Example 1:</strong> 50% limit, ₹400 payable, user has 500 points balance:
+      <br>max redeemable = min(400 × 50%, 500) = min(200, 500) = <strong>200 points (₹200)</strong>
+      <br><br>
+      <strong>Example 2:</strong> 25% limit, ₹400 payable, user has 500 points:
+      <br>max redeemable = min(400 × 25%, 500) = min(100, 500) = <strong>100 points (₹100)</strong>
+      <br><br>
+      <strong>Example 3:</strong> Same 50% limit, ₹400 payable, but user has only <strong>60 points</strong>:
+      <br>max redeemable = min(200, 60) = <strong>60 points (₹60)</strong>
+    </div>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">minimumOrderForRedemption</div>
+    <div class="meta">Type: Double (₹) &nbsp;|&nbsp; Default: 0.0</div>
+    <div class="desc">
+      The minimum order payable amount (after coupons, before FreshPoints discount) required for the user to be able to redeem points.
+      Set to <strong>0</strong> to disable — any amount qualifies.
+      <br><br>
+      This acts as a <strong>floor</strong>. If the payable amount is less than this value, the user cannot redeem any points,
+      even if they have a large balance.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <code>minimumOrderForRedemption = 100</code>
+      <br>Cart total = ₹250, coupon discount = ₹160 → payable = ₹90
+      <br>90 &lt; 100 → <strong>❌ Cannot redeem points</strong>
+      <br><br>
+      With same setting, cart total = ₹300, coupon discount = ₹100 → payable = ₹200
+      <br>200 ≥ 100 → <strong>✅ Can redeem points</strong>
+      (up to 50% = 100 points)
+    </div>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">allowRedemptionOnCOD</div>
+    <div class="meta">Type: Boolean &nbsp;|&nbsp; Default: true</div>
+    <div class="desc">
+      Controls whether users can redeem FreshPoints on <strong>Cash on Delivery (COD)</strong> orders.
+      When <strong>false</strong>, the FreshPoints option is hidden at checkout if the user selects COD as their payment method.
+      <br><br>
+      This is useful if you want to encourage prepaid orders, since COD has higher operational costs
+      and more cancellations.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>false</strong> → User with 500 points selects COD at checkout.
+      FreshPoints slider is hidden. User must pay the full amount in cash.
+      <br><br>
+      If the same user selects UPI/online payment, they can redeem points as usual.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="section" id="expiry">
+  <div class="section-header">
+    <h2>3. Point Expiry</h2>
+    <span class="badge">Editable</span>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">enablePointExpiry</div>
+    <div class="meta">Type: Boolean &nbsp;|&nbsp; Default: false</div>
+    <div class="desc">
+      When <strong>true</strong>, points expire after <code>pointExpiryDays</code> days from the date they were earned.
+      A cron job runs periodically to expire old points.
+      <br><br>
+      Point expiry works per-transaction: each earning transaction has its own expiry date.
+      So if a user earns 50 points today and 50 points next week, the first 50 expire separately.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>true</strong> with <code>pointExpiryDays = 90</code>
+      <br>User earns 50 points on 1 Jan → points expire on 1 Apr.
+      <br>User earns another 50 points on 15 Jan → those expire on 15 Apr.
+    </div>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">pointExpiryDays</div>
+    <div class="meta">Type: Integer &nbsp;|&nbsp; Default: 365</div>
+    <div class="desc">
+      Number of days after which earned points expire. Only applies when <code>enablePointExpiry</code> is <strong>true</strong>.
+      The count starts from the date each point was credited.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>365</strong> → Points earned today are valid for 1 year.
+      After 365 days, the points are automatically deducted from the user's balance.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="section" id="admin">
+  <div class="section-header">
+    <h2>4. Admin Controls</h2>
+    <span class="badge">Editable</span>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">enableAdminAdjustments</div>
+    <div class="meta">Type: Boolean &nbsp;|&nbsp; Default: true</div>
+    <div class="desc">
+      When <strong>true</strong>, admins can manually add or deduct FreshPoints from any user's account.
+      This is useful for:
+      <ul>
+        <li>Manual rewards for special promotions</li>
+        <li>Correcting point balances due to system errors</li>
+        <li>Deducting points when a reward is reversed (referral fraud)</li>
+      </ul>
+      When <strong>false</strong>, the "Adjust FreshPoints" button is hidden from the admin dashboard.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>true</strong> → Admin opens Referral Dashboard →
+      taps "Adjust FreshPoints" → searches for a user → adds 100 points with reason
+      "Customer satisfaction bonus" → points credited immediately.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<hr>
+
+<div class="section" id="pricing-flow">
+  <div class="section-header">
+    <h2>5. Pricing Calculation Flow</h2>
+  </div>
+  <p style="margin:-8px 0 16px;color:var(--muted);font-size:14px;">
+    Understanding how FreshPoints interact with other pricing steps.
+  </p>
+
+  <div class="flow">
+Order Pricing Steps (in order):
+  │
+  ├── 1. Product Subtotal (price × qty)
+  ├── 2. BOGO discount
+  ├── 3. Combo discount
+  ├── 4. Coupon discount (best coupon auto-applied)
+  ├── 5. Reward discount (SMGM)
+  ├── 6. FreshPoints discount ← HERE
+  │       ├── isEnabled check
+  │       ├── payable ≥ minimumOrderForRedemption check
+  │       ├── allowRedemptionOnCOD check (if COD)
+  │       ├── maxRedeemable = (payable × redemptionPercentageLimit / 100)
+  │       ├── actual = min(maxRedeemable, userBalance, userInput)
+  │       ├── deduct points from user balance
+  │       └── finalAmount -= actual
+  ├── 7. Delivery fee added
+  └── 8. Final amount = amount to pay
+  </div>
+
+  <div class="note">
+    <strong>💡 Key Point:</strong> FreshPoints are applied <strong>after</strong> coupons but <strong>before</strong> delivery fee.
+    This means the percentage limit is calculated on the payable amount <strong>after</strong> coupon discounts,
+    giving the user a fair redemption value. The delivery fee is added at the end, so the user saves
+    on the product cost but not on delivery (by design — to prevent abuse).
+  </div>
+
+  <div class="example" style="margin-top:16px;">
+    <strong>Complete Example:</strong>
+    <br>Product price: ₹500
+    <br>Coupon discount: -₹100 (20% off)
+    <br>Payable after coupon: ₹400
+    <br>FreshPoints settings: 50% limit, minimum order ₹50, allow COD
+    <br>User balance: 300 points
+    <br>
+    <br>Step 1: payable (₹400) ≥ minimumOrderForRedemption (₹50) → ✅
+    <br>Step 2: maxRedeemable = 400 × 50% = 200 points
+    <br>Step 3: actual = min(200, 300) = <strong>200 points → -₹200</strong>
+    <br>Step 4: payable after FP = ₹400 - ₹200 = ₹200
+    <br>Step 5: delivery fee = ₹40
+    <br>Step 6: <strong>final amount = ₹240</strong>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<hr>
+
+<h2>Redemption Formula Summary</h2>
+<div class="table-wrap">
+<table>
+  <tr>
+    <th>Step</th>
+    <th>Formula / Logic</th>
+  </tr>
+  <tr>
+    <td>1. Minimum order check</td>
+    <td><code>if (payable &lt; minimumOrderForRedemption) → return 0</code></td>
+  </tr>
+  <tr>
+    <td>2. Percentage cap</td>
+    <td><code>maxByLimit = floor(payable × redemptionPercentageLimit ÷ 100)</code></td>
+  </tr>
+  <tr>
+    <td>3. Balance cap</td>
+    <td><code>maxRedeemable = min(maxByLimit, userBalance)</code></td>
+  </tr>
+  <tr>
+    <td>4. User input clamp</td>
+    <td><code>actual = clamp(userInput, 0, maxRedeemable)</code></td>
+  </tr>
+  <tr>
+    <td>5. Result</td>
+    <td><code>freshPointsDiscount = actual<br>finalPayable = payable − actual + deliveryFee</code></td>
+  </tr>
+</table>
+</div>
+
+<div class="footer-nav">
+  <a href="privacy-policy.html">Privacy Policy</a>
+  <a href="terms-and-conditions.html">Terms &amp; Conditions</a>
+  <a href="frequently-asked-questions.html">FAQ</a>
+  <a href="referral-settings-help.html">Referral Settings</a>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -216,7 +216,7 @@
     <span class="badge">Editable</span>
   </div>
   <p style="margin:-8px 0 16px;color:var(--muted);font-size:14px;">
-    The person who was referred (invitee) gets a coupon when the referral qualifies.
+    The person who was referred (invitee) gets a coupon instantly when they sign up with a referral code.
   </p>
 
   <div class="field-card">
@@ -247,6 +247,32 @@
     <div class="example">
       <strong>Example:</strong> Template <strong>"WELCOME{CODE}"</strong> with referral code <strong>FPKAB12</strong> →
       coupon code = <strong>WELCOMEFPKAB12</strong>.
+    </div>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">inviteeCouponMinOrderAmount</div>
+    <div class="meta">Type: Double &nbsp;|&nbsp; Default: 199.0</div>
+    <div class="desc">
+      Minimum cart subtotal (after other discounts) required for the referral coupon to be applied.
+      If the cart total is below this amount, the coupon will not auto-apply during checkout.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>199.0</strong> → cart must be ₹199+ for the WELCOME coupon to apply.
+      A ₹150 cart would NOT get the coupon discount.
+    </div>
+  </div>
+
+  <div class="field-card">
+    <div class="field-name">inviteeCouponValidityDays</div>
+    <div class="meta">Type: Integer &nbsp;|&nbsp; Default: 15</div>
+    <div class="desc">
+      Number of days the referral coupon remains valid from the moment it is created.
+      After this period, the coupon expires and cannot be used.
+    </div>
+    <div class="example">
+      <strong>Example:</strong> <strong>15</strong> → Coupon created on 1 Jan → expires on 16 Jan.
+      The invitee must place their first order within 15 days to use the coupon.
     </div>
   </div>
 </div>
@@ -287,18 +313,6 @@
   <p style="margin:-8px 0 16px;color:var(--muted);font-size:14px;">
     Conditions an order must meet to trigger the referral reward.
   </p>
-
-  <div class="field-card">
-    <div class="field-name">minimumQualifyingAmount</div>
-    <div class="meta">Type: Double &nbsp;|&nbsp; Default: 0.0</div>
-    <div class="desc">
-      Minimum <code>order.finalAmount</code> required. Set to <strong>0</strong> to disable (any amount qualifies).
-    </div>
-    <div class="example">
-      <strong>Example:</strong> <strong>200.0</strong> → order must be ₹200+ to trigger reward.
-      A ₹150 order would NOT qualify. A ₹250 order would qualify (assuming other checks pass).
-    </div>
-  </div>
 
   <div class="field-card">
     <div class="field-name">rewardTriggerStatus</div>
@@ -383,12 +397,12 @@
     <div class="field-name">minimumActualPaymentForQualification</div>
     <div class="meta">Type: Double &nbsp;|&nbsp; Default: 0.0</div>
     <div class="desc">
-      Like <code>minimumQualifyingAmount</code> but with a twist — it only applies when the value &gt; 0.
-      Acts as an additional floor: the order must pass <strong>both</strong> checks.
+      Minimum actual payment (cash/UPI paid) required for the referral reward to trigger.
+      Set to <strong>0</strong> to disable (any payment amount qualifies).
+      This prevents fake referrals with very low-value orders from earning a reward.
     </div>
     <div class="example">
       <strong>Example:</strong> Order ₹500 with ₹450 coupon → finalAmount = ₹50.
-      <code>minimumQualifyingAmount = 0</code> (passed) but
       <code>minimumActualPaymentForQualification = 100</code> → <strong>FAIL</strong>.
       User actually paid only ₹50, which is below the ₹100 floor.
     </div>
@@ -514,7 +528,7 @@
     <div class="field-name">enableFraudScoring</div>
     <div class="meta">Type: Boolean &nbsp;|&nbsp; Default: true</div>
     <div class="desc">
-      Controls whether soft scoring rules (address matching, payment contact, velocity, new account)
+      Controls whether soft scoring rules (address matching, payment contact, velocity)
       are evaluated. When <strong>false</strong>, all soft rules are skipped and return score 0.
       Hard reject rules (same UID, same phone, already rewarded) always run regardless.
     </div>
@@ -664,33 +678,6 @@
     </div>
   </div>
 
-  <!-- ── New Account ── -->
-  <h3 style="margin:20px 0 8px;">New Account Rule</h3>
-
-  <div class="field-card">
-    <div class="field-name">newAccountScore</div>
-    <div class="meta">Type: Integer &nbsp;|&nbsp; Default: 20</div>
-    <div class="desc">
-      Fraud points added for each account (referrer and/or invitee) that is newer than
-      <code>newAccountHours</code>. Applied independently to each side.
-    </div>
-  </div>
-
-  <div class="field-card">
-    <div class="field-name">newAccountHours</div>
-    <div class="meta">Type: Integer &nbsp;|&nbsp; Default: 48</div>
-    <div class="desc">
-      An account is considered "new" if its age is less than this many hours.
-    </div>
-    <div class="example">
-      <strong>Combined Example:</strong>
-      <code>newAccountScore = 20</code>, <code>newAccountHours = 48</code>
-      <br>Referrer account created 12 hours ago → +20
-      <br>Invitee account created 10 hours ago → +20
-      <br>Total new account score = <strong>40</strong>
-    </div>
-  </div>
-
   <!-- ── Terms ── -->
   <h3 style="margin:20px 0 8px;">Terms &amp; Conditions</h3>
 
@@ -796,7 +783,6 @@
 checkOrderForReward()
   │
   ├── isEnabled = false? → return (disabled)
-  ├── minimumQualifyingAmount check? → fail → return
   ├── minimumActualPaymentForQualification check? → fail → return
   ├── rewardTriggerStatus check? → fail → return
   ├── maxRewardedPerMonth cap? → hit → return
@@ -812,11 +798,10 @@ checkOrderForReward()
         │     │   └── Already Rewarded? → AUTO_REJECT (score 999)
         │     │
         │     └── Soft Scoring (if enableFraudScoring):
-        │           ├── Same Address → +20/40/70
-        │           ├── Same Payment Contact → +30
-        │           ├── Same Payer Name → +20
-        │           ├── Referral Velocity → +score × extra
-        │           └── New Account → +20 per new account
+          │           ├── Same Address → +20/40/70
+          │           ├── Same Payment Contact → +30
+          │           ├── Same Payer Name → +20
+          │           └── Referral Velocity → +score × extra
         │
         └── false → skip fraud, seedha _processReward()
 </pre>

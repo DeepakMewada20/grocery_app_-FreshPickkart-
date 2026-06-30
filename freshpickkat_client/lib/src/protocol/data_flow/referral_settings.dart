@@ -20,9 +20,10 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     required this.inviteeCouponCodeTemplate,
     required this.referrerPointsEnabled,
     required this.referrerRewardPoints,
-    required this.minimumQualifyingAmount,
     required this.rewardTriggerStatus,
     required this.maxRewardedPerMonth,
+    required this.inviteeCouponMinOrderAmount,
+    required this.inviteeCouponValidityDays,
     required this.enableFraudProtection,
     required this.enableReferralExpiry,
     required this.referralExpiryDays,
@@ -42,8 +43,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     required this.referralVelocityScore,
     required this.velocityTimeWindowHours,
     required this.velocityThreshold,
-    required this.newAccountScore,
-    required this.newAccountHours,
     required this.autoReversalWindowDays,
     this.termsText,
     required this.updatedAt,
@@ -56,9 +55,10 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     required String inviteeCouponCodeTemplate,
     required bool referrerPointsEnabled,
     required int referrerRewardPoints,
-    required double minimumQualifyingAmount,
     required String rewardTriggerStatus,
     required int maxRewardedPerMonth,
+    required double inviteeCouponMinOrderAmount,
+    required int inviteeCouponValidityDays,
     required bool enableFraudProtection,
     required bool enableReferralExpiry,
     required int referralExpiryDays,
@@ -78,8 +78,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     required int referralVelocityScore,
     required int velocityTimeWindowHours,
     required int velocityThreshold,
-    required int newAccountScore,
-    required int newAccountHours,
     required int autoReversalWindowDays,
     String? termsText,
     required DateTime updatedAt,
@@ -99,10 +97,12 @@ abstract class ReferralSettings implements _i1.SerializableModel {
         jsonSerialization['referrerPointsEnabled'],
       ),
       referrerRewardPoints: jsonSerialization['referrerRewardPoints'] as int,
-      minimumQualifyingAmount:
-          (jsonSerialization['minimumQualifyingAmount'] as num).toDouble(),
       rewardTriggerStatus: jsonSerialization['rewardTriggerStatus'] as String,
       maxRewardedPerMonth: jsonSerialization['maxRewardedPerMonth'] as int,
+      inviteeCouponMinOrderAmount:
+          (jsonSerialization['inviteeCouponMinOrderAmount'] as num).toDouble(),
+      inviteeCouponValidityDays:
+          jsonSerialization['inviteeCouponValidityDays'] as int,
       enableFraudProtection: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['enableFraudProtection'],
       ),
@@ -135,8 +135,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
       velocityTimeWindowHours:
           jsonSerialization['velocityTimeWindowHours'] as int,
       velocityThreshold: jsonSerialization['velocityThreshold'] as int,
-      newAccountScore: jsonSerialization['newAccountScore'] as int,
-      newAccountHours: jsonSerialization['newAccountHours'] as int,
       autoReversalWindowDays:
           jsonSerialization['autoReversalWindowDays'] as int,
       termsText: jsonSerialization['termsText'] as String?,
@@ -158,11 +156,13 @@ abstract class ReferralSettings implements _i1.SerializableModel {
 
   int referrerRewardPoints;
 
-  double minimumQualifyingAmount;
-
   String rewardTriggerStatus;
 
   int maxRewardedPerMonth;
+
+  double inviteeCouponMinOrderAmount;
+
+  int inviteeCouponValidityDays;
 
   bool enableFraudProtection;
 
@@ -202,10 +202,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
 
   int velocityThreshold;
 
-  int newAccountScore;
-
-  int newAccountHours;
-
   int autoReversalWindowDays;
 
   String? termsText;
@@ -222,9 +218,10 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableFraudProtection,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
@@ -244,8 +241,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     String? termsText,
     DateTime? updatedAt,
@@ -260,9 +255,10 @@ abstract class ReferralSettings implements _i1.SerializableModel {
       'inviteeCouponCodeTemplate': inviteeCouponCodeTemplate,
       'referrerPointsEnabled': referrerPointsEnabled,
       'referrerRewardPoints': referrerRewardPoints,
-      'minimumQualifyingAmount': minimumQualifyingAmount,
       'rewardTriggerStatus': rewardTriggerStatus,
       'maxRewardedPerMonth': maxRewardedPerMonth,
+      'inviteeCouponMinOrderAmount': inviteeCouponMinOrderAmount,
+      'inviteeCouponValidityDays': inviteeCouponValidityDays,
       'enableFraudProtection': enableFraudProtection,
       'enableReferralExpiry': enableReferralExpiry,
       'referralExpiryDays': referralExpiryDays,
@@ -283,8 +279,6 @@ abstract class ReferralSettings implements _i1.SerializableModel {
       'referralVelocityScore': referralVelocityScore,
       'velocityTimeWindowHours': velocityTimeWindowHours,
       'velocityThreshold': velocityThreshold,
-      'newAccountScore': newAccountScore,
-      'newAccountHours': newAccountHours,
       'autoReversalWindowDays': autoReversalWindowDays,
       if (termsText != null) 'termsText': termsText,
       'updatedAt': updatedAt.toJson(),
@@ -307,9 +301,10 @@ class _ReferralSettingsImpl extends ReferralSettings {
     required String inviteeCouponCodeTemplate,
     required bool referrerPointsEnabled,
     required int referrerRewardPoints,
-    required double minimumQualifyingAmount,
     required String rewardTriggerStatus,
     required int maxRewardedPerMonth,
+    required double inviteeCouponMinOrderAmount,
+    required int inviteeCouponValidityDays,
     required bool enableFraudProtection,
     required bool enableReferralExpiry,
     required int referralExpiryDays,
@@ -329,8 +324,6 @@ class _ReferralSettingsImpl extends ReferralSettings {
     required int referralVelocityScore,
     required int velocityTimeWindowHours,
     required int velocityThreshold,
-    required int newAccountScore,
-    required int newAccountHours,
     required int autoReversalWindowDays,
     String? termsText,
     required DateTime updatedAt,
@@ -341,9 +334,10 @@ class _ReferralSettingsImpl extends ReferralSettings {
          inviteeCouponCodeTemplate: inviteeCouponCodeTemplate,
          referrerPointsEnabled: referrerPointsEnabled,
          referrerRewardPoints: referrerRewardPoints,
-         minimumQualifyingAmount: minimumQualifyingAmount,
          rewardTriggerStatus: rewardTriggerStatus,
          maxRewardedPerMonth: maxRewardedPerMonth,
+         inviteeCouponMinOrderAmount: inviteeCouponMinOrderAmount,
+         inviteeCouponValidityDays: inviteeCouponValidityDays,
          enableFraudProtection: enableFraudProtection,
          enableReferralExpiry: enableReferralExpiry,
          referralExpiryDays: referralExpiryDays,
@@ -364,8 +358,6 @@ class _ReferralSettingsImpl extends ReferralSettings {
          referralVelocityScore: referralVelocityScore,
          velocityTimeWindowHours: velocityTimeWindowHours,
          velocityThreshold: velocityThreshold,
-         newAccountScore: newAccountScore,
-         newAccountHours: newAccountHours,
          autoReversalWindowDays: autoReversalWindowDays,
          termsText: termsText,
          updatedAt: updatedAt,
@@ -382,9 +374,10 @@ class _ReferralSettingsImpl extends ReferralSettings {
     String? inviteeCouponCodeTemplate,
     bool? referrerPointsEnabled,
     int? referrerRewardPoints,
-    double? minimumQualifyingAmount,
     String? rewardTriggerStatus,
     int? maxRewardedPerMonth,
+    double? inviteeCouponMinOrderAmount,
+    int? inviteeCouponValidityDays,
     bool? enableFraudProtection,
     bool? enableReferralExpiry,
     int? referralExpiryDays,
@@ -404,8 +397,6 @@ class _ReferralSettingsImpl extends ReferralSettings {
     int? referralVelocityScore,
     int? velocityTimeWindowHours,
     int? velocityThreshold,
-    int? newAccountScore,
-    int? newAccountHours,
     int? autoReversalWindowDays,
     Object? termsText = _Undefined,
     DateTime? updatedAt,
@@ -419,10 +410,12 @@ class _ReferralSettingsImpl extends ReferralSettings {
       referrerPointsEnabled:
           referrerPointsEnabled ?? this.referrerPointsEnabled,
       referrerRewardPoints: referrerRewardPoints ?? this.referrerRewardPoints,
-      minimumQualifyingAmount:
-          minimumQualifyingAmount ?? this.minimumQualifyingAmount,
       rewardTriggerStatus: rewardTriggerStatus ?? this.rewardTriggerStatus,
       maxRewardedPerMonth: maxRewardedPerMonth ?? this.maxRewardedPerMonth,
+      inviteeCouponMinOrderAmount:
+          inviteeCouponMinOrderAmount ?? this.inviteeCouponMinOrderAmount,
+      inviteeCouponValidityDays:
+          inviteeCouponValidityDays ?? this.inviteeCouponValidityDays,
       enableFraudProtection:
           enableFraudProtection ?? this.enableFraudProtection,
       enableReferralExpiry: enableReferralExpiry ?? this.enableReferralExpiry,
@@ -448,8 +441,6 @@ class _ReferralSettingsImpl extends ReferralSettings {
       velocityTimeWindowHours:
           velocityTimeWindowHours ?? this.velocityTimeWindowHours,
       velocityThreshold: velocityThreshold ?? this.velocityThreshold,
-      newAccountScore: newAccountScore ?? this.newAccountScore,
-      newAccountHours: newAccountHours ?? this.newAccountHours,
       autoReversalWindowDays:
           autoReversalWindowDays ?? this.autoReversalWindowDays,
       termsText: termsText is String? ? termsText : this.termsText,

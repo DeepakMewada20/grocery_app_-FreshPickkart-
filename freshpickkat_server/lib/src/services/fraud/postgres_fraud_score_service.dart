@@ -35,7 +35,6 @@ class PostgresFraudScoreService {
     SamePaymentContactRule(),
     SamePayerNameRule(),
     ReferralVelocityRule(),
-    NewAccountRule(),
   ];
 
   /// Evaluate a referral for fraud and return outcome with status decision.
