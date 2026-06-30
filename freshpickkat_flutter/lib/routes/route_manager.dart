@@ -21,7 +21,7 @@ enum RouteNavigationMode { to, off, offAll }
 class RouteManager {
   const RouteManager._();
 
-  static const primaryHost = 'freshpickkat.com';
+  static const primaryHost = 'freshpickkart.com';
   static const supportedHosts = <String>{
     primaryHost,
     'www.$primaryHost',

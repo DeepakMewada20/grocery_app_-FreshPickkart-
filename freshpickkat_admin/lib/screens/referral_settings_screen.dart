@@ -133,7 +133,7 @@ class _ReferralSettingsScreenState extends State<ReferralSettingsScreen> {
 
   Future<void> _openDocs() async {
     const url =
-        'https://deepakmewada20.github.io/grocery_app_-FreshPickkart-/referral-settings-help.html';
+        'https://freshpickkart.com/docs/referral-settings-help.html';
     final uri = Uri.parse(url);
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {

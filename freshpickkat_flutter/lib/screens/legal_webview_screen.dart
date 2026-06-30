@@ -16,7 +16,7 @@ class LegalWebViewScreen extends StatefulWidget {
   final String url;
 
   static const String _defaultDocsBaseUrl =
-      'https://deepakmewada20.github.io/grocery_app_-FreshPickkart-';
+      'https://freshpickkart.com/docs';
 
   static const String docsBaseUrl = String.fromEnvironment(
     'LEGAL_DOCS_BASE_URL',

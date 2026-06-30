@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import '../controller/auth_controller.dart';
 import '../utils/serverpod_client.dart';
+import '../routes/route_manager.dart';
 import 'fresh_points_history_screen.dart';
 
 class InviteEarnScreen extends StatefulWidget {
@@ -92,7 +93,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   Future<void> _openTermsDocs() async {
     final uid = _auth.currentUser?.uid ?? '';
     final url =
-        'https://freshpickkat.com/referral/terms${uid.isNotEmpty ? '?uid=$uid' : ''}';
+        'https://${RouteManager.primaryHost}/referral/terms${uid.isNotEmpty ? '?uid=$uid' : ''}';
     final uri = Uri.parse(url);
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {

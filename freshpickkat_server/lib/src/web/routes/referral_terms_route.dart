@@ -305,7 +305,7 @@ function confirmAccept() {
     <div class="icon">&#10003;</div>
     <h2>Terms Accepted!</h2>
     <p>Thank you for accepting the FreshPickKat Referral Program terms. You can now participate in the referral program.</p>
-    <a href="https://freshpickkat.com" class="back-link">Go to App</a>
+    <a href="https://freshpickkart.com" class="back-link">Go to App</a>
   </div>
 </body>
 </html>

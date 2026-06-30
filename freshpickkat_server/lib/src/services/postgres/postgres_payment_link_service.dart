@@ -910,10 +910,10 @@ class PostgresPaymentLinkService {
       return url;
     } catch (e) {
       session.log(
-        '_getBaseUrl: error=$e, falling back to freshpickkat.com',
+        '_getBaseUrl: error=$e, falling back to freshpickkart.com',
         level: LogLevel.error,
       );
-      return 'https://freshpickkat.com';
+      return 'https://freshpickkart.com';
     }
   }
 
