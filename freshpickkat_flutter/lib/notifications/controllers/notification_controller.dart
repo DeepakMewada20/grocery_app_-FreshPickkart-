@@ -47,7 +47,7 @@ Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwin = DarwinInitializationSettings();
     await localNotifications.initialize(
-      const InitializationSettings(android: android, iOS: darwin),
+      settings: const InitializationSettings(android: android, iOS: darwin),
     );
 
     const channel = AndroidNotificationChannel(
@@ -72,10 +72,13 @@ Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
     );
     const darwinDetails = DarwinNotificationDetails();
     await localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails, iOS: darwinDetails),
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: androidDetails,
+        iOS: darwinDetails,
+      ),
       payload: jsonEncode(message.data),
     );
   } catch (_) {}
@@ -429,7 +432,7 @@ class NotificationController extends GetxController {
     const darwin = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: darwin);
     await _localNotifications.initialize(
-      settings,
+      settings: settings,
       onDidReceiveNotificationResponse: (response) {
         final payload = response.payload;
         if (payload == null || payload.isEmpty) return;
@@ -475,10 +478,13 @@ class NotificationController extends GetxController {
     );
     const darwin = DarwinNotificationDetails();
     await _localNotifications.show(
-      notificationId,
-      title.toString(),
-      body.toString(),
-      const NotificationDetails(android: android, iOS: darwin),
+      id: notificationId,
+      title: title.toString(),
+      body: body.toString(),
+      notificationDetails: const NotificationDetails(
+        android: android,
+        iOS: darwin,
+      ),
       payload: jsonEncode(message.data),
     );
   }
