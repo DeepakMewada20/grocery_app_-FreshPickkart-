@@ -418,7 +418,7 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       onPressed: () {
         AppSnackbar.show(
           'Contact Support',
-          'Please contact us at support@freshpickkat.com',
+          'Please contact us at support@freshpickkart.com',
         );
       },
       style: OutlinedButton.styleFrom(

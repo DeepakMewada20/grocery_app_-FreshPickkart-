@@ -188,7 +188,7 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 
 ### Deep Linking for Referral Invites
 - **Share link format**: Changed from `?ref=CODE` (query param) to `/CODE` (path-based) at `postgres_referral_service.dart:368` — matches `RouteManager.fromUri()` path-based parser
-- **Android intent filter**: Added `/invite/` path prefix to both `freshpickkat.com` and `www.freshpickkat.com` intent filters in `AndroidManifest.xml`
+- **Android intent filter**: Added `/invite/` path prefix to both `freshpickkart.com` and `www.freshpickkart.com` intent filters in `AndroidManifest.xml`
 - **Android App Links**: Created `web/static/.well-known/assetlinks.json` with SHA256 fingerprint from release keystore for `com.freshpickkart.customer`
 - **iOS Universal Links**: Created `web/static/.well-known/apple-app-site-association` with `applinks` entries for `freshpickkart.com` and `www.freshpickkart.com`
 - **iOS entitlements**: Created `ios/Runner/Runner.entitlements` with `com.apple.developer.associated-domains` for both domains; added `CODE_SIGN_ENTITLEMENTS` to all 3 Runner build configs in `project.pbxproj`

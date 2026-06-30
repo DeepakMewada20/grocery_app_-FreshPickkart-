@@ -16,7 +16,7 @@ This report covers the final implementation to close this gap: deep link handlin
 |---|---|
 | Referral code generation + DB | `postgres_referral_service.dart`, `app_user.referralCode` |
 | Invite & Earn screen (referrer side) | `invite_earn_screen.dart` — code card, share, activity, terms |
-| Share link generation | `shareLink = 'https://freshpickkat.com/invite?ref=$code'` |
+| Share link generation | `shareLink = 'https://freshpickkart.com/invite?ref=$code'` |
 | Share via system share sheet | `_share()` in invite_earn_screen |
 | Reward engine (points, fraud, hold, reversal) | `postgres_referral_service.dart`, `postgres_fraud_score_service.dart` |
 | Admin referral dashboard | `referral_dashboard_screen.dart`, `referral_settings_screen.dart` |
@@ -51,7 +51,7 @@ Referrer opens Invite & Earn screen
     ├── Copy Code (clipboard)
     └── Share via system sheet
             │
-            └── https://freshpickkat.com/invite?ref=CODE123
+            └── https://freshpickkart.com/invite?ref=CODE123
 ```
 
 ### 3.2 Referee Flow (To Be Built)
@@ -59,7 +59,7 @@ Referrer opens Invite & Earn screen
 ```
 Friend clicks invite link
     │
-    ├── https://freshpickkat.com/invite?ref=CODE123
+    ├── https://freshpickkart.com/invite?ref=CODE123
     │
     ├── If app installed
     │       └── DeepLinkService.handleUri() → extracts CODE123

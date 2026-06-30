@@ -47,19 +47,19 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="freshpickkat.com"
+                    android:host="freshpickkart.com"
                     android:pathPrefix="/product/" />
                 <data
                     android:scheme="https"
-                    android:host="freshpickkat.com"
+                    android:host="freshpickkart.com"
                     android:pathPrefix="/category/" />
                 <data
                     android:scheme="https"
-                    android:host="freshpickkat.com"
+                    android:host="freshpickkart.com"
                     android:pathPrefix="/offer/" />
                 <data
                     android:scheme="https"
-                    android:host="freshpickkat.com"
+                    android:host="freshpickkart.com"
                     android:pathPrefix="/invite/" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
@@ -68,19 +68,19 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="www.freshpickkat.com"
+                    android:host="www.freshpickkart.com"
                     android:pathPrefix="/product/" />
                 <data
                     android:scheme="https"
-                    android:host="www.freshpickkat.com"
+                    android:host="www.freshpickkart.com"
                     android:pathPrefix="/category/" />
                 <data
                     android:scheme="https"
-                    android:host="www.freshpickkat.com"
+                    android:host="www.freshpickkart.com"
                     android:pathPrefix="/offer/" />
                 <data
                     android:scheme="https"
-                    android:host="www.freshpickkat.com"
+                    android:host="www.freshpickkart.com"
                     android:pathPrefix="/invite/" />
             </intent-filter>
         </activity>
