@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f7a3b">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <meta name="author" content="FreshPickKat">
+  <title>Referral Program — Terms & Conditions</title>
+  <style>
+    :root {
+      --bg: #f6f8f5;
+      --surface: #ffffff;
+      --surface-soft: #eef5ef;
+      --text: #142018;
+      --muted: #5f6f65;
+      --border: #dce7de;
+      --primary: #0f7a3b;
+      --primary-strong: #09622d;
+      --header-bg: rgba(255, 255, 255, 0.94);
+      --primary-tint: #eaf6ee;
+      --primary-border: #b9d8c3;
+      --warn-bg: #fff8e1;
+      --warn-border: #ffcd5c;
+      --example-bg: #f0f7f2;
+      --shadow: 0 16px 42px rgba(15, 51, 31, 0.09);
+      --radius: 18px;
+      --max-width: 920px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1511;
+        --surface: #17211a;
+        --surface-soft: #1d2a21;
+        --text: #edf5ee;
+        --muted: #b7c7bb;
+        --border: #2d3b31;
+        --primary: #6ad58c;
+        --primary-strong: #8be6a5;
+        --header-bg: rgba(23, 33, 26, 0.94);
+        --primary-tint: #1f3327;
+        --primary-border: #42624b;
+        --warn-bg: #332b0c;
+        --warn-border: #665500;
+        --example-bg: #1a2b1f;
+        --shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top left, rgba(15, 122, 59, 0.10), transparent 34rem), var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    a { color: var(--primary-strong); text-decoration-thickness: 0.09em; text-underline-offset: 0.18em; }
+
+    .app-header {
+      position: sticky; top: 0; z-index: 10;
+      padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .header-inner {
+      display: flex; align-items: center; gap: 12px;
+      width: min(100%, var(--max-width)); margin: 0 auto;
+    }
+
+    .back-button {
+      display: grid; width: 42px; height: 42px; min-width: 42px;
+      place-items: center; border: 1px solid var(--border);
+      border-radius: 14px; background: var(--surface-soft); color: var(--text);
+      font-size: 24px; line-height: 1; cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .back-button:disabled { opacity: 0.45; cursor: default; }
+    .back-button:not(:disabled):active { transform: scale(0.96); }
+
+    .brand-block { min-width: 0; flex: 1; }
+    .brand { display: block; font-size: 18px; font-weight: 800; letter-spacing: 0; line-height: 1.2; }
+    .updated { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.3; }
+
+    .page {
+      width: min(100% - 32px, var(--max-width)); margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    h1 { margin: 0 0 8px; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
+    h2 { margin: 28px 0 12px; font-size: 20px; font-weight: 700; }
+    h3 { margin: 20px 0 8px; font-size: 17px; font-weight: 600; }
+
+    .highlight-box {
+      background: var(--primary-tint);
+      border: 1px solid var(--primary-border);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .highlight-box h3 { margin-top: 0; }
+
+    .step-list {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+    }
+    .step-list li {
+      counter-increment: step;
+      padding: 12px 0 12px 44px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .step-list li:last-child { border-bottom: none; }
+
+    .rule-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    @media (max-width: 600px) {
+      .rule-grid { grid-template-columns: 1fr; }
+    }
+
+    .rule-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .rule-card .name { font-weight: 700; font-size: 14px; color: var(--primary-strong); }
+    .rule-card .detail { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+      background: var(--surface); border-radius: 14px; overflow: hidden;
+    }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--surface-soft); font-weight: 600; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+
+    .note {
+      background: var(--warn-bg); border: 1px solid var(--warn-border);
+      border-radius: 12px; padding: 14px; font-size: 14px; margin: 16px 0;
+    }
+
+    .footer-nav {
+      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+      margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);
+    }
+    .footer-nav a { font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <button class="back-button" onclick="history.back()" aria-label="Back">←</button>
+    <div class="brand-block">
+      <span class="brand">FreshPickKat</span>
+      <span class="updated">Referral Program — Terms &amp; Conditions</span>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+<h1>Referral Program — Terms &amp; Conditions</h1>
+<p style="margin:0 0 24px;color:var(--muted);font-size:15px;">
+  Everything you need to know about how the referral program works, how rewards are approved,
+  and what rules keep the program fair for everyone.
+</p>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>1. How the Referral Program Works</h2>
+
+<p>Invite your friends to join FreshPickKat, and when they place their first qualifying order, you earn <strong>FreshPoints</strong>. Your friend gets a <strong>welcome coupon</strong> too.</p>
+
+<ol class="step-list">
+  <li>
+    <strong>Share your referral code</strong>
+    <br>Tap the share button on the Invite &amp; Earn screen to send your unique code via WhatsApp, SMS, or any app.
+  </li>
+  <li>
+    <strong>Friend signs up</strong>
+    <br>Your friend installs FreshPickKat and enters your referral code during onboarding or in their profile.
+  </li>
+  <li>
+    <strong>Friend places an order</strong>
+    <br>Your friend places their first order and it reaches the required status (usually <strong>DELIVERED</strong>).
+  </li>
+  <li>
+    <strong>Reward is evaluated</strong>
+    <br>Our system checks the order against qualification rules and fraud prevention measures.
+  </li>
+  <li>
+    <strong>You earn FreshPoints</strong>
+    <br>If everything passes, FreshPoints are credited to your account. Your friend receives a welcome coupon too.
+  </li>
+</ol>
+
+<div class="highlight-box">
+  <h3>📌 Quick Facts</h3>
+  <table style="width:auto;">
+    <tr><td><strong>1 FreshPoint</strong></td><td>= <strong>₹1</strong> in value</td></tr>
+    <tr><td><strong>Reward points</strong></td><td>Credited after friend's first qualifying order</td></tr>
+    <tr><td><strong>Friend's coupon</strong></td><td>Flat discount, valid for 30 days</td></tr>
+    <tr><td><strong>Referral window</strong></td><td>You must apply a referral code within 7 days of signing up or before your first order (whichever comes first)</td></tr>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>2. Reward Approval Process</h2>
+
+<p>Every referral goes through a review process before rewards are issued. This protects the program from abuse and ensures fairness.</p>
+
+<h3>What happens after your friend orders?</h3>
+<ol>
+  <li><strong>Qualification Check</strong> — The order must meet the minimum amount requirement and reach the configured status.</li>
+  <li><strong>Fraud Evaluation</strong> — Our system checks for suspicious patterns (see section 5 below).</li>
+  <li><strong>Outcome</strong> — Based on the evaluation, the reward is either approved, held, or rejected.</li>
+</ol>
+
+<h3>Possible Statuses</h3>
+<div class="table-wrap">
+<table>
+  <tr>
+    <th>Status</th>
+    <th>What It Means</th>
+    <th>What You See</th>
+  </tr>
+  <tr>
+    <td><strong>SIGNED_UP</strong></td>
+    <td>Your friend created an account using your code</td>
+    <td>"Friend signed up"</td>
+  </tr>
+  <tr>
+    <td><strong>REWARDED</strong></td>
+    <td>Reward approved — points credited to your account</td>
+    <td>"You earned X FreshPoints"</td>
+  </tr>
+  <tr>
+    <td><strong>REWARD_HELD</strong></td>
+    <td>Reward is on hold for a short period (usually 72 hours) as a safety measure</td>
+    <td>"Reward is on hold until..."</td>
+  </tr>
+  <tr>
+    <td><strong>PENDING_REVIEW</strong></td>
+    <td>Reward flagged for manual review by our team</td>
+    <td>"Referral reward is pending review"</td>
+  </tr>
+  <tr>
+    <td><strong>REJECTED</strong></td>
+    <td>Reward could not be approved due to a rule violation</td>
+    <td>Reason for rejection displayed</td>
+  </tr>
+  <tr>
+    <td><strong>REVERSED</strong></td>
+    <td>A previously approved reward was reversed</td>
+    <td>"Referral reward has been reversed"</td>
+  </tr>
+  <tr>
+    <td><strong>EXPIRED</strong></td>
+    <td>Referral link expired before the friend placed an order</td>
+    <td>"Referral has expired"</td>
+  </tr>
+</table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>3. Qualification Requirements</h2>
+
+<p>For a referral to qualify for a reward, <strong>all</strong> of these conditions must be met:</p>
+
+<ul>
+  <li>The invited friend must be a <strong>new user</strong> — someone who has never had a FreshPickKat account before.</li>
+  <li>The friend's order must meet the <strong>minimum qualifying amount</strong> (after discounts and coupons).</li>
+  <li>The order must reach the required status (typically <strong>DELIVERED</strong>).</li>
+  <li>Each new user can only be referred <strong>once</strong> — duplicate referrals are not allowed.</li>
+  <li>You cannot refer <strong>yourself</strong>. Self-referral is strictly prohibited and will result in immediate rejection.</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>4. Reward Reversal</h2>
+
+<p>FreshPickKat reserves the right to <strong>reverse</strong> any referral reward if:</p>
+<ul>
+  <li>Fraud or abuse is detected after the reward was issued</li>
+  <li>The qualifying order is cancelled, refunded, or returned after the reward was processed</li>
+  <li>The referral violates any of the program's terms and conditions</li>
+</ul>
+
+<p><strong>What happens when a reward is reversed?</strong></p>
+<ul>
+  <li>The FreshPoints that were credited are <strong>deducted</strong> from your balance.</li>
+  <li>If you have already spent some of those points, only the remaining balance can be deducted. The outstanding amount is tracked and may be recovered from future point earnings.</li>
+  <li>The referral status changes from <strong>REWARDED</strong> to <strong>REVERSED</strong>.</li>
+  <li>You will see the reversal reason in your referral activity timeline.</li>
+</ul>
+
+<div class="note">
+  <strong>Example:</strong> You earned 50 points for a referral. Later, the qualifying order was returned.
+  Your reward gets reversed. If you have 20 points remaining, those 20 are deducted, and 30 points
+  are marked as outstanding recovery.
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>5. Fraud Prevention &amp; Scoring</h2>
+
+<p>To keep the program fair, every referral is evaluated by our fraud prevention system. The system looks for patterns that suggest abuse.</p>
+
+<h3>Rules that can cause immediate rejection (hard reject)</h3>
+<div class="rule-grid">
+  <div class="rule-card">
+    <div class="name">Same User ID</div>
+    <div class="detail">You cannot use your own referral code. Your own code applied to your own account = automatic rejection.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">Same Phone Number</div>
+    <div class="detail">If the referrer and invitee have the same phone number on file, the referral is rejected.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">Already Rewarded</div>
+    <div class="detail">If the invitee has already been rewarded for another referral, duplicate rewards are prevented.</div>
+  </div>
+</div>
+
+<h3>Rules that can add fraud points (soft scoring)</h3>
+<div class="rule-grid">
+  <div class="rule-card">
+    <div class="name">Same Address</div>
+    <div class="detail">If you and your friend share the same delivery address across multiple orders, it raises a flag. First match: +20 points. Multiple matches: +40 to +70 points.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">Same Payment Contact</div>
+    <div class="detail">If the same phone number or UPI ID is used for payments by both accounts, it adds +30 fraud points.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">Same Payer Name</div>
+    <div class="detail">If orders from both accounts share the same payer name, it adds +20 fraud points.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">Referral Velocity</div>
+    <div class="detail">If you refer too many people in a short time (e.g., 5+ in 24 hours), each extra referral adds fraud points.</div>
+  </div>
+  <div class="rule-card">
+    <div class="name">New Account</div>
+    <div class="detail">If your account or your friend's account is very new (less than 48 hours old), it adds +20 fraud points per new account.</div>
+  </div>
+</div>
+
+<h3>What happens based on the total fraud score?</h3>
+<div class="table-wrap">
+<table>
+  <tr>
+    <th>Total Score</th>
+    <th>Outcome</th>
+  </tr>
+  <tr>
+    <td><strong>0–39</strong></td>
+    <td>✅ <strong>Auto-Approved</strong> — Reward is processed immediately</td>
+  </tr>
+  <tr>
+    <td><strong>40–69</strong></td>
+    <td>⏳ <strong>Held for review</strong> — Usually released after 72 hours automatically</td>
+  </tr>
+  <tr>
+    <td><strong>70–89</strong></td>
+    <td>⏳ <strong>Held for review</strong> — Released after the safety hold period</td>
+  </tr>
+  <tr>
+    <td><strong>90+</strong></td>
+    <td>❌ <strong>Rejected</strong> — Reward is not approved</td>
+  </tr>
+  <tr>
+    <td><strong>Hard reject</strong></td>
+    <td>❌ <strong>Immediately Rejected</strong> — Same UID, same phone, or self-referral</td>
+  </tr>
+</table>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>6. Points &amp; Coupons</h2>
+
+<h3>FreshPoints (for you, the referrer)</h3>
+<ul>
+  <li>1 FreshPoint = <strong>₹1</strong> in value</li>
+  <li>Points are credited to your account automatically when a referral reward is approved</li>
+  <li>Points can be used towards future orders — look for the option at checkout</li>
+  <li>Points <strong>do not expire</strong> unless the reward is reversed</li>
+  <li>You can view your total points on the Invite & Earn screen</li>
+  <li>Check your points history to see how you earned and spent your points</li>
+</ul>
+
+<h3>Welcome Coupon (for your friend)</h3>
+<ul>
+  <li>Your friend receives a <strong>flat discount coupon</strong> when the referral qualifies</li>
+  <li>The coupon code is sent automatically — no manual action needed</li>
+  <li>The coupon is valid for <strong>30 days</strong> from the date of issue</li>
+  <li>The coupon is assigned to your friend's account and cannot be transferred</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>7. Program Rules &amp; Fair Use</h2>
+
+<ul>
+  <li><strong>One account per person.</strong> Creating multiple accounts to earn referral rewards is considered abuse and will result in rejection of all related referrals.</li>
+  <li><strong>Self-referral is prohibited.</strong> Using your own referral code on another account you control will result in immediate rejection and may lead to account suspension.</li>
+  <li><strong>Don't share your code on public deal websites.</strong> Referral codes are meant for personal sharing with friends and family. Public distribution may be flagged as abuse.</li>
+  <li><strong>Qualifying orders must be genuine.</strong> Orders placed solely to earn referral rewards without genuine intent to purchase may be disqualified.</li>
+  <li><strong>All decisions are final.</strong> FreshPickKat reserves the right to make final decisions on all referral rewards, including reversal of previously issued rewards.</li>
+</ul>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>8. Modification &amp; Termination</h2>
+
+<p>
+FreshPickKat reserves the right to modify, suspend, or terminate the referral program at any time
+without prior notice. Changes may include:
+</p>
+<ul>
+  <li>Changing the reward amount or type</li>
+  <li>Adding or removing qualification criteria</li>
+  <li>Changing fraud detection thresholds</li>
+  <li>Suspending the program temporarily or permanently</li>
+</ul>
+<p>
+If the program is terminated, all pending and held rewards will be reviewed and processed or
+reversed at the company's discretion.
+</p>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<h2>9. Need Help?</h2>
+
+<p>
+If you have any questions about the referral program or your rewards, please contact our support team
+through the Help &amp; Support section in the app.
+</p>
+
+<div class="footer-nav">
+  <a href="privacy-policy.html">Privacy Policy</a>
+  <a href="terms-and-conditions.html">Terms &amp; Conditions</a>
+  <a href="frequently-asked-questions.html">FAQ</a>
+  <a href="referral-settings-help.html">Admin: Settings Reference</a>
+</div>
+
+</div>
+
+</body>
+</html>
