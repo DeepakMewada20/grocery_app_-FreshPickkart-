@@ -70,10 +70,15 @@ class RouteManager {
     };
   }
 
+  static const customScheme = 'freshpickkart';
+
   static DeepLinkTarget? fromUri(Uri uri) {
-    if (uri.scheme.toLowerCase() != 'https') return null;
-    final host = uri.host.toLowerCase();
-    if (!supportedHosts.contains(host)) return null;
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme != 'https' && scheme != customScheme) return null;
+    if (scheme == 'https') {
+      final host = uri.host.toLowerCase();
+      if (!supportedHosts.contains(host)) return null;
+    }
 
     final segments = uri.pathSegments
         .where((segment) => segment.trim().isNotEmpty)

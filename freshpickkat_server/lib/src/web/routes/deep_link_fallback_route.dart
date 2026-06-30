@@ -21,6 +21,7 @@ class DeepLinkFallbackRoute extends Route {
     final path = '$routeType/$id';
     final encodedPlayStore = Uri.encodeComponent(playStoreUrl);
     final intentUrl = 'intent://$path#Intent;scheme=https;host=freshpickkart.com;package=com.freshpickkart.customer;S.browser_fallback_url=$encodedPlayStore;end';
+    final customSchemeUrl = 'freshpickkart://$path';
 
     final (icon, title, subtitle) = switch (routeType) {
       'offer' => ('🏷️', 'Special Offer!', 'Someone shared an exclusive offer with you.'),
@@ -30,7 +31,7 @@ class DeepLinkFallbackRoute extends Route {
 
     return Response.ok(
       body: Body.fromString(
-        _buildHtml(icon, title, subtitle, deepLink, intentUrl, appStoreUrl, playStoreUrl),
+        _buildHtml(icon, title, subtitle, deepLink, intentUrl, customSchemeUrl, appStoreUrl, playStoreUrl),
         mimeType: MimeType.html,
       ),
     );
@@ -42,6 +43,7 @@ class DeepLinkFallbackRoute extends Route {
     String subtitle,
     String deepLink,
     String intentUrl,
+    String customSchemeUrl,
     String appStoreUrl,
     String playStoreUrl,
   ) {
@@ -111,6 +113,30 @@ class DeepLinkFallbackRoute extends Route {
   </div>
 
   <script>
+    var intentUrl = '${_escapeJs(intentUrl)}';
+    var customUrl = '${_escapeJs(customSchemeUrl)}';
+    var deepLink = '${_escapeJs(deepLink)}';
+    var psUrl = '${_escapeJs(playStoreUrl)}';
+    var asUrl = '${_escapeJs(appStoreUrl)}';
+
+    function startFallbackTimer() {
+      setTimeout(function() {
+        var ua = navigator.userAgent.toLowerCase();
+        if (/android/.test(ua)) window.location.href = psUrl;
+        else if (/iphone|ipad|ipod/.test(ua)) window.location.href = asUrl;
+        else {
+          var btn = document.getElementById('openBtn');
+          var btnText = document.getElementById('btnText');
+          var btnLoader = document.getElementById('btnLoader');
+          btnText.style.display = 'inline';
+          btnLoader.style.display = 'none';
+          btn.disabled = false;
+          btnText.textContent = 'Continue to Website';
+          document.getElementById('installBtn').style.display = 'none';
+        }
+      }, 2000);
+    }
+
     function openApp() {
       var btn = document.getElementById('openBtn');
       var btnText = document.getElementById('btnText');
@@ -120,27 +146,16 @@ class DeepLinkFallbackRoute extends Route {
       btnLoader.style.display = 'block';
       var ua = navigator.userAgent.toLowerCase();
       if (/android/.test(ua)) {
-        window.location.href = '${_escapeJs(intentUrl)}';
+        window.location.href = intentUrl;
       } else {
-        window.location.href = '${_escapeJs(deepLink)}';
+        window.location.href = customUrl;
       }
-      var start = Date.now();
-      setTimeout(function() {
-        if (Date.now() - start < 2500) {
-          var ua = navigator.userAgent.toLowerCase();
-          if (/android/.test(ua)) window.location.href = '${_escapeJs(playStoreUrl)}';
-          else if (/iphone|ipad|ipod/.test(ua)) window.location.href = '${_escapeJs(appStoreUrl)}';
-          else {
-            btnText.style.display = 'inline';
-            btnLoader.style.display = 'none';
-            btn.disabled = false;
-            btnText.textContent = 'Continue to Website';
-            document.getElementById('installBtn').style.display = 'none';
-          }
-        }
-      }, 2000);
+      startFallbackTimer();
     }
-    setTimeout(openApp, 500);
+
+    // Auto-open: custom scheme works without user gesture
+    window.location.href = customUrl;
+    startFallbackTimer();
   </script>
 </body>
 </html>

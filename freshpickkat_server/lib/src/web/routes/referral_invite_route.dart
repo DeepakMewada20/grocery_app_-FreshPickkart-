@@ -19,16 +19,17 @@ class ReferralInviteRoute extends Route {
     final path = 'invite/$code';
     final encodedPlayStore = Uri.encodeComponent(playStoreUrl);
     final intentUrl = 'intent://$path#Intent;scheme=https;host=freshpickkart.com;package=com.freshpickkart.customer;S.browser_fallback_url=$encodedPlayStore;end';
+    final customSchemeUrl = 'freshpickkart://invite/$code';
 
     return Response.ok(
       body: Body.fromString(
-        _buildHtml(code, inviteLink, intentUrl, appStoreUrl, playStoreUrl),
+        _buildHtml(code, inviteLink, intentUrl, customSchemeUrl, appStoreUrl, playStoreUrl),
         mimeType: MimeType.html,
       ),
     );
   }
 
-  String _buildHtml(String code, String inviteLink, String intentUrl, String appStoreUrl, String playStoreUrl) {
+  String _buildHtml(String code, String inviteLink, String intentUrl, String customSchemeUrl, String appStoreUrl, String playStoreUrl) {
     return '''
 <!DOCTYPE html>
 <html lang="en-IN">
@@ -103,6 +104,30 @@ class ReferralInviteRoute extends Route {
 
   <script>
     var code = '${_escapeJs(code)}';
+    var intentUrl = '${_escapeJs(intentUrl)}';
+    var customUrl = '${_escapeJs(customSchemeUrl)}';
+    var inviteLink = '$inviteLink';
+    var psUrl = '${_escapeJs(playStoreUrl)}';
+    var asUrl = '${_escapeJs(appStoreUrl)}';
+
+    function startFallbackTimer() {
+      setTimeout(function() {
+        var ua = navigator.userAgent.toLowerCase();
+        if (/android/.test(ua)) window.location.href = psUrl;
+        else if (/iphone|ipad|ipod/.test(ua)) window.location.href = asUrl;
+        else {
+          var btn = document.getElementById('openBtn');
+          var btnText = document.getElementById('btnText');
+          var btnLoader = document.getElementById('btnLoader');
+          btnText.style.display = 'inline';
+          btnLoader.style.display = 'none';
+          btn.disabled = false;
+          btnText.textContent = 'Continue to Website';
+          document.getElementById('installBtn').style.display = 'none';
+        }
+      }, 2000);
+    }
+
     function openApp() {
       var btn = document.getElementById('openBtn');
       var btnText = document.getElementById('btnText');
@@ -112,27 +137,17 @@ class ReferralInviteRoute extends Route {
       btnLoader.style.display = 'block';
       var ua = navigator.userAgent.toLowerCase();
       if (/android/.test(ua)) {
-        window.location.href = '${_escapeJs(intentUrl)}';
+        window.location.href = intentUrl;
       } else {
-        window.location.href = '$inviteLink';
+        window.location.href = customUrl;
       }
-      var start = Date.now();
-      setTimeout(function() {
-        if (Date.now() - start < 2500) {
-          var ua = navigator.userAgent.toLowerCase();
-          if (/android/.test(ua)) window.location.href = '$playStoreUrl';
-          else if (/iphone|ipad|ipod/.test(ua)) window.location.href = '$appStoreUrl';
-          else {
-            btnText.style.display = 'inline';
-            btnLoader.style.display = 'none';
-            btn.disabled = false;
-            btnText.textContent = 'Continue to Website';
-            document.getElementById('installBtn').style.display = 'none';
-          }
-        }
-      }, 2000);
+      startFallbackTimer();
     }
-    if (code) setTimeout(openApp, 500);
+
+    if (code) {
+      window.location.href = customUrl;
+      startFallbackTimer();
+    }
   </script>
 </body>
 </html>

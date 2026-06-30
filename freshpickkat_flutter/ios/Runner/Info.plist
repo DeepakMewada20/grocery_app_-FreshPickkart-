@@ -57,5 +57,16 @@
 		<string>We need your location to suggest nearby delivery addresses even when the app is in background.</string>
 		<key>MAPS_API_KEY</key>
 		<string>$(MAPS_API_KEY)</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>com.freshpickkart.customer</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>freshpickkart</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>
