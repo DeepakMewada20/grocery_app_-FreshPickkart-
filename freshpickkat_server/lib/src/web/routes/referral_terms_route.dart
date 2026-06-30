@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:serverpod/serverpod.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_referral_service.dart';
 import 'package:freshpickkat_server/src/services/postgres/postgres_support.dart';
@@ -7,6 +9,18 @@ class ReferralTermsRoute extends Route {
   ReferralTermsRoute() : super(methods: {Method.get, Method.post});
 
   final PostgresReferralService _referral = PostgresReferralService();
+  String? _templateCache;
+
+  Future<String> _readTemplate() async {
+    if (_templateCache != null) return _templateCache!;
+    final path = '${Directory.current.path}/web/static/docs/referral-terms-user.html';
+    try {
+      _templateCache = await File(path).readAsString();
+      return _templateCache!;
+    } catch (e) {
+      return _buildFallbackPage();
+    }
+  }
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
@@ -21,10 +35,29 @@ class ReferralTermsRoute extends Route {
     final termsText = settings?.termsText ?? '';
     final uid = request.url.queryParameters['uid'] ?? '';
 
-    final html = _buildTermsPage(termsText, uid: uid);
+    var html = await _readTemplate();
+
+    final adminSection = termsText.trim().isNotEmpty
+        ? _buildAdminTermsSection(termsText)
+        : '';
+    html = html.replaceFirst('<!-- ADMIN_TERMS_SECTION -->', adminSection);
+
+    final acceptSection = _buildAcceptSection(uid);
+    html = html.replaceFirst('<!-- ACCEPT_SECTION -->', acceptSection);
+
     return Response.ok(
       body: Body.fromString(html, mimeType: MimeType.html),
     );
+  }
+
+  String _buildAdminTermsSection(String termsText) {
+    final content = _renderTermsContent(termsText);
+    return '''
+<div class="card" style="border-left: 4px solid var(--primary); margin-bottom: 24px;">
+  <h2 style="margin-top:0;">Additional Program Terms</h2>
+  <div class="terms-content">$content</div>
+</div>
+''';
   }
 
   Future<Result> _handleAccept(Session session, Request request) async {
@@ -69,131 +102,6 @@ class ReferralTermsRoute extends Route {
     return user.id!;
   }
 
-  String _buildTermsPage(String termsText, {String uid = ''}) {
-    final termsContent = _renderTermsContent(termsText);
-
-    return '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Referral Terms - FreshPickKat</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: #f5f7f5;
-      color: #172019;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .header {
-      text-align: center;
-      padding: 24px 0 16px;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1b8a4c;
-    }
-    .header p {
-      font-size: 14px;
-      color: #6b7b72;
-      margin-top: 4px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .terms-content {
-      font-size: 15px;
-      line-height: 1.7;
-      color: #2d3a31;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    .terms-content p {
-      margin-bottom: 12px;
-    }
-    .terms-content h2, .terms-content h3 {
-      margin-top: 20px;
-      margin-bottom: 8px;
-      color: #172019;
-    }
-    .terms-content ul, .terms-content ol {
-      margin: 8px 0 12px 20px;
-    }
-    .terms-content li {
-      margin-bottom: 4px;
-    }
-    .accept-section {
-      text-align: center;
-      padding: 16px 0;
-    }
-    .accept-btn {
-      display: inline-block;
-      padding: 14px 48px;
-      background: #1b8a4c;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .accept-btn:hover { background: #16733e; }
-    .accept-btn:disabled {
-      background: #a3c4b2;
-      cursor: not-allowed;
-    }
-    .accept-btn.accepted {
-      background: #a3c4b2;
-      cursor: default;
-    }
-    .info-note {
-      text-align: center;
-      font-size: 13px;
-      color: #6b7b72;
-      margin-top: 12px;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 48px 16px;
-      color: #6b7b72;
-    }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state h2 { font-size: 18px; color: #2d3a31; margin-bottom: 8px; }
-    @media (max-width: 480px) {
-      .container { padding: 12px; }
-      .card { padding: 16px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>FreshPickKat</h1>
-      <p>Referral Program Terms & Conditions</p>
-    </div>
-    <div class="card">
-      ${termsContent.isNotEmpty ? '<div class="terms-content">$termsContent</div>' : _buildEmptyState()}
-    </div>
-    ${_buildAcceptSection(uid)}
-  </div>
-</body>
-</html>
-''';
-  }
-
   String _renderTermsContent(String text) {
     if (text.isEmpty) return '';
     final trimmed = text.trim();
@@ -229,20 +137,22 @@ class ReferralTermsRoute extends Route {
   String _buildAcceptSection(String uid) {
     if (uid.isEmpty) {
       return '''
-<div class="info-note">
-  <p>To accept these terms, please open the Invite & Earn section in the FreshPickKat app.</p>
+<div class="accept-section">
+  <p style="color:var(--muted);font-size:14px;">
+    To accept these terms, please open the <strong>Invite &amp; Earn</strong> section in the FreshPickKat app.
+  </p>
 </div>
 ''';
     }
     return '''
-<div class="accept-section">
+<div class="accept-section" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
   <form method="post" onsubmit="return confirmAccept()">
     <input type="hidden" name="uid" value="${_escapeHtml(uid)}">
     <button type="submit" id="acceptBtn" class="accept-btn">I Accept the Terms</button>
   </form>
-  <div class="info-note">
-    By accepting, you agree to the FreshPickKat Referral Program terms.
-  </div>
+  <p style="color:var(--muted);font-size:13px;margin-top:10px;">
+    By clicking Accept, you agree to the FreshPickKat Referral Program terms above.
+  </p>
 </div>
 <script>
 function confirmAccept() {
@@ -252,16 +162,6 @@ function confirmAccept() {
   return true;
 }
 </script>
-''';
-  }
-
-  String _buildEmptyState() {
-    return '''
-<div class="empty-state">
-  <div class="icon">&#128221;</div>
-  <h2>Terms Not Available</h2>
-  <p>The referral program terms have not been configured yet. Please check back later.</p>
-</div>
 ''';
   }
 
@@ -342,6 +242,48 @@ function confirmAccept() {
     <div class="icon">&#10060;</div>
     <h2>Something went wrong</h2>
     <p>${_escapeHtml(message)}</p>
+  </div>
+</body>
+</html>
+''';
+  }
+
+  String _buildFallbackPage() {
+    return '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions - FreshPickKat</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #f5f7f5;
+      color: #172019;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    h2 { color: #1b8a4c; margin-bottom: 8px; }
+    p { color: #6b7b72; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Referral Program Terms</h2>
+    <p>Please open the Invite & Earn section in the FreshPickKat app to view and accept the referral terms.</p>
   </div>
 </body>
 </html>
