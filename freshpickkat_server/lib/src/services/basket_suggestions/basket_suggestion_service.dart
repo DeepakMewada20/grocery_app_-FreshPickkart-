@@ -818,6 +818,18 @@ class BasketSuggestionService {
     );
   }
 
+  static String _couponTitle(Coupon coupon) {
+    final value = coupon.discountValue ?? 0;
+    if (coupon.type == 'percentage') {
+      final title = 'Get ${value.toStringAsFixed(0)}% OFF';
+      if (coupon.maxDiscountAmount != null && coupon.maxDiscountAmount! > 0) {
+        return '$title, save up to ₹${coupon.maxDiscountAmount!.toStringAsFixed(0)}';
+      }
+      return title;
+    }
+    return 'Get ₹${value.toStringAsFixed(0)} OFF';
+  }
+
   static Future<List<Order>> _getRecentOrders(
     Session session,
     String userId,
@@ -961,7 +973,7 @@ class BasketSuggestionService {
       suggestion: _buildSuggestion(
         id: 'coupon:${best.code}',
         type: 'coupon',
-        title: 'Get ₹${benefit.toStringAsFixed(0)} OFF',
+        title: _couponTitle(best),
         subtitle: 'Add items worth ₹${remaining.toStringAsFixed(0)} to unlock ${best.code}!',
         message: 'Coupon ${best.code} is active and ready to use',
         priority: 1,
@@ -1845,8 +1857,8 @@ class BasketSuggestionService {
         urgency: (remaining <= 100 ? 16 : 12).toDouble(),
       ),
       suggestion: BasketSuggestion(
-        title: 'Unlock ${best.code} on orders above ₹${best.minOrderAmount.toStringAsFixed(0)}',
-        subtitle: 'Add ₹${remaining.toStringAsFixed(0)} more & save ₹${benefit.toStringAsFixed(0)}!',
+        title: _couponTitle(best),
+        subtitle: 'Add items worth ₹${remaining.toStringAsFixed(0)} more to unlock ${best.code}',
         message: 'Add ₹${remaining.toStringAsFixed(0)} more for ${best.code}',
         type: 'coupon',
         priority: 0,
