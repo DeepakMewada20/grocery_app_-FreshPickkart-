@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.freshpickkart.customer",
+    "sha256_cert_fingerprints": [
+      "67:65:F8:18:00:B4:D5:3B:F2:EA:49:82:AD:F0:FF:20:2E:60:23:81:2A:5C:29:69:E1:2E:0E:7D:8E:AB:4C:AF"
+    ]
+  }
+}]

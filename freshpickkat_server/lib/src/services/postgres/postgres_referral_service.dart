@@ -365,7 +365,7 @@ class PostgresReferralService {
     final code = await getOrCreateReferralCodeForUser(session, userId);
     final settings = await getOrCreateSettings(session);
 
-    final shareLink = 'https://freshpickkart.com/invite?ref=$code';
+    final shareLink = 'https://freshpickkart.com/invite/$code';
     final shareMessage =
         settings.shareMessageTemplate.replaceAll('{CODE}', code);
 

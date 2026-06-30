@@ -57,6 +57,10 @@
                     android:scheme="https"
                     android:host="freshpickkat.com"
                     android:pathPrefix="/offer/" />
+                <data
+                    android:scheme="https"
+                    android:host="freshpickkat.com"
+                    android:pathPrefix="/invite/" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -74,6 +78,10 @@
                     android:scheme="https"
                     android:host="www.freshpickkat.com"
                     android:pathPrefix="/offer/" />
+                <data
+                    android:scheme="https"
+                    android:host="www.freshpickkat.com"
+                    android:pathPrefix="/invite/" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -17,6 +17,8 @@ import 'src/web/routes/payment_page_route.dart';
 import 'src/web/routes/confirm_payment_route.dart';
 import 'src/web/routes/pay_success_route.dart';
 import 'src/web/routes/referral_terms_route.dart';
+import 'src/web/routes/referral_invite_route.dart';
+import 'src/web/routes/deep_link_fallback_route.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -63,6 +65,14 @@ void run(List<String> args) async {
 
   // Referral terms & conditions page (dynamic from DB)
   pod.webServer.addRoute(ReferralTermsRoute(), '/referral/terms');
+
+  // Referral invite landing page & deep link fallback
+  pod.webServer.addRoute(ReferralInviteRoute(), '/invite/:code');
+
+  // Product/offer/category deep link fallback pages
+  pod.webServer.addRoute(DeepLinkFallbackRoute(), '/product/:id');
+  pod.webServer.addRoute(DeepLinkFallbackRoute(), '/offer/:code');
+  pod.webServer.addRoute(DeepLinkFallbackRoute(), '/category/:id');
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

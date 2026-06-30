@@ -186,6 +186,23 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 9. Verify expired payment link sessions are auto-cancelled by cron (sets `paymentStatus = 'cancelled'`)
 10. Verify admin can retry/mark-reviewed auto-refund jobs from payment monitoring screen
 
+### Deep Linking for Referral Invites
+- **Share link format**: Changed from `?ref=CODE` (query param) to `/CODE` (path-based) at `postgres_referral_service.dart:368` — matches `RouteManager.fromUri()` path-based parser
+- **Android intent filter**: Added `/invite/` path prefix to both `freshpickkat.com` and `www.freshpickkat.com` intent filters in `AndroidManifest.xml`
+- **Android App Links**: Created `web/static/.well-known/assetlinks.json` with SHA256 fingerprint from release keystore for `com.freshpickkart.customer`
+- **iOS Universal Links**: Created `web/static/.well-known/apple-app-site-association` with `applinks` entries for `freshpickkart.com` and `www.freshpickkart.com`
+- **iOS entitlements**: Created `ios/Runner/Runner.entitlements` with `com.apple.developer.associated-domains` for both domains; added `CODE_SIGN_ENTITLEMENTS` to all 3 Runner build configs in `project.pbxproj`
+- **Server fallback page**: Created `referral_invite_route.dart` — serves `https://freshpickkart.com/invite/<code>` for browser users; detects OS and redirects to Play Store / App Store after 2s timeout if app not installed
+- **Route registration**: Added `ReferralInviteRoute` at `/invite/:code` in `server.dart`
+- **Nginx**: Added `/.well-known/` and `/invite/` location blocks proxying to Serverpod web server (port 8082)
+
+### FreshPoints History Screen Fix
+- **Color/icon fix**: Changed from `txn.points > 0` to `_isEarnType()` (checks `transactionType`) — REDEEM_ORDER and ADMIN_DEDUCT now show red with `remove_circle_outline` icon instead of green with add icon
+- **Order reference**: REDEEM_ORDER transactions show description ("Redeemed 50 points for order FPK-12345") as the card title — order number directly visible
+- **Sign fix**: Deduct/redeem now shows `-` prefix instead of `+`
+- **New labels**: Added `REDEEM_ORDER` → "Redeemed on Order", `REFUND_RESTORE` → "Refund Restore"
+- New `_isEarnType()` helper: earn types = `EARNED`, `REFERRAL`, `ADMIN_ADD`, `REFUND_RESTORE`; everything else is deduct
+
 ## Recent Fixes
 ### Session: FreshPoints Admin Adjustment UI + Admin Profile/Appearance + Delivery Verification Tests + Bug Fixes
 - **Delivery Verification Tests**: Unit + integration tests written and passing for delivery photo verification flow
