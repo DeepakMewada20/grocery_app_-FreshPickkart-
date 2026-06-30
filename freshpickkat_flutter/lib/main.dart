@@ -116,6 +116,10 @@ class MyApp extends StatelessWidget {
                 themeMode: themeController.themeMode,
                 home: const ModernSplashScreen(),
                 navigatorObservers: [appRouteObserver],
+                unknownRoute: GetPage(
+                  name: '/splash',
+                  page: () => const ModernSplashScreen(),
+                ),
                 builder: (context, child) {
                   if (child == null) return const SizedBox.shrink();
                   final width = constraints.maxWidth;
@@ -144,6 +148,10 @@ class MyApp extends StatelessWidget {
                   );
                 },
                 getPages: [
+                  GetPage(
+                    name: '/splash',
+                    page: () => const ModernSplashScreen(),
+                  ),
                   GetPage(
                     name: '/checkout',
                     page: () => const CheckoutScreen(),

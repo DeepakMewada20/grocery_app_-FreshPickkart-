@@ -11,7 +11,6 @@ import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
     deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
-import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 
 class DeepLinkLoadingScreen extends StatefulWidget {
   const DeepLinkLoadingScreen({
@@ -50,20 +49,12 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         );
         if (!mounted) return;
         if (product == null) {
-          await navigateDeferred(
-            loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
-            pageBuilder: () =>
-                deep_link_not_found_screen.DeepLinkNotFoundScreen.product(
-                  productId: target.value,
-                ),
-            routeName: RouteManager.productNotFound,
-          );
+          await _openNotFound();
         } else {
-          await navigateDeferred(
-            loadLibrary: () => product_detail_screen.loadLibrary(),
-            pageBuilder: () =>
-                product_detail_screen.ProductDetailScreen(product: product),
-          );
+          await product_detail_screen.loadLibrary();
+          if (!mounted) return;
+          await Get.off(() =>
+              product_detail_screen.ProductDetailScreen(product: product));
         }
         break;
       case DeepLinkType.category:
@@ -72,22 +63,14 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         );
         if (!mounted) return;
         if (categoryName == null) {
-          await navigateDeferred(
-            loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
-            pageBuilder: () =>
-                deep_link_not_found_screen.DeepLinkNotFoundScreen.category(
-                  categoryId: target.value,
-                ),
-            routeName: RouteManager.deepLinkNotFound,
-          );
+          await _openNotFound();
         } else {
-          await navigateDeferred(
-            loadLibrary: () => category_item_screen.loadLibrary(),
-            pageBuilder: () => category_item_screen.CategoryItemsScreen(
-              categoryName: categoryName,
-              subCategoryGroupName: 'All',
-            ),
-          );
+          await category_item_screen.loadLibrary();
+          if (!mounted) return;
+          await Get.off(() => category_item_screen.CategoryItemsScreen(
+                categoryName: categoryName,
+                subCategoryGroupName: 'All',
+              ));
         }
         break;
       case DeepLinkType.offer:
@@ -95,26 +78,35 @@ class _DeepLinkLoadingScreenState extends State<DeepLinkLoadingScreen> {
         if (code.isEmpty) {
           await _openNotFound();
         } else {
-          await navigateDeferred(
-            loadLibrary: () => coupons_screen.loadLibrary(),
-            pageBuilder: () =>
-                coupons_screen.CouponsScreen(autoApplyCouponCode: code),
-          );
+          await coupons_screen.loadLibrary();
+          if (!mounted) return;
+          await Get.off(() =>
+              coupons_screen.CouponsScreen(autoApplyCouponCode: code));
         }
         break;
       case DeepLinkType.invite:
-        // Referral code is already stored by DeepLinkService.openTarget
         await Get.offAllNamed(RouteManager.home);
         break;
     }
   }
 
   Future<void> _openNotFound() async {
-    await navigateDeferred(
-      loadLibrary: () => deep_link_not_found_screen.loadLibrary(),
-      pageBuilder: () => deep_link_not_found_screen.DeepLinkNotFoundScreen(),
-      routeName: RouteManager.deepLinkNotFound,
-    );
+    await deep_link_not_found_screen.loadLibrary();
+    if (!mounted) return;
+    await Get.off(() {
+      switch (widget.type) {
+        case DeepLinkType.product:
+          return deep_link_not_found_screen.DeepLinkNotFoundScreen.product(
+            productId: '',
+          );
+        case DeepLinkType.category:
+          return deep_link_not_found_screen.DeepLinkNotFoundScreen.category(
+            categoryId: '',
+          );
+        default:
+          return deep_link_not_found_screen.DeepLinkNotFoundScreen();
+      }
+    });
   }
 
   @override

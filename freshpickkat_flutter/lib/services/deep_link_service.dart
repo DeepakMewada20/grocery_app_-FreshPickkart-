@@ -29,6 +29,7 @@ class DeepLinkService extends GetxService {
   final isResolving = false.obs;
 
   Future<DeepLinkService> init() async {
+    // Stream for subsequent deep links (app already running / resume)
     _subscription = _appLinks.uriLinkStream.listen(
       handleUri,
       onError: (Object error, StackTrace stackTrace) {
@@ -36,7 +37,19 @@ class DeepLinkService extends GetxService {
       },
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Initial URI (cold start) — wait for first frame so navigator is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final initialUri = await _appLinks.getInitialLink();
+        if (initialUri != null) {
+          final target = RouteManager.fromUri(initialUri);
+          if (target != null) {
+            await _navigateColdStart(target);
+          }
+        }
+      } catch (error) {
+        AppLogger.error('DeepLink', 'Initial URI: $error');
+      }
       _restoreInstallReferrerDeepLink();
     });
 
@@ -64,13 +77,30 @@ class DeepLinkService extends GetxService {
     return code;
   }
 
-  Future<void> handleUri(Uri uri) async {
+  Future<void> handleUri(
+    Uri uri, {
+    RouteNavigationMode mode = RouteNavigationMode.to,
+  }) async {
     final target = RouteManager.fromUri(uri);
     if (target == null) {
       AppLogger.info('DeepLink', 'Ignoring unsupported deep link: $uri');
       return;
     }
-    await openTarget(target);
+    await openTarget(target, mode: mode);
+  }
+
+  /// Cold-start deep link: replace splash with home, then push the target
+  /// on top. This way back from the target returns to home (not splash).
+  /// For invite links the target is already home, so only step 1 runs.
+  Future<void> _navigateColdStart(DeepLinkTarget target) async {
+    await _waitForNextFrame();
+    await RouteManager.navigate(
+      const DeepLinkTarget(type: DeepLinkType.invite, value: '', uri: null),
+      mode: RouteNavigationMode.off,
+    );
+    if (target.type != DeepLinkType.invite) {
+      await RouteManager.navigate(target, mode: RouteNavigationMode.to);
+    }
   }
 
   Future<void> openTarget(
@@ -84,8 +114,18 @@ class DeepLinkService extends GetxService {
       storePendingReferralCode(target.value);
     }
 
-    await _waitForNavigator();
+    await _waitForNextFrame();
     await RouteManager.navigate(target, mode: mode);
+  }
+
+  /// Waits for the next frame to ensure navigation doesn't occur
+  /// during Flutter's initial warm-up frame or app resume.
+  Future<void> _waitForNextFrame() async {
+    final completer = Completer<void>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      completer.complete();
+    });
+    await completer.future;
   }
 
   Future<Product?> resolveProduct(String productId) async {
@@ -134,7 +174,10 @@ class DeepLinkService extends GetxService {
         'DeepLink',
         'Restored deferred deep link from Play referrer: $uri',
       );
-      await handleUri(uri);
+      final target = RouteManager.fromUri(uri);
+      if (target != null) {
+        await _navigateColdStart(target);
+      }
     } catch (error) {
       AppLogger.error('DeepLink', 'Install referrer unavailable: $error');
     }
@@ -167,12 +210,5 @@ class DeepLinkService extends GetxService {
   void _remember(DeepLinkTarget target) {
     _lastHandledKey = target.key;
     _lastHandledAt = DateTime.now();
-  }
-
-  Future<void> _waitForNavigator() async {
-    for (var i = 0; i < 20; i++) {
-      if (Get.key.currentState != null) return;
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    }
   }
 }

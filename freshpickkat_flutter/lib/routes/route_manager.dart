@@ -80,10 +80,7 @@ class RouteManager {
       if (!supportedHosts.contains(host)) return null;
     }
 
-    final segments = uri.pathSegments
-        .where((segment) => segment.trim().isNotEmpty)
-        .map(Uri.decodeComponent)
-        .toList(growable: false);
+    final segments = _extractSegments(uri, scheme);
     if (segments.length < 2) return null;
 
     final value = segments[1].trim();
@@ -112,6 +109,20 @@ class RouteManager {
       ),
       _ => null,
     };
+  }
+
+  /// Extracts path segments, prepending the host for custom schemes.
+  /// For https://freshpickkart.com/product/ID → ['product', 'ID']
+  /// For freshpickkart://product/ID → ['product', 'ID'] (host = 'product')
+  static List<String> _extractSegments(Uri uri, String scheme) {
+    final raw = uri.pathSegments
+        .where((s) => s.trim().isNotEmpty)
+        .map(Uri.decodeComponent)
+        .toList(growable: false);
+    if (scheme == customScheme && uri.host.isNotEmpty) {
+      return [uri.host.toLowerCase(), ...raw];
+    }
+    return raw;
   }
 
   static DeepLinkTarget? fromGetXRoute(DeepLinkType type) {

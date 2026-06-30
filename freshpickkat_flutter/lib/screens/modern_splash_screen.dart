@@ -36,7 +36,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     if (kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
@@ -47,6 +47,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   },
               transitionDuration: const Duration(milliseconds: 500),
             ),
+            (route) => false,
           );
         }
       });
@@ -138,7 +139,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     await Future.delayed(const Duration(milliseconds: 2100));
 
     if (mounted) {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -148,6 +149,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
           },
           transitionDuration: const Duration(milliseconds: 500),
         ),
+        (route) => false,
       );
     }
   }
