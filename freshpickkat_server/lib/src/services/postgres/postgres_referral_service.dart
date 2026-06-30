@@ -941,6 +941,8 @@ class PostgresReferralService {
         'qualifyingOrderAmount': row.qualifyingOrderAmount,
         'rewardPointsIssued': row.rewardPointsIssued,
         'inviteeCouponIssued': row.inviteeCouponIssued,
+        'fraudScore': row.fraudScore,
+        'fraudBreakdown': row.fraudBreakdown,
         'fraudNotes': row.fraudNotes,
         'createdAt': row.createdAt.toIso8601String(),
         'updatedAt': row.updatedAt.toIso8601String(),
@@ -964,6 +966,7 @@ class PostgresReferralService {
     if (referral == null) throw Exception('Referral not found');
 
     if (referral.status != 'QUALIFIED' &&
+        referral.status != 'SIGNED_UP' &&
         referral.status != 'REJECTED' &&
         referral.status != 'PENDING_REVIEW') {
       throw Exception('Referral is not in a reviewable state');

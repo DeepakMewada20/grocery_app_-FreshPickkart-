@@ -19,12 +19,14 @@ class AdminReferralController extends GetxController {
 
   final settings = Rxn<client.ReferralSettings>();
   final analytics = Rxn<client.ReferralAdminStats>();
+  final fraudAnalytics = Rxn<Map<String, dynamic>>();
   final referrals = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   final isSaving = false.obs;
   final isLoadingAnalytics = false.obs;
   final isLoadingReferrals = false.obs;
   final isApproving = false.obs;
+  final fraudBreakdown = Rxn<Map<String, dynamic>>();
 
   String? _nextPageToken;
   bool get hasMore => _nextPageToken != null;
@@ -73,10 +75,20 @@ class AdminReferralController extends GetxController {
     try {
       final uid = AdminSessionService.requireUid();
       final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
-      final result = await ApiClient().request(
+
+      final analyticsResult = await ApiClient().request<client.ReferralAdminStats>(
         () => _client.referral.getReferralAnalytics(uid, idToken),
       );
-      analytics.value = result;
+      analytics.value = analyticsResult;
+
+      ApiClient().request<Map<String, dynamic>>(
+        () => _client.referral.getFraudAnalytics(uid, idToken),
+      ).then((result) {
+        fraudAnalytics.value = result;
+      }).catchError((_) {
+        debugPrint('AdminReferralController.loadAnalytics fraud error (non-fatal)');
+      });
+
       networkController.hideError();
     } catch (e) {
       debugPrint('AdminReferralController.loadAnalytics error: $e');
@@ -156,6 +168,36 @@ class AdminReferralController extends GetxController {
       return false;
     } finally {
       isApproving.value = false;
+    }
+  }
+
+  Future<bool> reverseReward(String referralId, String reason) async {
+    isApproving.value = true;
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+      await ApiClient().request(
+        () => _client.referral.reverseReward(referralId, reason, uid, idToken),
+      );
+      return true;
+    } catch (e) {
+      debugPrint('AdminReferralController.reverseReward error: $e');
+      return false;
+    } finally {
+      isApproving.value = false;
+    }
+  }
+
+  Future<void> loadFraudBreakdown(String referralId) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(forceRefresh: false);
+      final result = await ApiClient().request(
+        () => _client.referral.getFraudBreakdown(referralId, uid, idToken),
+      );
+      fraudBreakdown.value = result;
+    } catch (e) {
+      debugPrint('AdminReferralController.loadFraudBreakdown error: $e');
     }
   }
 }
