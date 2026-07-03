@@ -34,6 +34,12 @@ abstract class AppUserRow
     this.referralWindowExpiresAt,
     this.referralOnboardingDismissedAt,
     this.termsAcceptedAt,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    bool? isCodBlocked,
+    this.codBlockedReason,
+    this.codBlockedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : role = role ?? 'customer',
@@ -41,6 +47,10 @@ abstract class AppUserRow
        currentFreshPoints = currentFreshPoints ?? 0,
        totalEarned = totalEarned ?? 0,
        totalRedeemed = totalRedeemed ?? 0,
+       codOrdersPlaced = codOrdersPlaced ?? 0,
+       codOrdersDelivered = codOrdersDelivered ?? 0,
+       codOrdersRejected = codOrdersRejected ?? 0,
+       isCodBlocked = isCodBlocked ?? false,
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
@@ -64,6 +74,12 @@ abstract class AppUserRow
     DateTime? referralWindowExpiresAt,
     DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    bool? isCodBlocked,
+    String? codBlockedReason,
+    DateTime? codBlockedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _AppUserRowImpl;
@@ -112,6 +128,18 @@ abstract class AppUserRow
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
               jsonSerialization['termsAcceptedAt'],
+            ),
+      codOrdersPlaced: jsonSerialization['codOrdersPlaced'] as int?,
+      codOrdersDelivered: jsonSerialization['codOrdersDelivered'] as int?,
+      codOrdersRejected: jsonSerialization['codOrdersRejected'] as int?,
+      isCodBlocked: jsonSerialization['isCodBlocked'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['isCodBlocked']),
+      codBlockedReason: jsonSerialization['codBlockedReason'] as String?,
+      codBlockedAt: jsonSerialization['codBlockedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['codBlockedAt'],
             ),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
@@ -165,6 +193,18 @@ abstract class AppUserRow
 
   DateTime? termsAcceptedAt;
 
+  int codOrdersPlaced;
+
+  int codOrdersDelivered;
+
+  int codOrdersRejected;
+
+  bool isCodBlocked;
+
+  String? codBlockedReason;
+
+  DateTime? codBlockedAt;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -195,6 +235,12 @@ abstract class AppUserRow
     DateTime? referralWindowExpiresAt,
     DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    bool? isCodBlocked,
+    String? codBlockedReason,
+    DateTime? codBlockedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -226,6 +272,12 @@ abstract class AppUserRow
         'referralOnboardingDismissedAt': referralOnboardingDismissedAt
             ?.toJson(),
       if (termsAcceptedAt != null) 'termsAcceptedAt': termsAcceptedAt?.toJson(),
+      'codOrdersPlaced': codOrdersPlaced,
+      'codOrdersDelivered': codOrdersDelivered,
+      'codOrdersRejected': codOrdersRejected,
+      'isCodBlocked': isCodBlocked,
+      if (codBlockedReason != null) 'codBlockedReason': codBlockedReason,
+      if (codBlockedAt != null) 'codBlockedAt': codBlockedAt?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -289,6 +341,12 @@ class _AppUserRowImpl extends AppUserRow {
     DateTime? referralWindowExpiresAt,
     DateTime? referralOnboardingDismissedAt,
     DateTime? termsAcceptedAt,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    bool? isCodBlocked,
+    String? codBlockedReason,
+    DateTime? codBlockedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -311,6 +369,12 @@ class _AppUserRowImpl extends AppUserRow {
          referralWindowExpiresAt: referralWindowExpiresAt,
          referralOnboardingDismissedAt: referralOnboardingDismissedAt,
          termsAcceptedAt: termsAcceptedAt,
+         codOrdersPlaced: codOrdersPlaced,
+         codOrdersDelivered: codOrdersDelivered,
+         codOrdersRejected: codOrdersRejected,
+         isCodBlocked: isCodBlocked,
+         codBlockedReason: codBlockedReason,
+         codBlockedAt: codBlockedAt,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -339,6 +403,12 @@ class _AppUserRowImpl extends AppUserRow {
     Object? referralWindowExpiresAt = _Undefined,
     Object? referralOnboardingDismissedAt = _Undefined,
     Object? termsAcceptedAt = _Undefined,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    bool? isCodBlocked,
+    Object? codBlockedReason = _Undefined,
+    Object? codBlockedAt = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -376,6 +446,16 @@ class _AppUserRowImpl extends AppUserRow {
       termsAcceptedAt: termsAcceptedAt is DateTime?
           ? termsAcceptedAt
           : this.termsAcceptedAt,
+      codOrdersPlaced: codOrdersPlaced ?? this.codOrdersPlaced,
+      codOrdersDelivered: codOrdersDelivered ?? this.codOrdersDelivered,
+      codOrdersRejected: codOrdersRejected ?? this.codOrdersRejected,
+      isCodBlocked: isCodBlocked ?? this.isCodBlocked,
+      codBlockedReason: codBlockedReason is String?
+          ? codBlockedReason
+          : this.codBlockedReason,
+      codBlockedAt: codBlockedAt is DateTime?
+          ? codBlockedAt
+          : this.codBlockedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -485,6 +565,38 @@ class AppUserRowUpdateTable extends _i1.UpdateTable<AppUserRowTable> {
         value,
       );
 
+  _i1.ColumnValue<int, int> codOrdersPlaced(int value) => _i1.ColumnValue(
+    table.codOrdersPlaced,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> codOrdersDelivered(int value) => _i1.ColumnValue(
+    table.codOrdersDelivered,
+    value,
+  );
+
+  _i1.ColumnValue<int, int> codOrdersRejected(int value) => _i1.ColumnValue(
+    table.codOrdersRejected,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> isCodBlocked(bool value) => _i1.ColumnValue(
+    table.isCodBlocked,
+    value,
+  );
+
+  _i1.ColumnValue<String, String> codBlockedReason(String? value) =>
+      _i1.ColumnValue(
+        table.codBlockedReason,
+        value,
+      );
+
+  _i1.ColumnValue<DateTime, DateTime> codBlockedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.codBlockedAt,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> createdAt(DateTime value) =>
       _i1.ColumnValue(
         table.createdAt,
@@ -578,6 +690,34 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
       'termsAcceptedAt',
       this,
     );
+    codOrdersPlaced = _i1.ColumnInt(
+      'codOrdersPlaced',
+      this,
+      hasDefault: true,
+    );
+    codOrdersDelivered = _i1.ColumnInt(
+      'codOrdersDelivered',
+      this,
+      hasDefault: true,
+    );
+    codOrdersRejected = _i1.ColumnInt(
+      'codOrdersRejected',
+      this,
+      hasDefault: true,
+    );
+    isCodBlocked = _i1.ColumnBool(
+      'isCodBlocked',
+      this,
+      hasDefault: true,
+    );
+    codBlockedReason = _i1.ColumnString(
+      'codBlockedReason',
+      this,
+    );
+    codBlockedAt = _i1.ColumnDateTime(
+      'codBlockedAt',
+      this,
+    );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
@@ -628,6 +768,18 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDateTime termsAcceptedAt;
 
+  late final _i1.ColumnInt codOrdersPlaced;
+
+  late final _i1.ColumnInt codOrdersDelivered;
+
+  late final _i1.ColumnInt codOrdersRejected;
+
+  late final _i1.ColumnBool isCodBlocked;
+
+  late final _i1.ColumnString codBlockedReason;
+
+  late final _i1.ColumnDateTime codBlockedAt;
+
   late final _i1.ColumnDateTime createdAt;
 
   late final _i1.ColumnDateTime updatedAt;
@@ -653,6 +805,12 @@ class AppUserRowTable extends _i1.Table<_i1.UuidValue?> {
     referralWindowExpiresAt,
     referralOnboardingDismissedAt,
     termsAcceptedAt,
+    codOrdersPlaced,
+    codOrdersDelivered,
+    codOrdersRejected,
+    isCodBlocked,
+    codBlockedReason,
+    codBlockedAt,
     createdAt,
     updatedAt,
   ];

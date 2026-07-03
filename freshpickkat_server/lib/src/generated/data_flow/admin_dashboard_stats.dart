@@ -25,7 +25,20 @@ abstract class AdminDashboardStats
     required this.outForDeliveryOrders,
     required this.deliveredOrders,
     required this.cancelledOrders,
-  });
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    double? codCollectedAmount,
+    double? codUnpaidAmount,
+    double? cashCollectionAmount,
+    double? upiCollectionAmount,
+  }) : codOrdersPlaced = codOrdersPlaced ?? 0,
+       codOrdersDelivered = codOrdersDelivered ?? 0,
+       codOrdersRejected = codOrdersRejected ?? 0,
+       codCollectedAmount = codCollectedAmount ?? 0.0,
+       codUnpaidAmount = codUnpaidAmount ?? 0.0,
+       cashCollectionAmount = cashCollectionAmount ?? 0.0,
+       upiCollectionAmount = upiCollectionAmount ?? 0.0;
 
   factory AdminDashboardStats({
     required int todayOrders,
@@ -38,6 +51,13 @@ abstract class AdminDashboardStats
     required int outForDeliveryOrders,
     required int deliveredOrders,
     required int cancelledOrders,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    double? codCollectedAmount,
+    double? codUnpaidAmount,
+    double? cashCollectionAmount,
+    double? upiCollectionAmount,
   }) = _AdminDashboardStatsImpl;
 
   factory AdminDashboardStats.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -52,6 +72,17 @@ abstract class AdminDashboardStats
       outForDeliveryOrders: jsonSerialization['outForDeliveryOrders'] as int,
       deliveredOrders: jsonSerialization['deliveredOrders'] as int,
       cancelledOrders: jsonSerialization['cancelledOrders'] as int,
+      codOrdersPlaced: jsonSerialization['codOrdersPlaced'] as int?,
+      codOrdersDelivered: jsonSerialization['codOrdersDelivered'] as int?,
+      codOrdersRejected: jsonSerialization['codOrdersRejected'] as int?,
+      codCollectedAmount: (jsonSerialization['codCollectedAmount'] as num?)
+          ?.toDouble(),
+      codUnpaidAmount: (jsonSerialization['codUnpaidAmount'] as num?)
+          ?.toDouble(),
+      cashCollectionAmount: (jsonSerialization['cashCollectionAmount'] as num?)
+          ?.toDouble(),
+      upiCollectionAmount: (jsonSerialization['upiCollectionAmount'] as num?)
+          ?.toDouble(),
     );
   }
 
@@ -75,6 +106,20 @@ abstract class AdminDashboardStats
 
   int cancelledOrders;
 
+  int codOrdersPlaced;
+
+  int codOrdersDelivered;
+
+  int codOrdersRejected;
+
+  double codCollectedAmount;
+
+  double codUnpaidAmount;
+
+  double cashCollectionAmount;
+
+  double upiCollectionAmount;
+
   /// Returns a shallow copy of this [AdminDashboardStats]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -89,6 +134,13 @@ abstract class AdminDashboardStats
     int? outForDeliveryOrders,
     int? deliveredOrders,
     int? cancelledOrders,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    double? codCollectedAmount,
+    double? codUnpaidAmount,
+    double? cashCollectionAmount,
+    double? upiCollectionAmount,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -104,6 +156,13 @@ abstract class AdminDashboardStats
       'outForDeliveryOrders': outForDeliveryOrders,
       'deliveredOrders': deliveredOrders,
       'cancelledOrders': cancelledOrders,
+      'codOrdersPlaced': codOrdersPlaced,
+      'codOrdersDelivered': codOrdersDelivered,
+      'codOrdersRejected': codOrdersRejected,
+      'codCollectedAmount': codCollectedAmount,
+      'codUnpaidAmount': codUnpaidAmount,
+      'cashCollectionAmount': cashCollectionAmount,
+      'upiCollectionAmount': upiCollectionAmount,
     };
   }
 
@@ -121,6 +180,13 @@ abstract class AdminDashboardStats
       'outForDeliveryOrders': outForDeliveryOrders,
       'deliveredOrders': deliveredOrders,
       'cancelledOrders': cancelledOrders,
+      'codOrdersPlaced': codOrdersPlaced,
+      'codOrdersDelivered': codOrdersDelivered,
+      'codOrdersRejected': codOrdersRejected,
+      'codCollectedAmount': codCollectedAmount,
+      'codUnpaidAmount': codUnpaidAmount,
+      'cashCollectionAmount': cashCollectionAmount,
+      'upiCollectionAmount': upiCollectionAmount,
     };
   }
 
@@ -142,6 +208,13 @@ class _AdminDashboardStatsImpl extends AdminDashboardStats {
     required int outForDeliveryOrders,
     required int deliveredOrders,
     required int cancelledOrders,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    double? codCollectedAmount,
+    double? codUnpaidAmount,
+    double? cashCollectionAmount,
+    double? upiCollectionAmount,
   }) : super._(
          todayOrders: todayOrders,
          todayRevenue: todayRevenue,
@@ -153,6 +226,13 @@ class _AdminDashboardStatsImpl extends AdminDashboardStats {
          outForDeliveryOrders: outForDeliveryOrders,
          deliveredOrders: deliveredOrders,
          cancelledOrders: cancelledOrders,
+         codOrdersPlaced: codOrdersPlaced,
+         codOrdersDelivered: codOrdersDelivered,
+         codOrdersRejected: codOrdersRejected,
+         codCollectedAmount: codCollectedAmount,
+         codUnpaidAmount: codUnpaidAmount,
+         cashCollectionAmount: cashCollectionAmount,
+         upiCollectionAmount: upiCollectionAmount,
        );
 
   /// Returns a shallow copy of this [AdminDashboardStats]
@@ -170,6 +250,13 @@ class _AdminDashboardStatsImpl extends AdminDashboardStats {
     int? outForDeliveryOrders,
     int? deliveredOrders,
     int? cancelledOrders,
+    int? codOrdersPlaced,
+    int? codOrdersDelivered,
+    int? codOrdersRejected,
+    double? codCollectedAmount,
+    double? codUnpaidAmount,
+    double? cashCollectionAmount,
+    double? upiCollectionAmount,
   }) {
     return AdminDashboardStats(
       todayOrders: todayOrders ?? this.todayOrders,
@@ -182,6 +269,13 @@ class _AdminDashboardStatsImpl extends AdminDashboardStats {
       outForDeliveryOrders: outForDeliveryOrders ?? this.outForDeliveryOrders,
       deliveredOrders: deliveredOrders ?? this.deliveredOrders,
       cancelledOrders: cancelledOrders ?? this.cancelledOrders,
+      codOrdersPlaced: codOrdersPlaced ?? this.codOrdersPlaced,
+      codOrdersDelivered: codOrdersDelivered ?? this.codOrdersDelivered,
+      codOrdersRejected: codOrdersRejected ?? this.codOrdersRejected,
+      codCollectedAmount: codCollectedAmount ?? this.codCollectedAmount,
+      codUnpaidAmount: codUnpaidAmount ?? this.codUnpaidAmount,
+      cashCollectionAmount: cashCollectionAmount ?? this.cashCollectionAmount,
+      upiCollectionAmount: upiCollectionAmount ?? this.upiCollectionAmount,
     );
   }
 }

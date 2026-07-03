@@ -7386,6 +7386,47 @@ class _OrderEndpoint {
       }
     });
   }
+
+  _i3.Future<Map<String, dynamic>> markCodDeliveryFailed(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String reason, {
+    String? failureNote,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'markCodDeliveryFailed',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'markCodDeliveryFailed',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'reason': reason,
+            'failureNote': failureNote,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<Map<String, dynamic>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _OrderPgEndpoint {

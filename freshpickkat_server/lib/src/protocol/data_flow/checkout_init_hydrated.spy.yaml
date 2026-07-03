@@ -3,3 +3,5 @@ fields:
   cartData: CartHydratedData
   checkoutBanners: List<Banner>
   activePendingOrder: PendingOrderInfo?
+  codAvailable: bool, default=true
+  codDisabledReason: String?

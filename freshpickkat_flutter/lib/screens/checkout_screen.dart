@@ -67,6 +67,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isProcessing = false;
   bool _isShareablePayment = false;
   bool _isCodPayment = false;
+  bool _codAvailable = true;
+  String? _codDisabledReason;
   String? _loadingStatus;
   String? _errorMessage;
   bool _isErrorBanner = true;
@@ -121,6 +123,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         BannerController.instance.checkoutPageBanners.assignAll(
           hydrated.checkoutBanners,
         );
+
+        if (mounted) {
+          setState(() {
+            _codAvailable = hydrated.codAvailable;
+            _codDisabledReason = hydrated.codDisabledReason;
+            if (!_codAvailable && _isCodPayment) {
+              _isCodPayment = false;
+            }
+          });
+        }
 
         if (hydrated.activePendingOrder != null && mounted) {
           setState(() {
@@ -3138,13 +3150,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             cs: cs,
             icon: Icons.money,
             title: 'Cash on Delivery',
-            subtitle: 'Pay when you receive your order',
+            subtitle: _codAvailable
+                ? 'Pay when you receive your order'
+                : 'Temporarily unavailable',
             isSelected: _isCodPayment,
-            onTap: () => setState(() {
-              _isCodPayment = true;
-              _isShareablePayment = false;
-            }),
+            onTap: _codAvailable
+                ? () => setState(() {
+                      _isCodPayment = true;
+                      _isShareablePayment = false;
+                    })
+                : null,
           ),
+          if (!_codAvailable) ...[
+            SizedBox(height: 6.h),
+            Padding(
+              padding: EdgeInsets.only(left: 16.w),
+              child: Text(
+                'Cash on Delivery is temporarily unavailable for your account '
+                'due to multiple previous delivery refusals.\n\n'
+                'Complete a successful prepaid order to restore Cash on '
+                'Delivery access.',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 13.sp,
+                ),
+              ),
+            ),
+          ],
           SizedBox(height: 8.h),
           _buildPaymentOptionTile(
             cs: cs,

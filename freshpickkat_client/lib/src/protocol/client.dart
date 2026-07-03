@@ -2855,6 +2855,24 @@ class EndpointOrder extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<Map<String, dynamic>> markCodDeliveryFailed(
+    String orderId,
+    String reason, {
+    String? failureNote,
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+    'order',
+    'markCodDeliveryFailed',
+    {
+      'orderId': orderId,
+      'reason': reason,
+      'failureNote': failureNote,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

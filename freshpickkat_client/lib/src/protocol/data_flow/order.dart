@@ -80,6 +80,7 @@ abstract class Order implements _i1.SerializableModel {
     this.paymentCollectedAt,
     this.paymentCollectedBy,
     this.paymentCollectionMode,
+    this.codFailureReason,
   }) : mrpTotal = mrpTotal ?? 0.0,
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
@@ -153,6 +154,7 @@ abstract class Order implements _i1.SerializableModel {
     DateTime? paymentCollectedAt,
     String? paymentCollectedBy,
     String? paymentCollectionMode,
+    String? codFailureReason,
   }) = _OrderImpl;
 
   factory Order.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -284,6 +286,7 @@ abstract class Order implements _i1.SerializableModel {
       paymentCollectedBy: jsonSerialization['paymentCollectedBy'] as String?,
       paymentCollectionMode:
           jsonSerialization['paymentCollectionMode'] as String?,
+      codFailureReason: jsonSerialization['codFailureReason'] as String?,
     );
   }
 
@@ -413,6 +416,8 @@ abstract class Order implements _i1.SerializableModel {
 
   String? paymentCollectionMode;
 
+  String? codFailureReason;
+
   /// Returns a shallow copy of this [Order]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -480,6 +485,7 @@ abstract class Order implements _i1.SerializableModel {
     DateTime? paymentCollectedAt,
     String? paymentCollectedBy,
     String? paymentCollectionMode,
+    String? codFailureReason,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -562,6 +568,7 @@ abstract class Order implements _i1.SerializableModel {
       if (paymentCollectedBy != null) 'paymentCollectedBy': paymentCollectedBy,
       if (paymentCollectionMode != null)
         'paymentCollectionMode': paymentCollectionMode,
+      if (codFailureReason != null) 'codFailureReason': codFailureReason,
     };
   }
 
@@ -638,6 +645,7 @@ class _OrderImpl extends Order {
     DateTime? paymentCollectedAt,
     String? paymentCollectedBy,
     String? paymentCollectionMode,
+    String? codFailureReason,
   }) : super._(
          orderId: orderId,
          userId: userId,
@@ -702,6 +710,7 @@ class _OrderImpl extends Order {
          paymentCollectedAt: paymentCollectedAt,
          paymentCollectedBy: paymentCollectedBy,
          paymentCollectionMode: paymentCollectionMode,
+         codFailureReason: codFailureReason,
        );
 
   /// Returns a shallow copy of this [Order]
@@ -772,6 +781,7 @@ class _OrderImpl extends Order {
     Object? paymentCollectedAt = _Undefined,
     Object? paymentCollectedBy = _Undefined,
     Object? paymentCollectionMode = _Undefined,
+    Object? codFailureReason = _Undefined,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -900,6 +910,9 @@ class _OrderImpl extends Order {
       paymentCollectionMode: paymentCollectionMode is String?
           ? paymentCollectionMode
           : this.paymentCollectionMode,
+      codFailureReason: codFailureReason is String?
+          ? codFailureReason
+          : this.codFailureReason,
     );
   }
 }

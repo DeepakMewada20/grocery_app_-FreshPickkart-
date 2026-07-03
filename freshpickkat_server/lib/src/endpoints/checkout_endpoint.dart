@@ -77,6 +77,20 @@ class CheckoutEndpoint extends Endpoint {
 
     final results = await Future.wait(futures);
 
+    // Check COD availability
+    bool codAvailable = true;
+    String? codDisabledReason;
+    if (userId != null && userId.isNotEmpty) {
+      final user = await protocol.AppUserRow.db.findFirstRow(
+        session,
+        where: (t) => t.firebaseUid.equals(userId),
+      );
+      if (user?.isCodBlocked == true) {
+        codAvailable = false;
+        codDisabledReason = 'REPEATED_DELIVERY_REFUSAL';
+      }
+    }
+
     return protocol.CheckoutInitHydrated(
       cartData: protocol.CartHydratedData(
         cartPricing: pricing,
@@ -88,6 +102,8 @@ class CheckoutEndpoint extends Endpoint {
       ),
       checkoutBanners: results[2] as List<protocol.Banner>,
       activePendingOrder: results[4] as protocol.PendingOrderInfo?,
+      codAvailable: codAvailable,
+      codDisabledReason: codDisabledReason,
     );
   }
 
@@ -98,6 +114,23 @@ class CheckoutEndpoint extends Endpoint {
     int freshPointsToRedeem = 0,
   }) async {
     try {
+      // Check if user is COD blocked
+      final userId = order.userId;
+      if (userId.isNotEmpty) {
+        final user = await protocol.AppUserRow.db.findFirstRow(
+          session,
+          where: (t) => t.firebaseUid.equals(userId),
+        );
+        if (user?.isCodBlocked == true) {
+          return protocol.CheckoutResult(
+            success: false,
+            error:
+                'Cash on Delivery is currently unavailable for your account. '
+                'Complete a successful prepaid order to restore COD access.',
+          );
+        }
+      }
+
       // Set payment mode so server-side snapshot captures it
       order.paymentMode = 'cod';
 

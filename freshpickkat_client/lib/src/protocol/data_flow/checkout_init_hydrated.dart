@@ -21,12 +21,16 @@ abstract class CheckoutInitHydrated implements _i1.SerializableModel {
     required this.cartData,
     required this.checkoutBanners,
     this.activePendingOrder,
-  });
+    bool? codAvailable,
+    this.codDisabledReason,
+  }) : codAvailable = codAvailable ?? true;
 
   factory CheckoutInitHydrated({
     required _i2.CartHydratedData cartData,
     required List<_i3.Banner> checkoutBanners,
     _i4.PendingOrderInfo? activePendingOrder,
+    bool? codAvailable,
+    String? codDisabledReason,
   }) = _CheckoutInitHydratedImpl;
 
   factory CheckoutInitHydrated.fromJson(
@@ -44,6 +48,10 @@ abstract class CheckoutInitHydrated implements _i1.SerializableModel {
           : _i5.Protocol().deserialize<_i4.PendingOrderInfo>(
               jsonSerialization['activePendingOrder'],
             ),
+      codAvailable: jsonSerialization['codAvailable'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['codAvailable']),
+      codDisabledReason: jsonSerialization['codDisabledReason'] as String?,
     );
   }
 
@@ -53,6 +61,10 @@ abstract class CheckoutInitHydrated implements _i1.SerializableModel {
 
   _i4.PendingOrderInfo? activePendingOrder;
 
+  bool codAvailable;
+
+  String? codDisabledReason;
+
   /// Returns a shallow copy of this [CheckoutInitHydrated]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -60,6 +72,8 @@ abstract class CheckoutInitHydrated implements _i1.SerializableModel {
     _i2.CartHydratedData? cartData,
     List<_i3.Banner>? checkoutBanners,
     _i4.PendingOrderInfo? activePendingOrder,
+    bool? codAvailable,
+    String? codDisabledReason,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -69,6 +83,8 @@ abstract class CheckoutInitHydrated implements _i1.SerializableModel {
       'checkoutBanners': checkoutBanners.toJson(valueToJson: (v) => v.toJson()),
       if (activePendingOrder != null)
         'activePendingOrder': activePendingOrder?.toJson(),
+      'codAvailable': codAvailable,
+      if (codDisabledReason != null) 'codDisabledReason': codDisabledReason,
     };
   }
 
@@ -85,10 +101,14 @@ class _CheckoutInitHydratedImpl extends CheckoutInitHydrated {
     required _i2.CartHydratedData cartData,
     required List<_i3.Banner> checkoutBanners,
     _i4.PendingOrderInfo? activePendingOrder,
+    bool? codAvailable,
+    String? codDisabledReason,
   }) : super._(
          cartData: cartData,
          checkoutBanners: checkoutBanners,
          activePendingOrder: activePendingOrder,
+         codAvailable: codAvailable,
+         codDisabledReason: codDisabledReason,
        );
 
   /// Returns a shallow copy of this [CheckoutInitHydrated]
@@ -99,6 +119,8 @@ class _CheckoutInitHydratedImpl extends CheckoutInitHydrated {
     _i2.CartHydratedData? cartData,
     List<_i3.Banner>? checkoutBanners,
     Object? activePendingOrder = _Undefined,
+    bool? codAvailable,
+    Object? codDisabledReason = _Undefined,
   }) {
     return CheckoutInitHydrated(
       cartData: cartData ?? this.cartData.copyWith(),
@@ -108,6 +130,10 @@ class _CheckoutInitHydratedImpl extends CheckoutInitHydrated {
       activePendingOrder: activePendingOrder is _i4.PendingOrderInfo?
           ? activePendingOrder
           : this.activePendingOrder?.copyWith(),
+      codAvailable: codAvailable ?? this.codAvailable,
+      codDisabledReason: codDisabledReason is String?
+          ? codDisabledReason
+          : this.codDisabledReason,
     );
   }
 }

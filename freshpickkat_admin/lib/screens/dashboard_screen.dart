@@ -235,6 +235,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
+                                  'COD Analytics',
+                                  style: AdminTextStyles.sectionTitle(context),
+                                ),
+                                SizedBox(height: 16.h),
+                                _analyticsRow(
+                                  'COD Orders Placed',
+                                  '${stats.codOrdersPlaced}',
+                                  Icons.shopping_cart_outlined,
+                                  AdminAppTheme.getInfoColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'COD Delivered',
+                                  '${stats.codOrdersDelivered}',
+                                  Icons.check_circle_outline,
+                                  AdminAppTheme.getSuccessColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'COD Rejected',
+                                  '${stats.codOrdersRejected}',
+                                  Icons.cancel_outlined,
+                                  AdminAppTheme.getErrorColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'Success Rate',
+                                  '${analytics.codSuccessRate.toStringAsFixed(1)}%',
+                                  Icons.trending_up,
+                                  AdminAppTheme.getWarningColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'COD Collected',
+                                  _asCurrency(stats.codCollectedAmount),
+                                  Icons.payments_outlined,
+                                  AdminAppTheme.getSuccessColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'COD Unpaid',
+                                  _asCurrency(stats.codUnpaidAmount),
+                                  Icons.pending_outlined,
+                                  AdminAppTheme.getWarningColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'Cash Collected',
+                                  _asCurrency(stats.cashCollectionAmount),
+                                  Icons.money,
+                                  AdminAppTheme.getPurpleColor(context),
+                                ),
+                                const Divider(height: 24),
+                                _analyticsRow(
+                                  'UPI QR Collected',
+                                  _asCurrency(stats.upiCollectionAmount),
+                                  Icons.qr_code,
+                                  AdminAppTheme.getIndigoColor(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          child: Padding(
+                            padding: AdminResponsive.cardPadding(context),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
                                   'Analytics & Insights',
                                   style: AdminTextStyles.sectionTitle(context),
                                 ),

@@ -21,6 +21,12 @@ fields:
   referralWindowExpiresAt: DateTime?
   referralOnboardingDismissedAt: DateTime?
   termsAcceptedAt: DateTime?
+  codOrdersPlaced: int, default=0
+  codOrdersDelivered: int, default=0
+  codOrdersRejected: int, default=0
+  isCodBlocked: bool, default=false
+  codBlockedReason: String?
+  codBlockedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now
 indexes:

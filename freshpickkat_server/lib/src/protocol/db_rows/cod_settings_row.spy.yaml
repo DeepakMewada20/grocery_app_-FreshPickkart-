@@ -1,0 +1,8 @@
+class: CodSettingsRow
+serverOnly: true
+table: cod_settings
+fields:
+  id: UuidValue?, defaultPersist=random
+  maximumAllowedCodFailures: int, default=3
+  enableAutoBlocking: bool, default=true
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now

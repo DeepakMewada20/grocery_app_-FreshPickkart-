@@ -48,6 +48,7 @@ fields:
   deliveredAt: DateTime?
   cancelledAt: DateTime?
   cancellationReason: String?
+  codFailureReason: String?
   deliveryPersonName: String?
   deliveryPersonPhone: String?
   deliveryOtp: String?

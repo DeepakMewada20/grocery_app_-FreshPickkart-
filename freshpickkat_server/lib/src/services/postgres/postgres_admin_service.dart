@@ -288,6 +288,38 @@ class PostgresAdminService {
       }
     }
 
+    // ── COD analytics ──
+    var codPlaced = 0;
+    var codDelivered = 0;
+    var codRejected = 0;
+    var codCollected = 0.0;
+    var codUnpaid = 0.0;
+    var cashCollected = 0.0;
+    var upiCollected = 0.0;
+    for (final order in orders) {
+      if (order.paymentMode != 'cod') continue;
+      codPlaced++;
+      if (order.orderStatus == 'delivered') {
+        codDelivered++;
+        if (order.paymentStatus == 'paid') {
+          codCollected += order.finalAmount;
+          if (order.paymentCollectionMode == 'cash') {
+            cashCollected += order.finalAmount;
+          } else if (order.paymentCollectionMode == 'upi_qr') {
+            upiCollected += order.finalAmount;
+          }
+        }
+      }
+      if (order.codFailureReason != null) {
+        codRejected++;
+      }
+      if (order.orderStatus != 'cancelled' &&
+          order.orderStatus != 'delivered' &&
+          order.paymentStatus != 'paid') {
+        codUnpaid += order.finalAmount;
+      }
+    }
+
     return protocol.AdminDashboardStats(
       todayOrders: todayOrders,
       todayRevenue: todayRevenue,
@@ -299,6 +331,13 @@ class PostgresAdminService {
       outForDeliveryOrders: outForDeliveryCount,
       deliveredOrders: deliveredCount,
       cancelledOrders: cancelledCount,
+      codOrdersPlaced: codPlaced,
+      codOrdersDelivered: codDelivered,
+      codOrdersRejected: codRejected,
+      codCollectedAmount: codCollected,
+      codUnpaidAmount: codUnpaid,
+      cashCollectionAmount: cashCollected,
+      upiCollectionAmount: upiCollected,
     );
   }
 
@@ -355,10 +394,36 @@ class PostgresAdminService {
         ? 0.0
         : (cancelled / orders.length) * 100;
 
+    // ── COD analytics ──
+    var codPlaced = 0;
+    var codDelivered = 0;
+    final rejectionReasons = <String, int>{};
+    for (final order in orders) {
+      if (order.paymentMode != 'cod') continue;
+      codPlaced++;
+      if (order.orderStatus == 'delivered') codDelivered++;
+      final reason = order.codFailureReason;
+      if (reason != null && reason.isNotEmpty) {
+        rejectionReasons[reason] = (rejectionReasons[reason] ?? 0) + 1;
+      }
+    }
+    final codSuccessRate = codPlaced > 0
+        ? (codDelivered / codPlaced) * 100
+        : 0.0;
+    final codRejectionReasonDistribution = rejectionReasons.isEmpty
+        ? null
+        : rejectionReasons.entries
+            .map((e) => '"${e.key}": ${e.value}')
+            .join(', ');
+
     return protocol.AdminAnalytics(
       cancellationRate: cancellationRate,
       lowStockCount: lowStockCount,
       topProducts: topProducts,
+      codSuccessRate: codSuccessRate,
+      codRejectionReasonDistribution: codRejectionReasonDistribution == null
+          ? null
+          : '{$codRejectionReasonDistribution}',
     );
   }
 

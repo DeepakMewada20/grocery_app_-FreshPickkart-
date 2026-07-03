@@ -19,12 +19,16 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
     required this.cancellationRate,
     required this.lowStockCount,
     required this.topProducts,
-  });
+    double? codSuccessRate,
+    this.codRejectionReasonDistribution,
+  }) : codSuccessRate = codSuccessRate ?? 0.0;
 
   factory AdminAnalytics({
     required double cancellationRate,
     required int lowStockCount,
     required List<_i2.AdminTopProduct> topProducts,
+    double? codSuccessRate,
+    String? codRejectionReasonDistribution,
   }) = _AdminAnalyticsImpl;
 
   factory AdminAnalytics.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -35,6 +39,9 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
       topProducts: _i3.Protocol().deserialize<List<_i2.AdminTopProduct>>(
         jsonSerialization['topProducts'],
       ),
+      codSuccessRate: (jsonSerialization['codSuccessRate'] as num?)?.toDouble(),
+      codRejectionReasonDistribution:
+          jsonSerialization['codRejectionReasonDistribution'] as String?,
     );
   }
 
@@ -44,6 +51,10 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
 
   List<_i2.AdminTopProduct> topProducts;
 
+  double codSuccessRate;
+
+  String? codRejectionReasonDistribution;
+
   /// Returns a shallow copy of this [AdminAnalytics]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -51,6 +62,8 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
     double? cancellationRate,
     int? lowStockCount,
     List<_i2.AdminTopProduct>? topProducts,
+    double? codSuccessRate,
+    String? codRejectionReasonDistribution,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -59,6 +72,9 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
       'cancellationRate': cancellationRate,
       'lowStockCount': lowStockCount,
       'topProducts': topProducts.toJson(valueToJson: (v) => v.toJson()),
+      'codSuccessRate': codSuccessRate,
+      if (codRejectionReasonDistribution != null)
+        'codRejectionReasonDistribution': codRejectionReasonDistribution,
     };
   }
 
@@ -68,15 +84,21 @@ abstract class AdminAnalytics implements _i1.SerializableModel {
   }
 }
 
+class _Undefined {}
+
 class _AdminAnalyticsImpl extends AdminAnalytics {
   _AdminAnalyticsImpl({
     required double cancellationRate,
     required int lowStockCount,
     required List<_i2.AdminTopProduct> topProducts,
+    double? codSuccessRate,
+    String? codRejectionReasonDistribution,
   }) : super._(
          cancellationRate: cancellationRate,
          lowStockCount: lowStockCount,
          topProducts: topProducts,
+         codSuccessRate: codSuccessRate,
+         codRejectionReasonDistribution: codRejectionReasonDistribution,
        );
 
   /// Returns a shallow copy of this [AdminAnalytics]
@@ -87,12 +109,18 @@ class _AdminAnalyticsImpl extends AdminAnalytics {
     double? cancellationRate,
     int? lowStockCount,
     List<_i2.AdminTopProduct>? topProducts,
+    double? codSuccessRate,
+    Object? codRejectionReasonDistribution = _Undefined,
   }) {
     return AdminAnalytics(
       cancellationRate: cancellationRate ?? this.cancellationRate,
       lowStockCount: lowStockCount ?? this.lowStockCount,
       topProducts:
           topProducts ?? this.topProducts.map((e0) => e0.copyWith()).toList(),
+      codSuccessRate: codSuccessRate ?? this.codSuccessRate,
+      codRejectionReasonDistribution: codRejectionReasonDistribution is String?
+          ? codRejectionReasonDistribution
+          : this.codRejectionReasonDistribution,
     );
   }
 }

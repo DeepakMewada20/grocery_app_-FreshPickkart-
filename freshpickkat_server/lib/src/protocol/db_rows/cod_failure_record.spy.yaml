@@ -1,0 +1,17 @@
+class: CodFailureRecord
+serverOnly: true
+table: cod_failure_record
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Cascade)
+  userId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  reason: String
+  failureNote: String?
+  recordedBy: String?
+  recordedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  cod_failure_record_order_idx:
+    fields: orderId
+    unique: true
+  cod_failure_record_user_idx:
+    fields: userId, recordedAt

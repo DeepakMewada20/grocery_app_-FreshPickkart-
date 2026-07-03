@@ -611,6 +611,8 @@ class PostgresOrderService {
         }
         final createdOrderId = createdOrder.id!;
 
+        await _incrementCodPlacedCounter(session, userId, transaction);
+
         await OrderAddressRow.db.insertRow(
           session,
           OrderAddressRow(
@@ -1249,6 +1251,7 @@ class PostgresOrderService {
           paymentCollectedAt: order.paymentCollectedAt,
           paymentCollectedBy: order.paymentCollectedBy,
           paymentCollectionMode: order.paymentCollectionMode,
+          codFailureReason: order.codFailureReason,
         ),
       );
     }
@@ -1487,6 +1490,13 @@ class PostgresOrderService {
           transaction: transaction,
         );
       });
+    }
+
+    if (newStatus == 'delivered') {
+      // Increment COD delivered counter
+      await _incrementCodDeliveredCounter(session, row);
+      // Auto-unblock user if prepaid order restores COD access
+      await _autoUnblockCodIfEligible(session, row);
     }
 
     return true;
@@ -2529,7 +2539,222 @@ class PostgresOrderService {
     }
   }
 
-  // --- END PHASE 5 helpers ---
+  // --- COD Abuse Prevention helpers ---
+
+  Future<void> _incrementCodPlacedCounter(
+    Session session,
+    UuidValue userId,
+    Transaction transaction,
+  ) async {
+    final user = await AppUserRow.db.findById(
+      session,
+      userId,
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (user == null) return;
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        codOrdersPlaced: (user.codOrdersPlaced ?? 0) + 1,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+      transaction: transaction,
+    );
+  }
+
+  Future<void> _incrementCodDeliveredCounter(
+    Session session,
+    CustomerOrderRow order,
+  ) async {
+    if (order.paymentMode != 'cod') return;
+    final user = await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.id.equals(order.userId),
+    );
+    if (user == null) return;
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        codOrdersDelivered: (user.codOrdersDelivered ?? 0) + 1,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+
+  Future<void> _autoUnblockCodIfEligible(
+    Session session,
+    CustomerOrderRow order,
+  ) async {
+    if (order.paymentMode == 'cod') return;
+    if (order.paymentStatus != 'paid') return;
+    final user = await AppUserRow.db.findFirstRow(
+      session,
+      where: (t) => t.id.equals(order.userId),
+    );
+    if (user == null || user.isCodBlocked != true) return;
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        isCodBlocked: false,
+        codBlockedReason: null,
+        codBlockedAt: null,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+    );
+    session.log(
+      'Auto-unblocked COD for user ${order.userId} after successful '
+      '${order.paymentMode} order ${order.orderNumber}',
+      level: LogLevel.info,
+    );
+  }
+
+  Future<void> _incrementCodRejectedCounter(
+    Session session,
+    UuidValue userId,
+    Transaction transaction,
+  ) async {
+    final user = await AppUserRow.db.findById(
+      session,
+      userId,
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (user == null) return;
+    await AppUserRow.db.updateRow(
+      session,
+      user.copyWith(
+        codOrdersRejected: (user.codOrdersRejected ?? 0) + 1,
+        updatedAt: DateTime.now().toUtc(),
+      ),
+      transaction: transaction,
+    );
+  }
+
+  Future<bool> _checkAutoBlockCod(
+    Session session,
+    UuidValue userId,
+    Transaction transaction,
+  ) async {
+    final settings = await CodSettingsRow.db.findFirstRow(session);
+    if (settings == null || !settings.enableAutoBlocking) return false;
+    final user = await AppUserRow.db.findById(
+      session,
+      userId,
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (user == null) return false;
+    final limit = settings.maximumAllowedCodFailures;
+    final rejected = user.codOrdersRejected ?? 0;
+    if (rejected >= limit) {
+      await AppUserRow.db.updateRow(
+        session,
+        user.copyWith(
+          isCodBlocked: true,
+          codBlockedReason: 'REPEATED_DELIVERY_REFUSAL',
+          codBlockedAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
+        ),
+        transaction: transaction,
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /// Records a COD delivery failure for an out_for_delivery COD order.
+  /// Cancels the order, inserts a CodFailureRecord, increments user rejection
+  /// counter, and auto-blocks the user if threshold exceeded.
+  Future<Map<String, dynamic>> markCodDeliveryFailed(
+    Session session,
+    String orderNumber, {
+    required String reason,
+    String? failureNote,
+    String? recordedBy,
+    String? adminName,
+  }) async {
+    final order = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderNumber),
+    );
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderNumber');
+    }
+    if (order.codFailureReason != null) {
+      throw StateError('COD failure already recorded for this order.');
+    }
+    if (order.orderStatus != 'out_for_delivery') {
+      throw StateError(
+        'Order status must be "out_for_delivery" to record COD failure. '
+        'Current status: ${order.orderStatus}',
+      );
+    }
+    if (order.paymentMode != 'cod') {
+      throw StateError('Cannot record COD failure for non-COD order.');
+    }
+
+    final now = DateTime.now().toUtc();
+    await session.db.transaction((transaction) async {
+      // Update order status
+      await CustomerOrderRow.db.updateRow(
+        session,
+        order.copyWith(
+          orderStatus: 'cancelled',
+          cancelledAt: now,
+          cancellationReason: 'COD_DELIVERY_FAILURE: $reason',
+          codFailureReason: reason,
+          updatedAt: now,
+        ),
+        transaction: transaction,
+      );
+
+      // Insert failure record
+      await CodFailureRecord.db.insertRow(
+        session,
+        CodFailureRecord(
+          orderId: order.id!,
+          userId: order.userId,
+          reason: reason,
+          failureNote: failureNote,
+          recordedBy: recordedBy,
+          recordedAt: now,
+        ),
+        transaction: transaction,
+      );
+
+      // Increment rejection counter
+      await _incrementCodRejectedCounter(
+        session,
+        order.userId,
+        transaction,
+      );
+
+      // Check auto-block threshold
+      await _checkAutoBlockCod(session, order.userId, transaction);
+
+      // Restore stock for COD order
+      await _restoreStockForCancelledOrder(
+        session,
+        order.id!,
+        transaction: transaction,
+      );
+      await _decrementCouponForCancelledOrder(
+        session,
+        order,
+        transaction: transaction,
+      );
+    });
+
+    return {
+      'success': true,
+      'orderNumber': orderNumber,
+      'status': 'cancelled',
+      'codFailureReason': reason,
+    };
+  }
+
+  // --- END COD Abuse Prevention helpers ---
 }
 
 class _OrderCursor {

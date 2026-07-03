@@ -73,8 +73,20 @@ class OrderEndpoint extends Endpoint {
     protocol.Order order,
     String idempotencyKey, {
     int freshPointsToRedeem = 0,
-  }) {
-    return _orders.createCodOrder(
+  }) async {
+    final userId = order.userId;
+    if (userId.isNotEmpty) {
+      final user = await protocol.AppUserRow.db.findFirstRow(
+        session,
+        where: (t) => t.firebaseUid.equals(userId),
+      );
+      if (user?.isCodBlocked == true) {
+        throw StateError(
+          'Cash on Delivery is unavailable for this account.',
+        );
+      }
+    }
+    return await _orders.createCodOrder(
       session,
       order: order,
       idempotencyKey: idempotencyKey,
@@ -1238,6 +1250,54 @@ class OrderEndpoint extends Endpoint {
     );
 
     return true;
+  }
+
+  Future<Map<String, dynamic>> markCodDeliveryFailed(
+    Session session,
+    String orderId,
+    String reason, {
+    String? failureNote,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final result = await _orders.markCodDeliveryFailed(
+      session,
+      orderId,
+      reason: reason,
+      failureNote: failureNote,
+      recordedBy: actor.firebaseUid ?? actor.id?.toString(),
+      adminName: actor.name,
+    );
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'cod_delivery_failed',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {
+        'reason': reason,
+        if (failureNote != null) 'failureNote': failureNote,
+      },
+    );
+
+    // Send outbox notification for status change to cancelled
+    final order = await _orders.getOrderById(session, orderId);
+    if (order != null) {
+      await OrderOutboxService.instance.enqueueOrderStatusChanged(
+        session: session,
+        orderId: orderId,
+        userId: order.userId,
+        status: statusCancelled,
+      );
+    }
+
+    return result;
   }
 
   Future<void> _ensureOrderOwner(

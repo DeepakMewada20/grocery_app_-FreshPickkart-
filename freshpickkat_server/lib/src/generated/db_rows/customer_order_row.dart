@@ -61,6 +61,7 @@ abstract class CustomerOrderRow
     this.deliveredAt,
     this.cancelledAt,
     this.cancellationReason,
+    this.codFailureReason,
     this.deliveryPersonName,
     this.deliveryPersonPhone,
     this.deliveryOtp,
@@ -155,6 +156,7 @@ abstract class CustomerOrderRow
     DateTime? deliveredAt,
     DateTime? cancelledAt,
     String? cancellationReason,
+    String? codFailureReason,
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
@@ -284,6 +286,7 @@ abstract class CustomerOrderRow
               jsonSerialization['cancelledAt'],
             ),
       cancellationReason: jsonSerialization['cancellationReason'] as String?,
+      codFailureReason: jsonSerialization['codFailureReason'] as String?,
       deliveryPersonName: jsonSerialization['deliveryPersonName'] as String?,
       deliveryPersonPhone: jsonSerialization['deliveryPersonPhone'] as String?,
       deliveryOtp: jsonSerialization['deliveryOtp'] as String?,
@@ -449,6 +452,8 @@ abstract class CustomerOrderRow
 
   String? cancellationReason;
 
+  String? codFailureReason;
+
   String? deliveryPersonName;
 
   String? deliveryPersonPhone;
@@ -554,6 +559,7 @@ abstract class CustomerOrderRow
     DateTime? deliveredAt,
     DateTime? cancelledAt,
     String? cancellationReason,
+    String? codFailureReason,
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
@@ -635,6 +641,7 @@ abstract class CustomerOrderRow
       if (deliveredAt != null) 'deliveredAt': deliveredAt?.toJson(),
       if (cancelledAt != null) 'cancelledAt': cancelledAt?.toJson(),
       if (cancellationReason != null) 'cancellationReason': cancellationReason,
+      if (codFailureReason != null) 'codFailureReason': codFailureReason,
       if (deliveryPersonName != null) 'deliveryPersonName': deliveryPersonName,
       if (deliveryPersonPhone != null)
         'deliveryPersonPhone': deliveryPersonPhone,
@@ -763,6 +770,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     DateTime? deliveredAt,
     DateTime? cancelledAt,
     String? cancellationReason,
+    String? codFailureReason,
     String? deliveryPersonName,
     String? deliveryPersonPhone,
     String? deliveryOtp,
@@ -836,6 +844,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          deliveredAt: deliveredAt,
          cancelledAt: cancelledAt,
          cancellationReason: cancellationReason,
+         codFailureReason: codFailureReason,
          deliveryPersonName: deliveryPersonName,
          deliveryPersonPhone: deliveryPersonPhone,
          deliveryOtp: deliveryOtp,
@@ -915,6 +924,7 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     Object? deliveredAt = _Undefined,
     Object? cancelledAt = _Undefined,
     Object? cancellationReason = _Undefined,
+    Object? codFailureReason = _Undefined,
     Object? deliveryPersonName = _Undefined,
     Object? deliveryPersonPhone = _Undefined,
     Object? deliveryOtp = _Undefined,
@@ -1018,6 +1028,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
       cancellationReason: cancellationReason is String?
           ? cancellationReason
           : this.cancellationReason,
+      codFailureReason: codFailureReason is String?
+          ? codFailureReason
+          : this.codFailureReason,
       deliveryPersonName: deliveryPersonName is String?
           ? deliveryPersonName
           : this.deliveryPersonName,
@@ -1348,6 +1361,12 @@ class CustomerOrderRowUpdateTable
   _i1.ColumnValue<String, String> cancellationReason(String? value) =>
       _i1.ColumnValue(
         table.cancellationReason,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> codFailureReason(String? value) =>
+      _i1.ColumnValue(
+        table.codFailureReason,
         value,
       );
 
@@ -1703,6 +1722,10 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'cancellationReason',
       this,
     );
+    codFailureReason = _i1.ColumnString(
+      'codFailureReason',
+      this,
+    );
     deliveryPersonName = _i1.ColumnString(
       'deliveryPersonName',
       this,
@@ -1907,6 +1930,8 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString cancellationReason;
 
+  late final _i1.ColumnString codFailureReason;
+
   late final _i1.ColumnString deliveryPersonName;
 
   late final _i1.ColumnString deliveryPersonPhone;
@@ -2007,6 +2032,7 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     deliveredAt,
     cancelledAt,
     cancellationReason,
+    codFailureReason,
     deliveryPersonName,
     deliveryPersonPhone,
     deliveryOtp,

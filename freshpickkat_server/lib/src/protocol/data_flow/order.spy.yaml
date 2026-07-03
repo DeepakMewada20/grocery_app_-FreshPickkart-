@@ -63,3 +63,4 @@ fields:
   paymentCollectedAt: DateTime?
   paymentCollectedBy: String?
   paymentCollectionMode: String?
+  codFailureReason: String?

@@ -10,3 +10,10 @@ fields:
   outForDeliveryOrders: int
   deliveredOrders: int
   cancelledOrders: int
+  codOrdersPlaced: int, default=0
+  codOrdersDelivered: int, default=0
+  codOrdersRejected: int, default=0
+  codCollectedAmount: double, default=0
+  codUnpaidAmount: double, default=0
+  cashCollectionAmount: double, default=0
+  upiCollectionAmount: double, default=0

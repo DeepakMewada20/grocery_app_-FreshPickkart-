@@ -17,7 +17,7 @@ The app supports **three payment methods** at checkout, plus a **COD collection 
 | **Module 0** | Pay Now — Direct UPI | Production |
 | **Module 1** | Cash on Delivery — Order Creation | Production |
 | **Module 2** | Cash on Delivery — Payment Collection, Delivery Guards, Admin UI, User UI | Production |
-| Module 3 | COD Deferred (complaints, payment monitoring) | Planned |
+| Module 3 | COD Abuse Prevention — Auto-Blocking, Trust Recovery, Admin Failure Recording | Production |
 
 | Method | Client-Side Name | Flags | Gateway Mechanism |
 |--------|------------------|-------|-------------------|
@@ -570,7 +570,151 @@ out_for_delivery + COD paid:
   (Delivery buttons visible — guards pass)
 ```
 
-### 3.9 User-Facing COD Display (Module 2)
+### 3.9 COD Abuse Prevention — Auto-Blocking & Trust Recovery (Module 3)
+
+To prevent abuse of the COD payment method (e.g., repeated refusals, fake addresses), the system implements a progressive penalty system.
+
+#### Mechanism
+
+```
+User places COD order
+  → codOrdersPlaced++  (at order creation)
+  └── If order delivered successfully
+      → codOrdersDelivered++  (at status='delivered')
+      → _autoUnblockCodIfEligible()  ← trust recovery
+
+If delivery fails (admin records failure)
+  → codOrdersRejected++  (at markCodDeliveryFailed)
+  → _checkAutoBlockCod()
+    └── If codOrdersRejected >= maximumAllowedCodFailures (default: 3)
+        → isCodBlocked = true
+        → codBlockedReason = 'REPEATED_DELIVERY_REFUSAL'
+        → codBlockedAt = now()
+        → Future COD orders blocked at:
+            • CheckoutEndpoint.getCheckoutInitHydrated() → codAvailable=false
+            • CheckoutEndpoint.createCodOrder() → returns error
+```
+
+#### Trust Recovery (Automatic Unblock)
+
+Counters **never reset**, but blocked users regain COD access when they demonstrate reliability:
+
+```
+User completes a prepaid (ONLINE / SHAREABLE_LINK) order
+  → updateOrderStatus('delivered') or completePhotoDelivery()
+  → _autoUnblockCodIfEligible():
+    └── IF isCodBlocked == true
+        AND new order.paymentMode IN ('standard', 'shareable_link')
+        AND new order.paymentStatus == 'paid'
+        AND new order.orderStatus == 'delivered'
+        → isCodBlocked = false
+        → codBlockedReason = null
+        → codBlockedAt = null
+```
+
+This means users cannot bypass the block by just placing a COD order — they must use a prepaid method and complete it successfully.
+
+#### Admin Failure Recording Flow
+
+```
+Admin Order Detail Screen
+  │  IF paymentMode == 'cod' AND orderStatus == 'out_for_delivery'
+  ▼
+"Mark Delivery Failed" button
+  │
+  ├── Opens dialog: Select failure reason
+  │    └── Options:
+  │        • Customer Refused
+  │        • Customer Unavailable
+  │        • Refused to Pay
+  │        • Address Not Found
+  │        • Delivery Failed
+  │        • Other
+  │
+  ├── Optional: failure note (text field)
+  │
+  ▼
+orderController.markCodDeliveryFailed(orderNumber, reason, failureNote)
+  → Server: OrderEndpoint.markCodDeliveryFailed()
+    │
+    ├── Guard: paymentMode == 'cod'
+    ├── Guard: codFailureReason == null (one failure per order)
+    ├── Guard: orderStatus == 'out_for_delivery'
+    │
+    ├── FOR UPDATE Transaction:
+    │   ├── CustomerOrderRow.orderStatus = 'cancelled'
+    │   ├── CustomerOrderRow.codFailureReason = reason
+    │   ├── CustomerOrderRow.cancelledAt = now()
+    │   ├── CustomerOrderRow.cancellationReason = 'COD_DELIVERY_FAILURE: {reason}'
+    │   │
+    │   ├── Insert CodFailureRecord:
+    │   │   ├── orderId (UUID, UNIQUE)
+    │   │   ├── userId (UUID)
+    │   │   ├── reason (enum: 6 values)
+    │   │   ├── failureNote (optional text)
+    │   │   ├── recordedBy (admin ID)
+    │   │   └── recordedAt (timestamp)
+    │   │
+    │   ├── AppUserRow.codOrdersRejected += 1
+    │   │
+    │   └── Auto-block check:
+    │       IF codOrdersRejected >= settings.maximumAllowedCodFailures
+    │       AND settings.enableAutoBlocking == true
+    │       → AppUserRow.isCodBlocked = true
+    │       → AppUserRow.codBlockedReason = 'REPEATED_DELIVERY_REFUSAL'
+    │       → AppUserRow.codBlockedAt = now()
+    │
+    └── Note: Stock reversal handled by existing cancellation logic
+          (updateOrderStatus → restoreStock at order level)
+```
+
+#### Delivery Failure Reasons (Enum)
+
+| Reason Code | Label (Admin UI) | When to Use |
+|-------------|------------------|-------------|
+| `CUSTOMER_REFUSED` | Customer Refused | Customer refuses to accept delivery |
+| `CUSTOMER_UNAVAILABLE` | Customer Unavailable | Customer not at address after multiple attempts |
+| `PAYMENT_REFUSED` | Refused to Pay | Customer wants the goods but refuses to pay |
+| `ADDRESS_NOT_FOUND` | Address Not Found | Delivery location does not exist / incorrect |
+| `DELIVERY_FAILED` | Delivery Failed | Generic delivery failure (vehicle, weather, etc.) |
+| `OTHER` | Other | Any other reason (free text) |
+
+#### New Tables
+
+| Table | Key | Purpose |
+|-------|-----|---------|
+| `cod_settings` | Singleton row | `maximumAllowedCodFailures` (int, default 3), `enableAutoBlocking` (bool, default true) |
+| `cod_failure_record` | orderId (UNIQUE FK) | Every recorded COD failure, with reason, note, recorder identity, timestamp |
+
+#### Database Columns Added
+
+| Table | Column | Type | Purpose |
+|-------|--------|------|---------|
+| `app_user` | `codOrdersPlaced` | int (default 0) | Lifetime COD orders placed |
+| `app_user` | `codOrdersDelivered` | int (default 0) | Lifetime COD orders delivered successfully |
+| `app_user` | `codOrdersRejected` | int (default 0) | Lifetime COD delivery failures |
+| `app_user` | `isCodBlocked` | boolean (default false) | Whether COD is blocked for this user |
+| `app_user` | `codBlockedReason` | text | Reason for COD block |
+| `app_user` | `codBlockedAt` | timestamp | When the block was applied |
+| `customer_order` | `codFailureReason` | text | Failure reason for COD delivery |
+
+#### Configuration
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `maximumAllowedCodFailures` | 3 | Number of failed COD deliveries before auto-block |
+| `enableAutoBlocking` | true | Master switch for auto-blocking |
+
+#### Key Architecture Decisions
+
+1. **Counters never reset** — permanent record of behavior prevents abuse cycling
+2. **Trust recovery is automatic** — no admin intervention needed; prepaid delivery triggers unblock
+3. **No admin unblock endpoint** — trust must be earned, not granted by support
+4. **Single CodFailureRecord per order** — UNIQUE constraint on orderId prevents duplicate recording
+
+---
+
+### 3.10 User-Facing COD Display (Module 2)
 
 | Screen | What Changed |
 |--------|-------------|
@@ -1189,7 +1333,7 @@ Solution: Webhook handler checks order.paymentMode early:
 
 | Table | Primary Key | Key Fields |
 |-------|-------------|------------|
-| `customer_order` | `id` (UUID) | `orderNumber` (unique), `orderStatus`, `paymentStatus`, `refundStatus`, `finalAmount`, `actualPaymentAmount`, `linkStatus`, `paymentLinkUrl`, `paymentLinkExpiresAt`, `paymentMode`, `paymentCollectedAt`, `paymentCollectedBy`, `paymentCollectionMode` |
+| `customer_order` | `id` (UUID) | `orderNumber` (unique), `orderStatus`, `paymentStatus`, `refundStatus`, `finalAmount`, `actualPaymentAmount`, `linkStatus`, `paymentLinkUrl`, `paymentLinkExpiresAt`, `paymentMode`, `paymentCollectedAt`, `paymentCollectedBy`, `paymentCollectionMode`, `codFailureReason` |
 | `order_item` | `id` (UUID) | `orderId` (FK CASCADE), `productId`, `quantity`, `unitPrice`, `totalPrice`, `isFreeItem`, `rewardSource`, `appliedOfferSnapshot` (JSON) |
 | `payment_transaction` | `id` (UUID) | `orderId` (FK RESTRICT), `gatewayOrderId` (unique), `gatewayPaymentId` (unique), `idempotencyKey` (unique), `paymentStatus`, `gatewayStatus`, `amount` |
 | `payment_link` | `id` (UUID) | `orderId`, `token` (unique), `expiresAt`, `isUsed`, `razorpayPaymentLinkId`, `linkStatus` |
@@ -1197,6 +1341,8 @@ Solution: Webhook handler checks order.paymentMode early:
 | `auto_refund_job` | `id` (UUID) | `orderId` (FK RESTRICT), `gatewayPaymentId` (unique dedup), `amount`, `jobStatus`, `attemptCount`, `nextRetryAt` |
 | `order_address` | `orderId` (PK, FK CASCADE) | Frozen address snapshot at order time |
 | `idempotency_record` | `id` (UUID) | `scope`, `idempotencyKey` (unique), `userId`, `orderId`, `requestHash`, `expiresAt` |
+| `cod_settings` | `id` (UUID, singleton) | `maximumAllowedCodFailures` (int, default 3), `enableAutoBlocking` (bool, default true) |
+| `cod_failure_record` | `id` (UUID) | `orderId` (UNIQUE FK), `userId`, `reason` (enum), `failureNote`, `recordedBy`, `recordedAt` |
 
 ### Database Indexes
 
@@ -1240,7 +1386,20 @@ Solution: Webhook handler checks order.paymentMode early:
 | **Audit logging** | `collectCodPayment()` | Every collection is logged with `action: 'collect_cod_payment'`, `collectionMode`, and actor identity |
 | **Defense-in-depth (service layer)** | `PostgresDeliveryVerificationService.completePhotoDelivery()` | Even if endpoint is bypassed, service-level guard blocks unpaid delivery |
 
-### 15.3 Payment Flow Guards
+### 15.3 COD Abuse Prevention Security (Module 3)
+
+| Security | Where | What It Protects Against |
+|----------|-------|------------------------|
+| **Auto-block at threshold** | `_checkAutoBlockCod()` in `markCodDeliveryFailed()` | Users rejecting COD deliveries repeatedly (default: 3 failures) |
+| **COD block guard at checkout** | `getCheckoutInitHydrated()`, `createCodOrder()` | Blocked users cannot place new COD orders |
+| **Trust recovery via prepaid delivery** | `_autoUnblockCodIfEligible()` | Users must earn trust via successful prepaid orders |
+| **Max failures configurable** | `cod_settings.maximumAllowedCodFailures` | Admin can adjust threshold without code changes |
+| **Auto-blocking toggle** | `cod_settings.enableAutoBlocking` | Admin can disable auto-blocking entirely |
+| **Unique failure record per order** | `cod_failure_record.orderId` UNIQUE | Prevents double-failure recording on same order |
+| **Failure reason enum** | `markCodDeliveryFailed()` reason param | Structured data for analytics (6 predefined reasons) |
+| **Counters never reset** | `codOrdersPlaced/Delivered/Rejected` | Permanent behavioral record prevents cycling through block |
+
+### 15.4 Payment Flow Guards
 
 | Security | Where | What It Protects Against |
 |----------|-------|------------------------|
@@ -1251,7 +1410,7 @@ Solution: Webhook handler checks order.paymentMode early:
 | **FreshPoints guard on COD** | `createCodOrder()` | Prevents FreshPoints redemption on COD when `allowRedemptionOnCOD=false` |
 | **Server-authoritative pricing** | `PricingEngine.calculateCartPricing()` in `createCodOrder()` | Same pricing engine as Pay Now — client cannot manipulate COD amounts |
 
-### 15.4 Webhook Security
+### 15.5 Webhook Security
 
 ```
 Razorpay → Webhook Endpoint

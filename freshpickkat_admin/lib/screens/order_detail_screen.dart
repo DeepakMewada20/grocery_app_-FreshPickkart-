@@ -464,6 +464,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ),
               ],
+              if (order.paymentMode == 'cod' &&
+                  order.codFailureReason != null &&
+                  order.codFailureReason!.isNotEmpty) ...[
+                SizedBox(height: 12.h),
+                Container(
+                  padding: AdminResponsive.cardPadding(context),
+                  decoration: BoxDecoration(
+                    color: AdminAppTheme.getErrorContainerColor(context),
+                    borderRadius: BorderRadius.circular(8.r),
+                    border: Border.all(
+                      color: AdminAppTheme.getErrorColor(context)
+                          .withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.cancel_outlined,
+                        color: AdminAppTheme.getErrorColor(context),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COD Delivery Failure',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AdminAppTheme.getErrorColor(context),
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Reason: ${_codFailureReasonLabel(order.codFailureReason)}',
+                              style: AdminTextStyles.caption(context),
+                            ),
+                            if (order.cancelledAt != null) ...[
+                              SizedBox(height: 2.h),
+                              Text(
+                                'Failed at: ${_formatDate(order.cancelledAt)}',
+                                style: AdminTextStyles.caption(context),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (order.refundStatus != 'none') ...[
                 SizedBox(height: 12.h),
                 if (_refundLoading)
@@ -738,6 +790,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           },
         ),
       );
+
+      // Mark Delivery Failed for COD orders
+      if (order.paymentMode == 'cod' && order.paymentStatus == 'paid') {
+        buttons.add(
+          _lifecycleButton(
+            context: context,
+            label: 'Mark Delivery Failed',
+            color: Colors.red,
+            icon: Icons.cancel_outlined,
+            isLoading: _isLoading,
+            onPressed: _isLoading
+                ? null
+                : () => _showCodDeliveryFailedDialog(context, order),
+          ),
+        );
+      }
     }
 
     if (order.status == 'delivery_otp_pending') {
@@ -1205,6 +1273,132 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     } catch (e) {
       if (context.mounted) {
         AdminSnackbarService.show(context, 'Payment collection failed: $e');
+      }
+    }
+  }
+
+  static const _codFailureReasons = [
+    'CUSTOMER_REFUSED',
+    'CUSTOMER_UNAVAILABLE',
+    'PAYMENT_REFUSED',
+    'ADDRESS_NOT_FOUND',
+    'DELIVERY_FAILED',
+    'OTHER',
+  ];
+
+  static const _codFailureReasonLabels = {
+    'CUSTOMER_REFUSED': 'Customer Refused',
+    'CUSTOMER_UNAVAILABLE': 'Customer Unavailable',
+    'PAYMENT_REFUSED': 'Payment Refused',
+    'ADDRESS_NOT_FOUND': 'Address Not Found',
+    'DELIVERY_FAILED': 'Delivery Failed',
+    'OTHER': 'Other',
+  };
+
+  String _codFailureReasonLabel(String? reason) {
+    if (reason == null) return '';
+    return _codFailureReasonLabels[reason] ?? reason;
+  }
+
+  Future<void> _showCodDeliveryFailedDialog(
+      BuildContext context, Order order) async {
+    String? selectedReason;
+    final noteController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Mark Delivery Failed'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Record a COD delivery failure. This will cancel the order '
+                  'and may restrict the customer\'s COD access.',
+                ),
+                const SizedBox(height: 16),
+                const Text('Failure Reason',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: selectedReason,
+                  decoration: const InputDecoration(
+                    hintText: 'Select reason',
+                    border: OutlineInputBorder(),
+                  ),
+                  isExpanded: true,
+                  items: _codFailureReasons.map((r) => DropdownMenuItem(
+                    value: r,
+                    child: Text(_codFailureReasonLabel(r)),
+                  )).toList(),
+                  onChanged: (v) => setDialogState(() => selectedReason = v),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: noteController,
+                  decoration: const InputDecoration(
+                    labelText: 'Note (optional)',
+                    hintText: 'Additional details...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: selectedReason == null
+                  ? null
+                  : () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Mark Failed'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true || selectedReason == null) return;
+
+    try {
+      await _orderController.markCodDeliveryFailed(
+        order,
+        selectedReason,
+        failureNote: noteController.text.trim().isEmpty
+            ? null
+            : noteController.text.trim(),
+      );
+      if (context.mounted) {
+        AdminSnackbarService.show(
+          context,
+          'Delivery marked as failed: ${_codFailureReasonLabel(selectedReason)}',
+        );
+        setState(() {
+          _order = _order.copyWith(
+            status: 'cancelled',
+            cancellationReason: 'COD_DELIVERY_FAILURE: $selectedReason',
+            codFailureReason: selectedReason,
+            cancelledAt: DateTime.now(),
+          );
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AdminSnackbarService.show(
+          context,
+          'Failed to record COD failure: $e',
+        );
       }
     }
   }

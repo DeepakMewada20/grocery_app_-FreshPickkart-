@@ -307,6 +307,26 @@ class AdminOrderController extends GetxController {
     });
   }
 
+  Future<Map<String, dynamic>> markCodDeliveryFailed(
+    Order order,
+    String reason, {
+    String? failureNote,
+  }) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.markCodDeliveryFailed(
+        order.orderId,
+        reason,
+        failureNote: failureNote,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
   Future<void> startDelivery(Order order) async {
     if (!Get.isRegistered<DeliveryTrackingController>()) {
       await updateOrderStatus(order, 'out_for_delivery');

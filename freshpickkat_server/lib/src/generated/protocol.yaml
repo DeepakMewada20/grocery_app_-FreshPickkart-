@@ -197,6 +197,7 @@ order:
   - getDashboardStats:
   - completePhotoDelivery:
   - collectCodPayment:
+  - markCodDeliveryFailed:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:

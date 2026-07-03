@@ -3,3 +3,5 @@ fields:
   cancellationRate: double
   lowStockCount: int
   topProducts: List<AdminTopProduct>
+  codSuccessRate: double, default=0
+  codRejectionReasonDistribution: String?

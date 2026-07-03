@@ -128,6 +128,47 @@ class PostgresDeliveryVerificationService {
         updatedAt: now,
       ),
     );
+
+    // Increment COD delivered counter
+    if (row.paymentMode == 'cod') {
+      final user = await AppUserRow.db.findFirstRow(
+        session,
+        where: (t) => t.id.equals(row.userId),
+      );
+      if (user != null) {
+        await AppUserRow.db.updateRow(
+          session,
+          user.copyWith(
+            codOrdersDelivered: (user.codOrdersDelivered ?? 0) + 1,
+            updatedAt: now,
+          ),
+        );
+      }
+    }
+
+    // Auto-unblock COD if prepaid order delivered+paid
+    if (row.paymentMode != 'cod' && row.paymentStatus == 'paid') {
+      final user = await AppUserRow.db.findFirstRow(
+        session,
+        where: (t) => t.id.equals(row.userId),
+      );
+      if (user != null && user.isCodBlocked == true) {
+        await AppUserRow.db.updateRow(
+          session,
+          user.copyWith(
+            isCodBlocked: false,
+            codBlockedReason: null,
+            codBlockedAt: null,
+            updatedAt: now,
+          ),
+        );
+        session.log(
+          'Auto-unblocked COD for user ${row.userId} after successful '
+          '${row.paymentMode} photo delivery order ${row.orderNumber}',
+          level: LogLevel.info,
+        );
+      }
+    }
   }
 
   /// Records delivered-by metadata after successful OTP verification.

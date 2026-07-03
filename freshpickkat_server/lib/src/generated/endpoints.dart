@@ -6112,6 +6112,49 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                   ),
         ),
+        'markCodDeliveryFailed': _i1.MethodConnector(
+          name: 'markCodDeliveryFailed',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'reason': _i1.ParameterDescription(
+              name: 'reason',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'failureNote': _i1.ParameterDescription(
+              name: 'failureNote',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i20.OrderEndpoint)
+                  .markCodDeliveryFailed(
+                    session,
+                    params['orderId'],
+                    params['reason'],
+                    failureNote: params['failureNote'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['orderPg'] = _i1.EndpointConnector(
