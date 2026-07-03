@@ -80,6 +80,9 @@ abstract class CustomerOrderRow
     String? orderType,
     this.sourceOrderNumber,
     this.complaintId,
+    this.paymentCollectedAt,
+    this.paymentCollectedBy,
+    this.paymentCollectionMode,
     this.analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -171,6 +174,9 @@ abstract class CustomerOrderRow
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -321,6 +327,14 @@ abstract class CustomerOrderRow
       orderType: jsonSerialization['orderType'] as String?,
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
       complaintId: jsonSerialization['complaintId'] as String?,
+      paymentCollectedAt: jsonSerialization['paymentCollectedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['paymentCollectedAt'],
+            ),
+      paymentCollectedBy: jsonSerialization['paymentCollectedBy'] as String?,
+      paymentCollectionMode:
+          jsonSerialization['paymentCollectionMode'] as String?,
       analyticsProcessedAt: jsonSerialization['analyticsProcessedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -473,6 +487,12 @@ abstract class CustomerOrderRow
 
   String? complaintId;
 
+  DateTime? paymentCollectedAt;
+
+  String? paymentCollectedBy;
+
+  String? paymentCollectionMode;
+
   DateTime? analyticsProcessedAt;
 
   DateTime orderedAt;
@@ -553,6 +573,9 @@ abstract class CustomerOrderRow
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -642,6 +665,11 @@ abstract class CustomerOrderRow
       'orderType': orderType,
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
       if (complaintId != null) 'complaintId': complaintId,
+      if (paymentCollectedAt != null)
+        'paymentCollectedAt': paymentCollectedAt?.toJson(),
+      if (paymentCollectedBy != null) 'paymentCollectedBy': paymentCollectedBy,
+      if (paymentCollectionMode != null)
+        'paymentCollectionMode': paymentCollectionMode,
       if (analyticsProcessedAt != null)
         'analyticsProcessedAt': analyticsProcessedAt?.toJson(),
       'orderedAt': orderedAt.toJson(),
@@ -754,6 +782,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? orderType,
     String? sourceOrderNumber,
     String? complaintId,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
     DateTime? analyticsProcessedAt,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -824,6 +855,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
          orderType: orderType,
          sourceOrderNumber: sourceOrderNumber,
          complaintId: complaintId,
+         paymentCollectedAt: paymentCollectedAt,
+         paymentCollectedBy: paymentCollectedBy,
+         paymentCollectionMode: paymentCollectionMode,
          analyticsProcessedAt: analyticsProcessedAt,
          orderedAt: orderedAt,
          createdAt: createdAt,
@@ -900,6 +934,9 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
     String? orderType,
     Object? sourceOrderNumber = _Undefined,
     Object? complaintId = _Undefined,
+    Object? paymentCollectedAt = _Undefined,
+    Object? paymentCollectedBy = _Undefined,
+    Object? paymentCollectionMode = _Undefined,
     Object? analyticsProcessedAt = _Undefined,
     DateTime? orderedAt,
     DateTime? createdAt,
@@ -1032,6 +1069,15 @@ class _CustomerOrderRowImpl extends CustomerOrderRow {
           ? sourceOrderNumber
           : this.sourceOrderNumber,
       complaintId: complaintId is String? ? complaintId : this.complaintId,
+      paymentCollectedAt: paymentCollectedAt is DateTime?
+          ? paymentCollectedAt
+          : this.paymentCollectedAt,
+      paymentCollectedBy: paymentCollectedBy is String?
+          ? paymentCollectedBy
+          : this.paymentCollectedBy,
+      paymentCollectionMode: paymentCollectionMode is String?
+          ? paymentCollectionMode
+          : this.paymentCollectionMode,
       analyticsProcessedAt: analyticsProcessedAt is DateTime?
           ? analyticsProcessedAt
           : this.analyticsProcessedAt,
@@ -1416,6 +1462,24 @@ class CustomerOrderRowUpdateTable
     value,
   );
 
+  _i1.ColumnValue<DateTime, DateTime> paymentCollectedAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.paymentCollectedAt,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paymentCollectedBy(String? value) =>
+      _i1.ColumnValue(
+        table.paymentCollectedBy,
+        value,
+      );
+
+  _i1.ColumnValue<String, String> paymentCollectionMode(String? value) =>
+      _i1.ColumnValue(
+        table.paymentCollectionMode,
+        value,
+      );
+
   _i1.ColumnValue<DateTime, DateTime> analyticsProcessedAt(DateTime? value) =>
       _i1.ColumnValue(
         table.analyticsProcessedAt,
@@ -1718,6 +1782,18 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
       'complaintId',
       this,
     );
+    paymentCollectedAt = _i1.ColumnDateTime(
+      'paymentCollectedAt',
+      this,
+    );
+    paymentCollectedBy = _i1.ColumnString(
+      'paymentCollectedBy',
+      this,
+    );
+    paymentCollectionMode = _i1.ColumnString(
+      'paymentCollectionMode',
+      this,
+    );
     analyticsProcessedAt = _i1.ColumnDateTime(
       'analyticsProcessedAt',
       this,
@@ -1869,6 +1945,12 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString complaintId;
 
+  late final _i1.ColumnDateTime paymentCollectedAt;
+
+  late final _i1.ColumnString paymentCollectedBy;
+
+  late final _i1.ColumnString paymentCollectionMode;
+
   late final _i1.ColumnDateTime analyticsProcessedAt;
 
   late final _i1.ColumnDateTime orderedAt;
@@ -1944,6 +2026,9 @@ class CustomerOrderRowTable extends _i1.Table<_i1.UuidValue?> {
     orderType,
     sourceOrderNumber,
     complaintId,
+    paymentCollectedAt,
+    paymentCollectedBy,
+    paymentCollectionMode,
     analyticsProcessedAt,
     orderedAt,
     createdAt,

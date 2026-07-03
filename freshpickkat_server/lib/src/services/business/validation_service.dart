@@ -197,6 +197,7 @@ class ValidationService {
         statusProcessing,
         statusPacked,
         statusCancelled,
+        statusCancelledByUser,
         statusRefunded,
         statusCancellationRequested,
       },

@@ -2127,6 +2127,37 @@ class Endpoints extends _i1.EndpointDispatch {
                     freshPointsToRedeem: params['freshPointsToRedeem'],
                   ),
         ),
+        'createCodOrder': _i1.MethodConnector(
+          name: 'createCodOrder',
+          params: {
+            'order': _i1.ParameterDescription(
+              name: 'order',
+              type: _i1.getType<_i44.Order>(),
+              nullable: false,
+            ),
+            'idempotencyKey': _i1.ParameterDescription(
+              name: 'idempotencyKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['checkout'] as _i10.CheckoutEndpoint)
+                  .createCodOrder(
+                    session,
+                    params['order'],
+                    params['idempotencyKey'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
+                  ),
+        ),
         'createOrderAndPayment': _i1.MethodConnector(
           name: 'createOrderAndPayment',
           params: {
@@ -5157,6 +5188,37 @@ class Endpoints extends _i1.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async =>
                   (endpoints['order'] as _i20.OrderEndpoint).createPendingOrder(
+                    session,
+                    params['order'],
+                    params['idempotencyKey'],
+                    freshPointsToRedeem: params['freshPointsToRedeem'],
+                  ),
+        ),
+        'createCodOrder': _i1.MethodConnector(
+          name: 'createCodOrder',
+          params: {
+            'order': _i1.ParameterDescription(
+              name: 'order',
+              type: _i1.getType<_i44.Order>(),
+              nullable: false,
+            ),
+            'idempotencyKey': _i1.ParameterDescription(
+              name: 'idempotencyKey',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'freshPointsToRedeem': _i1.ParameterDescription(
+              name: 'freshPointsToRedeem',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['order'] as _i20.OrderEndpoint).createCodOrder(
                     session,
                     params['order'],
                     params['idempotencyKey'],

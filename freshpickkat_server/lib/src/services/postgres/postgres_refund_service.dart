@@ -300,7 +300,10 @@ class PostgresRefundService {
     }
     final gatewayPaymentId = cleanNullableString(payment.gatewayPaymentId);
     if (gatewayPaymentId == null) {
-      throw Exception('Gateway payment id not found.');
+      throw Exception(
+        'No gateway payment ID found. COD orders cannot be refunded '
+        'through the payment gateway — please process manually.',
+      );
     }
 
     if (complaintId != null) {

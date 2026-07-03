@@ -70,6 +70,7 @@ categoryOffer:
   - setCategoryOfferActive:
 checkout:
   - getCheckoutInitHydrated:
+  - createCodOrder:
   - createOrderAndPayment:
 comboOffer:
   - upsertComboOfferWithConflicts:
@@ -170,6 +171,7 @@ orderDetail:
 order:
   - createOrder:
   - createPendingOrder:
+  - createCodOrder:
   - getOrders:
   - getOrdersPage:
   - getOrdersCount:

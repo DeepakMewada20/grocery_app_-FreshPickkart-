@@ -67,6 +67,9 @@ fields:
   orderType: String, default='regular'
   sourceOrderNumber: String?
   complaintId: String?
+  paymentCollectedAt: DateTime?
+  paymentCollectedBy: String?
+  paymentCollectionMode: String?
   analyticsProcessedAt: DateTime?
   orderedAt: DateTime, defaultModel=now, defaultPersist=now
   createdAt: DateTime, defaultModel=now, defaultPersist=now

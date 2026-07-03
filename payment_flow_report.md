@@ -2,12 +2,13 @@
 
 ## Overview
 
-The app supports **two payment methods** at checkout:
+The app supports **three payment methods** at checkout:
 
-| Method | Client-Side Name | `_isShareablePayment` | Gateway Mechanism |
-|--------|------------------|----------------------|-------------------|
-| **Pay Now** | "Pay Now" (default) | `false` | Razorpay UPI Intent (app-to-app) |
-| **Ask Someone Else To Pay** | "Ask Someone Else To Pay" | `true` | Shareable payment link (browser checkout or Razorpay-hosted link) |
+| Method | Client-Side Name | Flags | Gateway Mechanism |
+|--------|------------------|-------|-------------------|
+| **Pay Now** | "Pay Now" (default) | `_isShareablePayment=false`, `_isCodPayment=false` | Razorpay UPI Intent (app-to-app) |
+| **Cash on Delivery** | "Cash on Delivery" | `_isCodPayment=true`, `_isShareablePayment=false` | No gateway — order confirmed immediately |
+| **Ask Someone Else To Pay** | "Ask Someone Else To Pay" | `_isShareablePayment=true`, `_isCodPayment=false` | Shareable payment link (browser checkout or Razorpay-hosted link) |
 
 ---
 
@@ -102,7 +103,7 @@ _completeSuccessfulPayment()     Show error banner
 
 | File | Purpose |
 |------|---------|
-| `checkout_screen.dart` (3401 lines) | Main checkout screen — all payment logic |
+| `checkout_screen.dart` (~3500 lines) | Main checkout screen — all payment logic (incl. COD) |
 | `payment_service.dart` (147 lines) | `completeOrder()`, `markPaymentFailed()`, `pollPaymentStatus()`, `verifyPayment()` |
 | `payment_link_service.dart` (59 lines) | `createShareablePaymentLink()`, `getOrCreatePaymentLink()`, `getPaymentSessionStatus()` |
 | `order_recovery_service.dart` (259 lines) | `recoverPendingPayments()` — local pending payment recovery |
@@ -111,14 +112,14 @@ _completeSuccessfulPayment()     Show error banner
 
 | File | Purpose |
 |------|---------|
-| `checkout_endpoint.dart` | `createOrderAndPayment()`, `_handleContinuePayment()`, `getCheckoutInitHydrated()` |
-| `postgres_order_service.dart` (2018 lines) | `createPendingOrder()`, `cancelPendingOrder()`, `requestCancellation()`, `approveCancellationRequest()` |
+| `checkout_endpoint.dart` | `createOrderAndPayment()`, `createCodOrder()`, `_handleContinuePayment()`, `getCheckoutInitHydrated()` |
+| `postgres_order_service.dart` (~2500 lines) | `createPendingOrder()`, `createCodOrder()`, `cancelPendingOrder()`, `requestCancellation()`, `approveCancellationRequest()` |
 | `postgres_payment_service.dart` (1898 lines) | `createPaymentOrder()`, `verifyPayment()`, `completePaymentVerification()`, `markPaymentFailed()` |
 | `postgres_payment_link_service.dart` (955 lines) | `createPaymentLink()`, `createRazorpayPaymentLink()`, `getOrCreatePaymentLink()`, `disablePaymentLink()` |
 | `postgres_refund_service.dart` (534 lines) | `initiateRefund()`, `refund()`, `handleRefundWebhook()` |
 | `postgres_auto_refund_service.dart` (176 lines) | `createJob()`, `loadPendingJobs()`, `updateJobStatus()` |
 | `payment_gateway_service.dart` (214 lines) | HTTP client for Razorpay API (orders, payments, refunds, payment links) |
-| `razorpay_webhook_route.dart` (875 lines) | Webhook handler: `payment.captured`, `payment_link.paid`, `refund.*`, etc. |
+| `razorpay_webhook_route.dart` (~880 lines) | Webhook handler: `payment.captured`, `payment_link.paid`, `refund.*`, etc. (incl. COD guard) |
 | `payment_reconciliation_cron_job.dart` (590 lines) | 10 isolated cron timers for reconciliation, expiry, auto-refund |
 
 ---
@@ -270,12 +271,168 @@ _showSharePaymentLinkSheet()
 
 ---
 
-## 3. Decision Matrix — How PlaceOrder Chooses the Path
+## 3. Cash on Delivery — No-Payment Flow
+
+### 3.1 When Is COD Available?
+
+COD is available as a radio option in the payment method selector. When selected (`_isCodPayment=true`), the order is confirmed **without any payment gateway interaction**.
+
+### 3.2 High-Level Flow
+
+```
+User selects "Cash on Delivery" radio option
+  │  _isCodPayment = true, _isShareablePayment = false
+  ▼
+User taps "PLACE ORDER"
+  │
+  ▼
+_handlePendingOrderOnPlaceOrder()
+  │  COD always clears _pendingOrderInfo and routes to _placeOrderCod()
+  │  (no pending-payment continuation for COD)
+  ▼
+_placeOrderCod()
+  │
+  ├─ Validates: address (lat/lng), phone
+  ├─ _buildOrderFromCart() → constructs Order (same as Pay Now)
+  │
+  ▼
+checkoutService.createCodOrder(order, idempotencyKey, freshPointsToRedeem)
+  │
+  ├─ Server: CheckoutEndpoint.createCodOrder()
+  │   ├─ Sets order.paymentMode = 'cod'
+  │   │
+  │   ├─ OrderEndpoint.createCodOrder()
+  │   │   ├─ PostgresOrderService.createCodOrder()
+  │   │   │   ├─ FreshPoints guard: checks allowRedemptionOnCOD setting
+  │   │   │   │   → Throws if false and freshPointsToRedeem > 0
+  │   │   │   │
+  │   │   │   ├─ PricingEngine.calculateCartPricing()  ← server-authoritative
+  │   │   │   │   (same pricing engine as Pay Now)
+  │   │   │   │
+  │   │   │   ├─ DB Transaction (FOR UPDATE):
+  │   │   │   │   ├─ Resolve/create user
+  │   │   │   │   ├─ Idempotency check (same key → same order)
+  │   │   │   │   ├─ Insert CustomerOrderRow:
+  │   │   │   │   │   ├─ paymentStatus = 'pending'
+  │   │   │   │   │   ├─ orderStatus = 'confirmed'    ← confirmed immediately
+  │   │   │   │   │   ├─ paymentMode = 'cod'
+  │   │   │   │   │   ├─ confirmedAt = now()
+  │   │   │   │   │   └─ No payment/link fields set
+  │   │   │   │   ├─ Insert OrderItemRow (x N items, with snapshots)
+  │   │   │   │   ├─ Insert OrderAddressRow (frozen snapshot)
+  │   │   │   │   ├─ FreshPoints redemption (if allowRedemptionOnCOD)
+  │   │   │   │   ├─ _deductStockInternal()  ← deducts inventory immediately
+  │   │   │   │   ├─ Clear user cart
+  │   │   │   │   ├─ Increment coupon usage count
+  │   │   │   │   └─ Insert IdempotencyRecordRow
+  │   │   │   │
+  │   │   │   └─ Returns orderNumber (e.g. "COD1234567890123")
+  │   │   │
+  │   │   └─ Returns orderNumber
+  │   │
+  │   ├─ Post-transaction (fire-and-forget):
+  │   │   ├─ OrderOutboxService.enqueueOrderStatusChanged('confirmed')
+  │   │   ├─ referralService.checkOrderForReward()
+  │   │   │   (COD can trigger referral rewards if rewardTriggerStatus='confirmed')
+  │   │   └─ RedisAnalyticsService.processPaidOrder()
+  │   │       (wrapped in try-catch — non-blocking on failure)
+  │   │
+  │   └─ Returns CheckoutResult(success: true, orderId: orderNumber)
+  │
+  ▼
+Client receives {success: true, orderId}
+  │
+  ├─ No _pendingOrderInfo set (COD has no pending payment)
+  ├─ No Razorpay order created
+  ├─ No payment stream started
+  │
+  ▼
+_completeSuccessfulPayment(orderId)
+  │
+  ├─ Clear cart
+  ├─ Remove coupon
+  ├─ orderController.clearTempDeliveryAddress()
+  └─ Get.offAll → OrderConfirmationScreen
+```
+
+### 3.3 Key Differences from Pay Now / Shareable Link
+
+| Aspect | Pay Now / Link | COD |
+|--------|---------------|-----|
+| **Order status after creation** | `placed` | `confirmed` |
+| **Payment status** | `pending` (gateway) | `pending` (no gateway) |
+| **confirmedAt** | Set by `verifyPayment()` / webhook | Set at order creation |
+| **Razorpay order** | Created via `POST /orders` | Not created |
+| **Payment link** | Generated (if shareable) | Not generated |
+| **Stock deduction** | At payment confirmation | At order creation |
+| **FreshPoints** | Only if `allowRedemptionOnCOD=true` | Only if `allowRedemptionOnCOD=true` |
+| **Webhook guard** | Normal processing | Early return — "COD order — skipped" |
+
+### 3.4 COD Order Lifecycle
+
+```
+                  ┌──────────────┐
+                  │ ORDER        │
+                  │ CREATED      │
+                  │ orderStatus: │
+                  │ 'confirmed'  │
+                  │ paymentMode: │
+                  │ 'cod'        │
+                  └──────┬───────┘
+                         │
+            ┌────────────┼────────────┐
+            ▼            ▼            ▼
+     ┌──────────┐  ┌──────────┐  ┌──────────┐
+     │ DELIVERED│  │ CANCELLED│  │ REFUNDED │
+     │ (normal  │  │ (by user │  │ (COD     │
+     │  flow)   │  │ or admin)│  │  refund) │
+     └──────────┘  └──────────┘  └──────────┘
+```
+
+**COD Collection** (added to `customer_order` table):
+| Column | Type | Purpose |
+|--------|------|---------|
+| `paymentCollectedAt` | `timestamp` | When delivery agent collected payment |
+| `paymentCollectedBy` | `text` | Delivery agent ID or name |
+| `paymentCollectionMode` | `text` | e.g. `cash`, `upi_qr`, `card_swipe` |
+
+These fields are populated by the delivery verification flow (not implemented in Module 1).
+
+### 3.5 Key Server-Side Files Added/Modified
+
+| File | Changes |
+|------|---------|
+| `postgres_order_service.dart` | New `createCodOrder()` method (~110 lines) — confirmed order with stock deduction |
+| `postgres_order_service.dart` | `updateOrderStatus()` — stock restoration also for `paymentMode='cod'` |
+| `postgres_order_service.dart` | `approveCancellationRequest()` — stock restoration also for `paymentMode='cod'` |
+| `postgres_order_service.dart` | `findActivePendingOrder()` — excludes orders with `orderStatus='confirmed'` |
+| `order_endpoint.dart` | New `createCodOrder()` wrapper endpoint |
+| `checkout_endpoint.dart` | New `createCodOrder()` endpoint — outbox + analytics + referral |
+| `razorpay_webhook_route.dart` | COD guard — early returns for `paymentMode='cod'` orders |
+| `validation_service.dart` | Added `cancelled_by_user` → `confirmed` transition |
+
+### 3.6 Key Client-Side Files Added/Modified
+
+| File | Changes |
+|------|---------|
+| `checkout_service.dart` | New `createCodOrder()` method |
+| `order_service.dart` | New `createCodOrder()` method |
+| `checkout_screen.dart` | New `_placeOrderCod()` method + COD radio button in `_buildPaymentSection()` |
+| `checkout_screen.dart` | `_handlePendingOrderOnPlaceOrder()` — early route to `_placeOrderCod()` when `_isCodPayment=true` |
+| `checkout_screen.dart` | `_placeOrderCore()` — early guard re-routes to `_placeOrderCod()` |
+
+---
+
+## 4. Decision Matrix — How PlaceOrder Chooses the Path
 
 ### Full Decision Tree (`_handlePendingOrderOnPlaceOrder()` at line 304)
 
 ```
-_pendingOrderInfo != null
+_isCodPayment == true
+│  → _pendingOrderInfo = null  (always fresh order for COD)
+│  → _placeOrderCod()
+│
+_pendingOrderInfo != null  (only for non-COD paths)
 │
 ├── paymentStatus == 'failed'
 │   ├── _isShareablePayment → _placeOrderWithShareableLink(pendingAction: 'cancel')
@@ -322,13 +479,14 @@ _pendingOrderInfo != null
 
 ---
 
-## 4. Order Status State Machine
+## 5. Order Status State Machine
 
 ### All Possible Order Statuses
 
 | Status | Meaning | Terminal? |
 |--------|---------|-----------|
-| `placed` | Order created, awaiting payment | No |
+| `placed` | Order created, awaiting payment (Pay Now / Link) | No |
+| `confirmed` | Order confirmed (COD) or payment captured (Pay Now / Link) | No |
 | `payment_pending` | Razorpay order created, awaiting client payment | No |
 | `payment_verification` | HMAC validated, awaiting server confirmation | No |
 | `confirmed` | Payment captured, order confirmed | No |
@@ -372,7 +530,7 @@ cancellation_rejected  →  confirmed | processing | packed | out_for_delivery
 
 ---
 
-## 5. Payment Status State Machine
+## 6. Payment Status State Machine
 
 ### All Possible Payment Statuses
 
@@ -407,11 +565,15 @@ null  →  'ACTIVE'    (payment link created)
 
 ---
 
-## 6. Order Confirmation — When Does It Happen?
+## 7. Order Confirmation — When Does It Happen?
 
-### Order Confirmation (`paymentStatus='paid'`, `orderStatus='confirmed'`)
+### COD Orders
 
-The order is **definitively confirmed** inside a `FOR UPDATE` database transaction in `PostgresPaymentService.completePaymentVerification()` (line 488). This method is the **single source of truth** and is called from **3 places**:
+COD orders are confirmed **at creation time** — `orderStatus='confirmed'` is set in `PostgresOrderService.createCodOrder()` (line 641). No payment gateway interaction occurs. The `confirmedAt` timestamp is set to `now()` in the same transaction.
+
+### Pay Now / Shareable Link Orders (`paymentStatus='paid'`, `orderStatus='confirmed'`)
+
+For non-COD orders, the order is **definitively confirmed** inside a `FOR UPDATE` database transaction in `PostgresPaymentService.completePaymentVerification()` (line 488). This method is the **single source of truth** and is called from **3 places**:
 
 | Trigger | Latency | Reliability |
 |---------|---------|-------------|
@@ -491,7 +653,7 @@ PATH 4: Payment Link Reconciliation
 
 ---
 
-## 7. Razorpay API Integration
+## 8. Razorpay API Integration
 
 ### Razorpay API Methods Used
 
@@ -532,7 +694,7 @@ Razorpay → Server: Webhook POST payment.captured
 
 ---
 
-## 8. Webhook Handling
+## 9. Webhook Handling
 
 ### Webhook Endpoint
 
@@ -576,7 +738,7 @@ Razorpay → Server: Webhook POST payment.captured
 
 ---
 
-## 9. Refund Flow
+## 10. Refund Flow
 
 ### When is Refund API Called?
 
@@ -633,7 +795,7 @@ Razorpay → Server: Webhook POST payment.captured
 
 ---
 
-## 10. Auto-Refund — Duplicate Payment Detection
+## 11. Auto-Refund — Duplicate Payment Detection
 
 ### Detection Points (3 hooks)
 
@@ -695,7 +857,7 @@ Every 6 hours before processing:
 
 ---
 
-## 11. Reconciliation & Recovery Mechanisms
+## 12. Reconciliation & Recovery Mechanisms
 
 ### 10 Cron Timers in `PaymentReconciliationCronJob`
 
@@ -757,7 +919,7 @@ Flow:
 
 ---
 
-## 12. Edge Cases
+## 13. Edge Cases
 
 ### 12a. UPI Timeout / Delayed Confirmation
 
@@ -844,20 +1006,31 @@ Solution: validateToken() checks expiresAt → returns error "Link expired"
 Problem: Razorpay sends webhook for a payment on an already-cancelled order.
            
 Solution: Webhook handler checks:
-          → If order is cancelled/payment_expired
-          → Creates auto-refund job (returns money)
-          → No change to existing order status
+           → If order is cancelled/payment_expired
+           → Creates auto-refund job (returns money)
+           → No change to existing order status
+```
+
+### 12i. Webhook Receives Event for COD Order
+
+```
+Problem: Razorpay sends a payment webhook for an order that was
+         created as COD (paymentMode = 'cod').
+           
+Solution: Webhook handler checks order.paymentMode early:
+           → If paymentMode == 'cod' → return 200 OK ("COD order — skipped")
+           → No further processing, no refund, no state change
 ```
 
 ---
 
-## 13. Database Models Summary
+## 14. Database Models Summary
 
 ### Core Tables
 
 | Table | Primary Key | Key Fields |
 |-------|-------------|------------|
-| `customer_order` | `id` (UUID) | `orderNumber` (unique), `orderStatus`, `paymentStatus`, `refundStatus`, `finalAmount`, `actualPaymentAmount`, `linkStatus`, `paymentLinkUrl`, `paymentLinkExpiresAt`, `paymentMode` |
+| `customer_order` | `id` (UUID) | `orderNumber` (unique), `orderStatus`, `paymentStatus`, `refundStatus`, `finalAmount`, `actualPaymentAmount`, `linkStatus`, `paymentLinkUrl`, `paymentLinkExpiresAt`, `paymentMode`, `paymentCollectedAt`, `paymentCollectedBy`, `paymentCollectionMode` |
 | `order_item` | `id` (UUID) | `orderId` (FK CASCADE), `productId`, `quantity`, `unitPrice`, `totalPrice`, `isFreeItem`, `rewardSource`, `appliedOfferSnapshot` (JSON) |
 | `payment_transaction` | `id` (UUID) | `orderId` (FK RESTRICT), `gatewayOrderId` (unique), `gatewayPaymentId` (unique), `idempotencyKey` (unique), `paymentStatus`, `gatewayStatus`, `amount` |
 | `payment_link` | `id` (UUID) | `orderId`, `token` (unique), `expiresAt`, `isUsed`, `razorpayPaymentLinkId`, `linkStatus` |
@@ -884,7 +1057,7 @@ Solution: Webhook handler checks:
 
 ---
 
-## 14. Configuration
+## 15. Configuration
 
 ### Required Environment Variables
 
@@ -905,7 +1078,7 @@ File: `payment_config.dart`
 
 ---
 
-## 15. Architecture Diagram (Summary)
+## 16. Architecture Diagram (Summary)
 
 ```mermaid
 graph TB

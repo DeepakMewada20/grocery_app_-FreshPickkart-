@@ -388,6 +388,389 @@ class PostgresOrderService {
     }
   }
 
+  Future<String> createCodOrder(
+    Session session, {
+    required Order order,
+    required String idempotencyKey,
+    int freshPointsToRedeem = 0,
+  }) async {
+    final normalizedKey = idempotencyKey.trim();
+    if (normalizedKey.isEmpty) {
+      throw Exception('idempotencyKey is required.');
+    }
+    if (order.items.isEmpty) {
+      throw Exception('Order must contain at least one item.');
+    }
+
+    // ── FreshPoints guard ──
+    if (freshPointsToRedeem > 0) {
+      final fpService = PostgresFreshPointsService();
+      final fpSettings = await fpService.getSettings(session);
+      if (fpSettings?.allowRedemptionOnCOD == false) {
+        throw Exception('FreshPoints cannot be redeemed on COD orders.');
+      }
+    }
+
+    // ── Server-side pricing ──
+    final cartItemInputs = _buildCartItemInputs(order);
+    final coupon = await _resolveCoupon(
+      session,
+      couponReference: order.couponApplied,
+    );
+
+    final pricing = await PricingEngine.calculateCartPricing(
+      session: session,
+      items: cartItemInputs,
+      userId: order.userId,
+      appliedCouponCode: coupon?.code,
+      autoApplyCoupons: false,
+      freshPointsToRedeem: freshPointsToRedeem,
+    );
+
+    final bogoOfferIdsByFreeItem = <String, String>{};
+    for (final freeItem in pricing.freeItems) {
+      if (freeItem.bogoOfferId != null && freeItem.triggerProductId != null) {
+        final key =
+            '${freeItem.productId}_${freeItem.variantId ?? ''}_${freeItem.triggerProductId}';
+        bogoOfferIdsByFreeItem[key] = freeItem.bogoOfferId!;
+      }
+    }
+
+    // ── SMGM reconciliation (same as createPendingOrder) ──
+    final nonSmgmClientItems = order.items
+        .where(
+          (item) =>
+              !(item.isFreeItem && item.rewardSource == 'SHOP_MORE_GET_MORE'),
+        )
+        .toList();
+
+    final serverSmgmItems = await Future.wait(
+      pricing.freeItems
+          .where((fi) => fi.rewardSource == 'SHOP_MORE_GET_MORE')
+          .map((fi) async {
+        var imageUrl = fi.imageUrl ?? '';
+        if (imageUrl.isEmpty) {
+          try {
+            final parsedPid = tryParseUuid(fi.productId);
+            if (parsedPid != null) {
+              final pRow = await ProductRow.db.findById(session, parsedPid);
+              imageUrl = pRow?.primaryImageUrl ?? '';
+            }
+          } catch (_) {}
+        }
+        return OrderItem(
+          productId: fi.productId,
+          variantId: fi.variantId,
+          variantLabel: fi.variantLabel,
+          productName: fi.productName,
+          productImage: imageUrl,
+          quantity: fi.quantity,
+          unitPrice: 0,
+          totalPrice: 0,
+          isFreeItem: true,
+          isRewardProduct: true,
+          quantityEditable: false,
+          priceEditable: false,
+          originalUnitPrice: fi.originalUnitPrice ?? fi.rewardValue,
+          rewardValue: fi.rewardValue,
+          rewardOfferId: fi.rewardOfferId,
+          rewardOfferName: fi.rewardOfferName,
+          rewardThreshold: fi.rewardThreshold,
+          rewardSource: fi.rewardSource,
+        );
+      }),
+    );
+
+    final reconciledItems = [...nonSmgmClientItems, ...serverSmgmItems];
+
+    final itemSnapshots = await SnapshotBuilder.instance.buildFromOrderItems(
+      session,
+      items: reconciledItems,
+      bogoOfferIdsByFreeItem: bogoOfferIdsByFreeItem,
+    );
+
+    final itemPrices = await _calculateItemPrices(session, reconciledItems);
+    final serverMrpTotal = _calculateServerMrpTotal(itemPrices, order.items);
+
+    try {
+      return await session.db.transaction<String>((transaction) async {
+        final appUser = await _resolveOrCreateUser(
+          session,
+          userReference: order.userId,
+          phoneNumber: order.userPhone,
+          userName: order.userName,
+          transaction: transaction,
+          createIfMissing: true,
+        );
+        if (appUser == null || appUser.id == null) {
+          throw Exception('Unable to resolve the order user.');
+        }
+        final userId = appUser.id!;
+
+        final existing = await IdempotencyRecordRow.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.scope.equals(_idempotencyScope) &
+              t.idempotencyKey.equals(normalizedKey),
+          transaction: transaction,
+          lockMode: LockMode.forUpdate,
+        );
+
+        if (existing != null) {
+          if (existing.responseReference != null &&
+              existing.responseReference!.trim().isNotEmpty) {
+            return existing.responseReference!;
+          }
+          if (existing.orderId != null) {
+            final existingOrder = await CustomerOrderRow.db.findById(
+              session,
+              existing.orderId!,
+              transaction: transaction,
+            );
+            if (existingOrder != null) {
+              return existingOrder.orderNumber;
+            }
+          }
+          throw Exception('Order is already being processed for this key.');
+        }
+
+        final now = DateTime.now().toUtc();
+        final orderNumber = _generateOrderNumber();
+        final requestHash = jsonEncode(order.toJsonForProtocol());
+
+        final pricingSnapshotJson = _buildPricingSnapshot(
+          pricing,
+          couponCode: coupon?.code,
+          paymentMethod: 'cod',
+        );
+        final deliverySnapshotJson = _buildDeliverySnapshot(pricing);
+        final couponSnapshotJson = SnapshotBuilder.instance.buildCouponSnapshot(
+          coupon,
+          pricing.couponDiscount,
+        );
+        final addressSnapshotJson = SnapshotBuilder.instance
+            .buildAddressSnapshot(
+              recipientName: cleanNullableString(order.userName),
+              phoneNumber: cleanNullableString(order.userPhone),
+              streetLine1: order.deliveryAddress.street.trim(),
+              city: order.deliveryAddress.city.trim(),
+              state: order.deliveryAddress.state.trim(),
+              postalCode: order.deliveryAddress.zipCode.trim(),
+              country: order.deliveryAddress.country.trim(),
+              latitude: order.deliveryAddress.latitude,
+              longitude: order.deliveryAddress.longitude,
+            );
+
+        final createdOrder = await CustomerOrderRow.db.insertRow(
+          session,
+          CustomerOrderRow(
+            userId: userId,
+            orderNumber: orderNumber,
+            orderStatus: 'confirmed',
+            paymentStatus: 'pending',
+            paymentMode: 'cod',
+            refundStatus: 'none',
+            couponId: coupon?.id,
+            itemCount: order.itemCount,
+            totalAmount: pricing.subtotal,
+            discountAmount: pricing.couponDiscount,
+            mrpTotal: serverMrpTotal,
+            productDiscountAmount: pricing.itemDiscounts,
+            comboDiscountAmount: pricing.comboDiscount,
+            bogoDiscountAmount: pricing.bogoDiscount,
+            categoryOfferDiscountAmount: pricing.categoryOfferDiscount,
+            deliveryFee: pricing.deliveryFee,
+            originalDeliveryFee: pricing.originalDeliveryFee,
+            deliveryDiscountAmount:
+                pricing.originalDeliveryFee - pricing.deliveryFee,
+            freeDeliveryApplied: pricing.freeDeliveryApplied,
+            freeDeliveryReason: pricing.freeDeliveryApplied
+                ? (pricing.deliveryPricing?.appliedRuleName ?? 'Free Delivery')
+                : null,
+            freshPointsUsed: pricing.freshPointsRedeemed,
+            freshPointsValue: pricing.freshPointsDiscount,
+            actualPaymentAmount: pricing.totalAmount,
+            couponSnapshot: couponSnapshotJson,
+            pricingSnapshot: pricingSnapshotJson,
+            deliverySnapshot: deliverySnapshotJson,
+            addressSnapshot: addressSnapshotJson,
+            finalAmount: pricing.totalAmount,
+            orderType: order.orderType,
+            sourceOrderNumber: cleanNullableString(order.sourceOrderNumber),
+            complaintId: cleanNullableString(order.complaintId),
+            placedAt: now,
+            confirmedAt: now,
+            orderedAt: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+        if (createdOrder.id == null) {
+          throw Exception('Failed to allocate order id.');
+        }
+        final createdOrderId = createdOrder.id!;
+
+        await OrderAddressRow.db.insertRow(
+          session,
+          OrderAddressRow(
+            orderId: createdOrderId,
+            recipientName: cleanNullableString(order.userName),
+            phoneNumber: cleanNullableString(order.userPhone),
+            streetLine1: order.deliveryAddress.street.trim(),
+            city: order.deliveryAddress.city.trim(),
+            state: order.deliveryAddress.state.trim(),
+            postalCode: order.deliveryAddress.zipCode.trim(),
+            country: order.deliveryAddress.country.trim(),
+            latitude: order.deliveryAddress.latitude,
+            longitude: order.deliveryAddress.longitude,
+            createdAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        final orderItemRows = reconciledItems.map((item) {
+          final productId = parseUuid(item.productId, fieldName: 'productId');
+          final bogoOfferId = item.isFreeItem
+              ? tryParseUuid(bogoOfferIdsByFreeItem[_orderFreeItemKey(item)])
+              : null;
+
+          final priceData = itemPrices[_itemPriceKey(item)];
+          final serverUnitPrice = priceData?.unitPrice ?? 0;
+          final serverTotalPrice = serverUnitPrice * item.quantity;
+
+          return OrderItemRow(
+            orderId: createdOrderId,
+            productId: productId,
+            productVariantId: tryParseUuid(item.variantId),
+            comboOfferId: tryParseUuid(item.comboId),
+            bogoOfferId: bogoOfferId,
+            triggerProductId: tryParseUuid(item.triggerProductId),
+            productNameSnapshot: item.productName.trim(),
+            productImageUrlSnapshot: cleanNullableString(item.productImage),
+            variantLabelSnapshot: cleanNullableString(item.variantLabel),
+            mrpSnapshot: itemSnapshots[item.productId]?.mrp,
+            skuSnapshot: itemSnapshots[item.productId]?.sku,
+            productSlugSnapshot: itemSnapshots[item.productId]?.slug,
+            categoryNameSnapshot: itemSnapshots[item.productId]?.categoryName,
+            productStatusSnapshot: itemSnapshots[item.productId]?.productStatus,
+            appliedOfferSnapshot:
+                itemSnapshots[item.productId]?.appliedOfferJson,
+            quantity: item.quantity,
+            unitPrice: serverUnitPrice,
+            totalPrice: serverTotalPrice,
+            isFreeItem: item.isFreeItem,
+            isFreeDelivery: item.isFreeDelivery,
+            isRewardProduct: item.isRewardProduct,
+            quantityEditable: item.quantityEditable,
+            priceEditable: item.priceEditable,
+            originalUnitPrice: item.isFreeItem
+                ? item.originalUnitPrice
+                : (item.originalUnitPrice ?? serverUnitPrice),
+            rewardValue: item.rewardValue,
+            rewardOfferId: item.rewardOfferId,
+            rewardOfferName: item.rewardOfferName,
+            rewardThreshold: item.rewardThreshold,
+            rewardSource: item.rewardSource,
+            createdAt: now,
+          );
+        }).toList();
+
+        await OrderItemRow.db.insert(
+          session,
+          orderItemRows,
+          transaction: transaction,
+        );
+
+        final paymentTransaction = await PaymentTransactionRow.db.insertRow(
+          session,
+          PaymentTransactionRow(
+            orderId: createdOrderId,
+            userId: userId,
+            idempotencyKey: normalizedKey,
+            gatewayName: 'cod',
+            amount: pricing.totalAmount,
+            currencyCode: 'INR',
+            paymentStatus: 'pending',
+            gatewayStatus: 'cod_pending',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          transaction: transaction,
+        );
+        if (paymentTransaction.id == null) {
+          throw Exception('Failed to allocate payment transaction id.');
+        }
+        final paymentTransactionId = paymentTransaction.id!;
+
+        // ── FreshPoints: atomically redeem points if used ──
+        if (pricing.freshPointsRedeemed > 0) {
+          final fpService = PostgresFreshPointsService();
+          await fpService.redeemPoints(
+            session,
+            userId,
+            pricing.freshPointsRedeemed,
+            referenceType: 'order',
+            referenceId: createdOrderId,
+            description:
+                'Redeemed ${pricing.freshPointsRedeemed} points for COD order $orderNumber',
+            transaction: transaction,
+          );
+        }
+
+        // ── Side effects: clear cart, deduct stock, increment coupon ──
+        await UserCartItemRow.db.deleteWhere(
+          session,
+          where: (t) => t.userId.equals(userId),
+          transaction: transaction,
+        );
+
+        await _deductStockInternal(
+          session,
+          createdOrderId,
+          transaction: transaction,
+        );
+
+        if (coupon != null && coupon.id != null) {
+          await CouponRow.db.updateRow(
+            session,
+            coupon.copyWith(
+              usedCount: coupon.usedCount + 1,
+              updatedAt: now,
+            ),
+            transaction: transaction,
+          );
+        }
+
+        await IdempotencyRecordRow.db.insertRow(
+          session,
+          IdempotencyRecordRow(
+            scope: _idempotencyScope,
+            idempotencyKey: normalizedKey,
+            userId: userId,
+            orderId: createdOrderId,
+            paymentTransactionId: paymentTransactionId,
+            requestHash: requestHash,
+            responseReference: orderNumber,
+            createdAt: now,
+          ),
+          transaction: transaction,
+        );
+
+        return orderNumber;
+      });
+    } catch (error) {
+      final existingOrderNumber = await _findExistingOrderNumberForKey(
+        session,
+        normalizedKey,
+      );
+      if (existingOrderNumber != null) {
+        return existingOrderNumber;
+      }
+      rethrow;
+    }
+  }
+
   Future<OrderPage> getOrdersForUser(
     Session session, {
     required String userReference,
@@ -1041,7 +1424,9 @@ class PostgresOrderService {
       ),
     );
 
-    if (newStatus == 'cancelled' && row.paymentStatus == 'paid') {
+    final needsStockRestore = row.paymentStatus == 'paid' ||
+        row.paymentMode == 'cod';
+    if (newStatus == 'cancelled' && needsStockRestore) {
       await session.db.transaction((transaction) async {
         await _restoreStockForCancelledOrder(
           session,
@@ -1516,7 +1901,9 @@ class PostgresOrderService {
         transaction: transaction,
       );
 
-      if (row.paymentStatus == 'paid') {
+      final needsStockRestore = row.paymentStatus == 'paid' ||
+          row.paymentMode == 'cod';
+      if (needsStockRestore) {
         await _restoreStockForCancelledOrder(
           session,
           row.id!,
@@ -1906,6 +2293,7 @@ class PostgresOrderService {
       where: (t) =>
           t.userId.equals(appUser.id!) &
           t.paymentStatus.equals('pending') &
+          t.orderStatus.notEquals('confirmed') &
           t.orderStatus.notEquals('cancelled') &
           t.orderStatus.notEquals('cancelled_by_user') &
           t.orderStatus.notEquals('payment_expired') &
@@ -2001,6 +2389,95 @@ class PostgresOrderService {
         level: LogLevel.error,
       );
       return false;
+    }
+  }
+
+  Future<void> _deductStockInternal(
+    Session session,
+    UuidValue orderId, {
+    Transaction? transaction,
+  }) async {
+    try {
+      final orderItems = await OrderItemRow.db.find(
+        session,
+        where: (t) => t.orderId.equals(orderId),
+        transaction: transaction,
+      );
+
+      const unitConversions = <String, double>{
+        'gm': 1.0,
+        'kg': 1000.0,
+        'litre': 1000.0,
+        'ml': 1.0,
+        'pc': 1.0,
+        'pack': 1.0,
+      };
+
+      for (final item in orderItems.where(
+        (i) => i.rewardSource == 'SHOP_MORE_GET_MORE',
+      )) {
+        final rp = await ProductRow.db.findById(
+          session,
+          item.productId,
+          transaction: transaction,
+        );
+        if (rp != null && rp.stock != null && rp.stock! < (item.quantity ?? 1)) {
+          session.log(
+            'SMGM reward stock insufficient at COD confirmation: '
+            'product="${rp.name}" stock=${rp.stock} '
+            'required=${item.quantity} orderId=$orderId '
+            'rewardOfferId=${item.rewardOfferId}',
+            level: LogLevel.error,
+          );
+        }
+      }
+
+      for (final item in orderItems) {
+        final product = await ProductRow.db.findById(
+          session,
+          item.productId,
+          transaction: transaction,
+        );
+        if (product == null || product.stock == null) continue;
+
+        double deduction = 0;
+        if (item.productVariantId != null) {
+          final variant = await ProductVariantRow.db.findById(
+            session,
+            item.productVariantId!,
+            transaction: transaction,
+          );
+          if (variant != null) {
+            final vUnit = variant.quantityUnit.toLowerCase();
+            final pUnit = (product.stockUnit ?? product.baseUnit ?? 'unit')
+                .toLowerCase();
+            final inGrams =
+                variant.quantityValue * (unitConversions[vUnit] ?? 1.0);
+            final inBase = inGrams / (unitConversions[pUnit] ?? 1.0);
+            deduction = inBase * item.quantity;
+          } else {
+            deduction = item.quantity.toDouble();
+          }
+        } else {
+          deduction = item.quantity.toDouble();
+        }
+
+        final newStock = product.stock! - deduction;
+        await ProductRow.db.updateRow(
+          session,
+          product.copyWith(
+            stock: newStock,
+            status: newStock <= 0 ? 'inactive' : product.status,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+          transaction: transaction,
+        );
+      }
+    } catch (e) {
+      session.log(
+        'Stock deduction for COD order failed: $e',
+        level: LogLevel.error,
+      );
     }
   }
 

@@ -22,6 +22,19 @@ class CheckoutService {
     return '${userId}_${DateTime.now().microsecondsSinceEpoch}_$randomPart';
   }
 
+  Future<CheckoutResult> createCodOrder({
+    required Order draftOrder,
+    String? idempotencyKey,
+    int freshPointsToRedeem = 0,
+  }) async {
+    final key = idempotencyKey ?? generateIdempotencyKey(draftOrder.userId);
+    return _orderService.createCodOrder(
+      order: draftOrder,
+      idempotencyKey: key,
+      freshPointsToRedeem: freshPointsToRedeem,
+    );
+  }
+
   Future<CheckoutResult> createOrderAndPayment({
     required Order draftOrder,
     required double amount,

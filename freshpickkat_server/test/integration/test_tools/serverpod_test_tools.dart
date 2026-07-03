@@ -2871,6 +2871,43 @@ class _CheckoutEndpoint {
     });
   }
 
+  _i3.Future<_i28.CheckoutResult> createCodOrder(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i29.Order order,
+    String idempotencyKey, {
+    required int freshPointsToRedeem,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'checkout',
+            method: 'createCodOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'checkout',
+          methodName: 'createCodOrder',
+          parameters: _i1.testObjectToJson({
+            'order': order,
+            'idempotencyKey': idempotencyKey,
+            'freshPointsToRedeem': freshPointsToRedeem,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i28.CheckoutResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i28.CheckoutResult> createOrderAndPayment(
     _i1.TestSessionBuilder sessionBuilder,
     _i29.Order order,
@@ -6330,6 +6367,43 @@ class _OrderEndpoint {
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'order',
           methodName: 'createPendingOrder',
+          parameters: _i1.testObjectToJson({
+            'order': order,
+            'idempotencyKey': idempotencyKey,
+            'freshPointsToRedeem': freshPointsToRedeem,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<String> createCodOrder(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i29.Order order,
+    String idempotencyKey, {
+    required int freshPointsToRedeem,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'createCodOrder',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'createCodOrder',
           parameters: _i1.testObjectToJson({
             'order': order,
             'idempotencyKey': idempotencyKey,

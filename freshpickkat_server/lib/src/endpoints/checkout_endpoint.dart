@@ -1,11 +1,14 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart' as protocol;
+import '../services/analytics/redis_analytics_service.dart';
 import '../services/basket_suggestions/basket_suggestion_service.dart';
+import '../services/background/order_outbox_service.dart';
 import '../services/delivery/delivery_engine.dart';
 import '../services/postgres/postgres_banner_service.dart';
 import '../services/postgres/postgres_coupon_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_payment_link_service.dart';
+import '../services/postgres/postgres_referral_service.dart';
 import '../services/pricing/pricing_engine.dart';
 import 'order_endpoint.dart';
 import 'payment_endpoint.dart';
@@ -17,6 +20,7 @@ class CheckoutEndpoint extends Endpoint {
   final PostgresBannerService _banners = PostgresBannerService();
   final PostgresCouponService _coupons = PostgresCouponService();
   final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
+  final PostgresReferralService _referral = PostgresReferralService();
 
   Future<protocol.CheckoutInitHydrated> getCheckoutInitHydrated(
     Session session,
@@ -85,6 +89,52 @@ class CheckoutEndpoint extends Endpoint {
       checkoutBanners: results[2] as List<protocol.Banner>,
       activePendingOrder: results[4] as protocol.PendingOrderInfo?,
     );
+  }
+
+  Future<protocol.CheckoutResult> createCodOrder(
+    Session session,
+    protocol.Order order,
+    String idempotencyKey, {
+    int freshPointsToRedeem = 0,
+  }) async {
+    try {
+      // Set payment mode so server-side snapshot captures it
+      order.paymentMode = 'cod';
+
+      final orderId = await _orderEndpoint.createCodOrder(
+        session,
+        order,
+        idempotencyKey,
+        freshPointsToRedeem: freshPointsToRedeem,
+      );
+
+      // Fire outbox events after transaction completes
+      final createdOrder = await _orders.getOrderById(session, orderId);
+      if (createdOrder != null) {
+        await OrderOutboxService.instance.enqueueOrderStatusChanged(
+          session: session,
+          orderId: orderId,
+          userId: createdOrder.userId,
+          status: 'confirmed',
+        );
+
+        await _referral.checkOrderForReward(session, orderId);
+      }
+
+      try {
+        final redisAnalytics = RedisAnalyticsService.instance;
+        await redisAnalytics.processPaidOrder(session, orderId);
+      } catch (e) {
+        session.log(
+          'COD analytics processing failed: $e',
+          level: LogLevel.warning,
+        );
+      }
+
+      return protocol.CheckoutResult(success: true, orderId: orderId);
+    } catch (e) {
+      return protocol.CheckoutResult(success: false, error: e.toString());
+    }
   }
 
   Future<protocol.CheckoutResult> createOrderAndPayment(

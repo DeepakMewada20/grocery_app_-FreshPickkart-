@@ -1057,6 +1057,20 @@ class EndpointCheckout extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<_i27.CheckoutResult> createCodOrder(
+    _i28.Order order,
+    String idempotencyKey, {
+    required int freshPointsToRedeem,
+  }) => caller.callServerEndpoint<_i27.CheckoutResult>(
+    'checkout',
+    'createCodOrder',
+    {
+      'order': order,
+      'idempotencyKey': idempotencyKey,
+      'freshPointsToRedeem': freshPointsToRedeem,
+    },
+  );
+
   _i2.Future<_i27.CheckoutResult> createOrderAndPayment(
     _i28.Order order,
     String idempotencyKey,
@@ -2429,6 +2443,20 @@ class EndpointOrder extends _i1.EndpointRef {
   }) => caller.callServerEndpoint<String>(
     'order',
     'createPendingOrder',
+    {
+      'order': order,
+      'idempotencyKey': idempotencyKey,
+      'freshPointsToRedeem': freshPointsToRedeem,
+    },
+  );
+
+  _i2.Future<String> createCodOrder(
+    _i28.Order order,
+    String idempotencyKey, {
+    required int freshPointsToRedeem,
+  }) => caller.callServerEndpoint<String>(
+    'order',
+    'createCodOrder',
     {
       'order': order,
       'idempotencyKey': idempotencyKey,

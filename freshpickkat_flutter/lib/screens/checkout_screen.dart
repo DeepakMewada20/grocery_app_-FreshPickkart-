@@ -66,6 +66,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Razorpay? _razorpay;
   bool _isProcessing = false;
   bool _isShareablePayment = false;
+  bool _isCodPayment = false;
   String? _loadingStatus;
   String? _errorMessage;
   bool _isErrorBanner = true;
@@ -302,6 +303,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handlePendingOrderOnPlaceOrder() async {
+    // COD always creates fresh — no pending payment to continue
+    if (_isCodPayment) {
+      _pendingOrderInfo = null;
+      await _placeOrderCod();
+      return;
+    }
+
     final info = _pendingOrderInfo!;
     final pStatus = info.paymentStatus;
     final oStatus = info.orderStatus;
@@ -382,12 +390,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  /// Creates a COD order without any payment gateway interaction.
+  Future<void> _placeOrderCod() async {
+    if (_isProcessing) return;
+
+    try {
+      final deliveryAddress = orderController.getDeliveryAddress(
+        userController.shippingAddress.value,
+      );
+
+      if (deliveryAddress == null ||
+          deliveryAddress.latitude == null ||
+          deliveryAddress.longitude == null) {
+        _setProcessing(false);
+        _openLocationPicker(initialAddress: deliveryAddress);
+        if (!mounted) return;
+        AppSnackbar.show(
+          'Location Needed',
+          'Please pick your location on the map.',
+        );
+        return;
+      }
+
+      final customerPhone = _getCustomerPhone();
+      if (customerPhone.isEmpty) {
+        _showError(ErrorMessages.phoneRequired);
+        return;
+      }
+
+      final order = _buildOrderFromCart(deliveryAddress);
+
+      _setProcessing(true, status: 'Creating COD order...');
+
+      final checkoutResult = await checkoutService.createCodOrder(
+        draftOrder: order,
+        freshPointsToRedeem: cartController.freshPointsToRedeem.value,
+      );
+
+      if (checkoutResult.success != true || checkoutResult.orderId == null) {
+        _showError(checkoutResult.error ?? ErrorMessages.paymentFailed);
+        return;
+      }
+
+      final orderId = checkoutResult.orderId!;
+
+      _currentOrderId = orderId;
+      _currentOrderSnapshot = order.copyWith(orderId: orderId);
+
+      _seedTrackingMetadata(orderId, order);
+
+      await _completeSuccessfulPayment(orderId);
+    } catch (e) {
+      AppLogger.error('Checkout', e);
+      _showError(ErrorMessages.paymentFailed);
+    }
+  }
+
   /// Core order creation + payment flow.
   /// Skips PaymentSessionSheet entirely.
   /// For Pay Now: goes directly to UPI.
   /// For Pay Someone Else: generates payment link + shows share sheet.
   Future<void> _placeOrderCore({String? pendingOrderAction}) async {
     if (_isProcessing) return;
+
+    // COD is handled by _placeOrderCod
+    if (_isCodPayment) {
+      await _placeOrderCod();
+      return;
+    }
 
     try {
       final deliveryAddress = orderController.getDeliveryAddress(
@@ -3057,8 +3127,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             icon: Icons.person,
             title: 'Pay Now',
             subtitle: 'Pay using UPI, Cards, Net Banking',
-            isSelected: !_isShareablePayment,
-            onTap: () => setState(() => _isShareablePayment = false),
+            isSelected: !_isShareablePayment && !_isCodPayment,
+            onTap: () => setState(() {
+              _isShareablePayment = false;
+              _isCodPayment = false;
+            }),
+          ),
+          SizedBox(height: 8.h),
+          _buildPaymentOptionTile(
+            cs: cs,
+            icon: Icons.money,
+            title: 'Cash on Delivery',
+            subtitle: 'Pay when you receive your order',
+            isSelected: _isCodPayment,
+            onTap: () => setState(() {
+              _isCodPayment = true;
+              _isShareablePayment = false;
+            }),
           ),
           SizedBox(height: 8.h),
           _buildPaymentOptionTile(
@@ -3069,7 +3154,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             isSelected: linkValid ? true : _isShareablePayment,
             onTap: linkValid
                 ? null
-                : () => setState(() => _isShareablePayment = true),
+                : () => setState(() {
+                    _isShareablePayment = true;
+                    _isCodPayment = false;
+                  }),
             isDisabled: linkValid,
           ),
           if (_activePaymentLink != null) ...[

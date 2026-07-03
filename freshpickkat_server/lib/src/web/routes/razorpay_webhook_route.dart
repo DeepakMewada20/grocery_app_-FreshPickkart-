@@ -91,6 +91,15 @@ class RazorpayWebhookRoute extends Route {
       }
     }
 
+    // COD orders must never be processed by the webhook
+    if (order != null && order.paymentMode == 'cod') {
+      session.log(
+        'Webhook received for COD order $orderNumber — event=$event ignored',
+        level: LogLevel.warning,
+      );
+      return _jsonOk({'success': true, 'message': 'COD order — skipped'});
+    }
+
     if (_isPaymentLinkPaidEvent(event)) {
       await _handlePaymentLinkPaid(session, payload, event);
     } else if (_isPaymentLinkLifecycleEvent(event)) {
@@ -495,6 +504,7 @@ class RazorpayWebhookRoute extends Route {
         zipCode: '',
         country: '',
       ),
+      paymentMode: row.paymentMode,
       orderedAt: row.orderedAt,
       orderType: row.orderType,
       sourceOrderNumber: row.sourceOrderNumber,

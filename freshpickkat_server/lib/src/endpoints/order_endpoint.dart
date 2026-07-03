@@ -29,6 +29,7 @@ class OrderEndpoint extends Endpoint {
   static const String statusPaymentExpired = 'payment_expired';
   static const String statusPaymentFailed = 'payment_failed';
   static const String statusRefunded = 'refunded';
+  static const String paymentModeCod = 'cod';
   static const String paymentPending = 'pending';
   static const String paymentVerifying = 'verifying';
   static const String paymentPaid = 'paid';
@@ -60,6 +61,20 @@ class OrderEndpoint extends Endpoint {
     int freshPointsToRedeem = 0,
   }) {
     return _orders.createPendingOrder(
+      session,
+      order: order,
+      idempotencyKey: idempotencyKey,
+      freshPointsToRedeem: freshPointsToRedeem,
+    );
+  }
+
+  Future<String> createCodOrder(
+    Session session,
+    protocol.Order order,
+    String idempotencyKey, {
+    int freshPointsToRedeem = 0,
+  }) {
+    return _orders.createCodOrder(
       session,
       order: order,
       idempotencyKey: idempotencyKey,

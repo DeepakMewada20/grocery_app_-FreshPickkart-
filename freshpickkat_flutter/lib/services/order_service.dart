@@ -13,6 +13,18 @@ class OrderService {
 
   final _client = ServerpodClient().client;
 
+  Future<CheckoutResult> createCodOrder({
+    required Order order,
+    required String idempotencyKey,
+    int freshPointsToRedeem = 0,
+  }) {
+    return _client.checkout.createCodOrder(
+      order,
+      idempotencyKey,
+      freshPointsToRedeem: freshPointsToRedeem,
+    );
+  }
+
   Future<CheckoutResult> createOrderAndPayment({
     required Order order,
     required String idempotencyKey,
