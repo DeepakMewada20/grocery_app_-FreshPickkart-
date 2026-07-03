@@ -1,6 +1,8 @@
 import 'package:test/test.dart';
 import 'package:freshpickkat_server/src/generated/protocol.dart' as protocol;
 import 'package:freshpickkat_server/src/services/postgres/postgres_order_service.dart';
+import 'package:freshpickkat_server/src/services/postgres/postgres_delivery_verification_service.dart';
+import 'package:freshpickkat_server/src/services/postgres/postgres_delivery_settings_service.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
@@ -443,6 +445,367 @@ void main() {
       expect(r1.success, isTrue);
       expect(r2.success, isTrue);
       expect(r1.orderId, isNot(equals(r2.orderId)));
+    });
+    test('collectCodPayment collects payment with cash mode', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999911');
+        final product = await _seedProductWithStock('cod-cash-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-cash-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-cash-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        await orderService.collectCodPayment(
+          session,
+          orderId: result.orderId!,
+          collectionMode: 'cash',
+          adminFirebaseUid: 'admin-fb-001',
+        );
+
+        final dbOrder = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        expect(dbOrder!.paymentStatus, equals('paid'));
+        expect(dbOrder.paymentCollectionMode, equals('cash'));
+        expect(dbOrder.paymentCollectedBy, equals('admin-fb-001'));
+        expect(dbOrder.paymentCollectedAt, isNotNull);
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('collectCodPayment collects payment with UPI QR mode', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999912');
+        final product = await _seedProductWithStock('cod-upi-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-upi-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-upi-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        await orderService.collectCodPayment(
+          session,
+          orderId: result.orderId!,
+          collectionMode: 'upi_qr',
+          adminFirebaseUid: 'admin-fb-002',
+        );
+
+        final dbOrder = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        expect(dbOrder!.paymentStatus, equals('paid'));
+        expect(dbOrder.paymentCollectionMode, equals('upi_qr'));
+        expect(dbOrder.paymentCollectedBy, equals('admin-fb-002'));
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('collectCodPayment rejects already collected payment', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999913');
+        final product = await _seedProductWithStock('cod-already-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-already-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-already-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        await orderService.collectCodPayment(
+          session,
+          orderId: result.orderId!,
+          collectionMode: 'cash',
+          adminFirebaseUid: 'admin-fb-001',
+        );
+
+        expect(
+          () async => await orderService.collectCodPayment(
+            session,
+            orderId: result.orderId!,
+            collectionMode: 'cash',
+            adminFirebaseUid: 'admin-fb-002',
+          ),
+          throwsA(isA<StateError>()),
+        );
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('collectCodPayment rejects non-COD order', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999914');
+        final product = await _seedProductWithStock('cod-noncod-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-noncod-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-noncod-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        // Override paymentMode to simulate non-COD order
+        final inserted = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        await protocol.CustomerOrderRow.db.updateRow(
+          session,
+          inserted!.copyWith(paymentMode: 'standard'),
+        );
+
+        expect(
+          () async => await orderService.collectCodPayment(
+            session,
+            orderId: result.orderId!,
+            collectionMode: 'cash',
+            adminFirebaseUid: 'admin-fb-001',
+          ),
+          throwsA(isA<StateError>()),
+        );
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('collectCodPayment rejects invalid collection mode', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999915');
+        final product = await _seedProductWithStock('cod-mode-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-mode-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-mode-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        expect(
+          () async => await orderService.collectCodPayment(
+            session,
+            orderId: result.orderId!,
+            collectionMode: 'credit_card',
+            adminFirebaseUid: 'admin-fb-001',
+          ),
+          throwsArgumentError,
+        );
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('COD payment guard in completePhotoDelivery rejects unpaid COD', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999916');
+        final product = await _seedProductWithStock('cod-guard-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-guard-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-guard-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        // Set order to out_for_delivery
+        final inserted = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        await protocol.CustomerOrderRow.db.updateRow(
+          session,
+          inserted!.copyWith(
+            orderStatus: 'out_for_delivery',
+            outForDeliveryAt: now,
+          ),
+        );
+
+        // Update existing address with lat/lng
+        final existingAddress = await protocol.OrderAddressRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderId.equals(inserted.id!),
+        );
+        if (existingAddress != null) {
+          await protocol.OrderAddressRow.db.updateRow(
+            session,
+            existingAddress.copyWith(
+              latitude: 28.6129,
+              longitude: 77.2295,
+            ),
+          );
+        }
+
+        // Seed delivery settings
+        final settingsService = PostgresDeliverySettingsService();
+        await settingsService.getOrCreateSettings(session);
+
+        final verificationService = PostgresDeliveryVerificationService();
+
+        // Expect guard to reject (COD not paid)
+        expect(
+          () async => await verificationService.completePhotoDelivery(
+            session,
+            orderId: result.orderId!,
+            imageUrl: 'https://example.com/delivery.jpg',
+            latitude: 28.6130,
+            longitude: 77.2296,
+            gpsAccuracy: 10.0,
+            adminFirebaseUid: 'admin-fb-001',
+            adminName: 'Test Admin',
+          ),
+          throwsA(isA<StateError>()),
+        );
+      } finally {
+        await session.close();
+      }
+    });
+
+    test('COD payment guard in completePhotoDelivery allows when paid', () async {
+      final session = sessionBuilder.build();
+      try {
+        final now = DateTime.now().toUtc();
+        final user = await _seedUser('9999999917');
+        final product = await _seedProductWithStock('cod-guard-ok-${now.microsecondsSinceEpoch}');
+
+        final order = _buildOrder(
+          user: user,
+          productId: product.id.toString(),
+          orderNumber: 'cod-guard-ok-${now.microsecondsSinceEpoch}',
+        );
+
+        final result = await endpoints.checkout.createCodOrder(
+          sessionBuilder,
+          order,
+          'cod-guard-ok-key-${now.microsecondsSinceEpoch}',
+          freshPointsToRedeem: 0,
+        );
+        expect(result.success, isTrue);
+
+        // Collect COD payment first
+        await orderService.collectCodPayment(
+          session,
+          orderId: result.orderId!,
+          collectionMode: 'cash',
+          adminFirebaseUid: 'admin-fb-001',
+        );
+
+        // Set order to out_for_delivery
+        final inserted = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        await protocol.CustomerOrderRow.db.updateRow(
+          session,
+          inserted!.copyWith(
+            orderStatus: 'out_for_delivery',
+            outForDeliveryAt: now,
+          ),
+        );
+
+        // Update existing address with lat/lng
+        final existingAddress = await protocol.OrderAddressRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderId.equals(inserted.id!),
+        );
+        if (existingAddress != null) {
+          await protocol.OrderAddressRow.db.updateRow(
+            session,
+            existingAddress.copyWith(
+              latitude: 28.6129,
+              longitude: 77.2295,
+            ),
+          );
+        }
+
+        // Seed delivery settings
+        final settingsService = PostgresDeliverySettingsService();
+        await settingsService.getOrCreateSettings(session);
+
+        final verificationService = PostgresDeliveryVerificationService();
+
+        // Should NOT throw COD guard error (payment collected)
+        await verificationService.completePhotoDelivery(
+          session,
+          orderId: result.orderId!,
+          imageUrl: 'https://example.com/delivery.jpg',
+          latitude: 28.6130,
+          longitude: 77.2296,
+          gpsAccuracy: 10.0,
+          adminFirebaseUid: 'admin-fb-001',
+          adminName: 'Test Admin',
+        );
+
+        final dbOrder = await protocol.CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) => t.orderNumber.equals(result.orderId!),
+        );
+        expect(dbOrder!.orderStatus, equals('delivered'));
+      } finally {
+        await session.close();
+      }
     });
   });
 }

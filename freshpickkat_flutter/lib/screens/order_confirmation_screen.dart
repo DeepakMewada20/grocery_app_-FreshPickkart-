@@ -221,7 +221,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             child: Text(
               _order?.paymentStatus == 'paid'
                   ? 'Payment Successful'
-                  : 'Payment Pending',
+                  : _order?.paymentMode == 'cod'
+                      ? 'Pay on Delivery'
+                      : 'Payment Pending',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
                 fontSize: 16.sp,
@@ -815,7 +817,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             children: [
               Expanded(
                 child: Text(
-                  order.freshPointsUsed > 0 ? 'Paid via UPI/Card' : 'Total Paid',
+                  order.freshPointsUsed > 0
+                      ? 'Paid via UPI/Card'
+                      : order.paymentMode == 'cod'
+                          ? 'Pay on Delivery'
+                          : 'Total Paid',
                   style: AppTextStyles.receiptLabel(context, total: true),
                 ),
               ),

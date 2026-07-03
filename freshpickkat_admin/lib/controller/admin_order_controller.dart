@@ -183,6 +183,21 @@ class AdminOrderController extends GetxController {
     }
   }
 
+  Future<bool> collectCodPayment(Order order, String collectionMode) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.collectCodPayment(
+        order.orderId,
+        collectionMode,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
   Future<bool> generateDeliveryOtp(Order order) async {
     return await ApiClient().request(() async {
       final uid = AdminSessionService.requireUid();

@@ -50,6 +50,12 @@ class PostgresDeliveryVerificationService {
     if (row == null) {
       throw ArgumentError('Order not found: $orderId');
     }
+    if (row.paymentMode == 'cod' && row.paymentStatus != 'paid') {
+      throw StateError(
+        'COD payment must be collected before delivery. '
+        'Current payment status: ${row.paymentStatus}',
+      );
+    }
     if (row.orderStatus != ValidationService.statusOutForDelivery &&
         row.orderStatus != ValidationService.statusDeliveryPhotoPending) {
       throw StateError(

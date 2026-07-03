@@ -150,6 +150,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               'Payment: ${order.paymentStatus}',
                               _statusColor(order.paymentStatus),
                             ),
+                            if (order.paymentMode == 'cod')
+                              _buildStatusChip(
+                                'COD',
+                                Colors.orange,
+                              ),
                           ],
                         ),
                       ],

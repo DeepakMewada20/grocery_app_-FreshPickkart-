@@ -196,6 +196,7 @@ order:
   - getActiveDeliveryOtp:
   - getDashboardStats:
   - completePhotoDelivery:
+  - collectCodPayment:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:

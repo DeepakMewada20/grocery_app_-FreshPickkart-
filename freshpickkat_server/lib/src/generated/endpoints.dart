@@ -6075,6 +6075,43 @@ class Endpoints extends _i1.EndpointDispatch {
                     idToken: params['idToken'],
                   ),
         ),
+        'collectCodPayment': _i1.MethodConnector(
+          name: 'collectCodPayment',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'collectionMode': _i1.ParameterDescription(
+              name: 'collectionMode',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['order'] as _i20.OrderEndpoint).collectCodPayment(
+                    session,
+                    params['orderId'],
+                    params['collectionMode'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
       },
     );
     connectors['orderPg'] = _i1.EndpointConnector(

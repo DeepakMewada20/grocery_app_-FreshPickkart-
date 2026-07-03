@@ -2,7 +2,22 @@
 
 ## Overview
 
-The app supports **three payment methods** at checkout:
+The app supports **three payment methods** at checkout, plus a **COD collection flow** for admin delivery:
+
+| Method | Client-Side Name | Flags | Gateway Mechanism |
+|--------|------------------|-------|-------------------|
+| **Pay Now** | "Pay Now" (default) | `_isShareablePayment=false`, `_isCodPayment=false` | Razorpay UPI Intent (app-to-app) |
+| **Cash on Delivery** | "Cash on Delivery" | `_isCodPayment=true`, `_isShareablePayment=false` | No gateway — order confirmed immediately; payment collected at delivery by admin |
+| **Ask Someone Else To Pay** | "Ask Someone Else To Pay" | `_isShareablePayment=true`, `_isCodPayment=false` | Shareable payment link (browser checkout or Razorpay-hosted link) |
+
+### Coverage
+
+| Module | Scope | Status |
+|--------|-------|--------|
+| **Module 0** | Pay Now — Direct UPI | Production |
+| **Module 1** | Cash on Delivery — Order Creation | Production |
+| **Module 2** | Cash on Delivery — Payment Collection, Delivery Guards, Admin UI, User UI | Production |
+| Module 3 | COD Deferred (complaints, payment monitoring) | Planned |
 
 | Method | Client-Side Name | Flags | Gateway Mechanism |
 |--------|------------------|-------|-------------------|
@@ -378,14 +393,27 @@ _completeSuccessfulPayment(orderId)
                   │ 'confirmed'  │
                   │ paymentMode: │
                   │ 'cod'        │
+                  │ paymentStatus│
+                  │ 'pending'    │
+                  └──────┬───────┘
+                         │
+                         ▼
+                  ┌──────────────┐
+                  │ PAYMENT      │
+                  │ COLLECTION   │
+                  │ (admin       │
+                  │  collects    │
+                  │  cash/UPI QR)│
+                  │ paymentStatus│
+                  │ → 'paid'     │
                   └──────┬───────┘
                          │
             ┌────────────┼────────────┐
             ▼            ▼            ▼
      ┌──────────┐  ┌──────────┐  ┌──────────┐
      │ DELIVERED│  │ CANCELLED│  │ REFUNDED │
-     │ (normal  │  │ (by user │  │ (COD     │
-     │  flow)   │  │ or admin)│  │  refund) │
+     │ (OTP or  │  │ (by user │  │ (COD     │
+     │  photo)  │  │ or admin)│  │  refund) │
      └──────────┘  └──────────┘  └──────────┘
 ```
 
@@ -396,7 +424,7 @@ _completeSuccessfulPayment(orderId)
 | `paymentCollectedBy` | `text` | Delivery agent ID or name |
 | `paymentCollectionMode` | `text` | e.g. `cash`, `upi_qr`, `card_swipe` |
 
-These fields are populated by the delivery verification flow (not implemented in Module 1).
+These fields are populated by the admin payment collection flow (see §3.6).
 
 ### 3.5 Key Server-Side Files Added/Modified
 
@@ -406,7 +434,14 @@ These fields are populated by the delivery verification flow (not implemented in
 | `postgres_order_service.dart` | `updateOrderStatus()` — stock restoration also for `paymentMode='cod'` |
 | `postgres_order_service.dart` | `approveCancellationRequest()` — stock restoration also for `paymentMode='cod'` |
 | `postgres_order_service.dart` | `findActivePendingOrder()` — excludes orders with `orderStatus='confirmed'` |
+| `postgres_order_service.dart` | New `collectCodPayment()` — sets `paymentStatus='paid'` + collection metadata |
+| `postgres_order_service.dart` | `_hydrateOrders()` — maps `paymentMode`, `paymentCollectedAt`, `paymentCollectedBy`, `paymentCollectionMode` to `Order` DTO |
 | `order_endpoint.dart` | New `createCodOrder()` wrapper endpoint |
+| `order_endpoint.dart` | New `collectCodPayment()` — admin-only, audit log `collect_cod_payment` |
+| `order_endpoint.dart` | COD payment guard in `generateDeliveryOtp()` — rejects unpaid COD |
+| `order_endpoint.dart` | COD payment guard in `markDeliveryPhotoPending()` — rejects unpaid COD |
+| `order_endpoint.dart` | COD payment guard in `completePhotoDelivery()` — rejects unpaid COD |
+| `postgres_delivery_verification_service.dart` | COD payment guard in `completePhotoDelivery()` — defense-in-depth |
 | `checkout_endpoint.dart` | New `createCodOrder()` endpoint — outbox + analytics + referral |
 | `razorpay_webhook_route.dart` | COD guard — early returns for `paymentMode='cod'` orders |
 | `validation_service.dart` | Added `cancelled_by_user` → `confirmed` transition |
@@ -420,6 +455,130 @@ These fields are populated by the delivery verification flow (not implemented in
 | `checkout_screen.dart` | New `_placeOrderCod()` method + COD radio button in `_buildPaymentSection()` |
 | `checkout_screen.dart` | `_handlePendingOrderOnPlaceOrder()` — early route to `_placeOrderCod()` when `_isCodPayment=true` |
 | `checkout_screen.dart` | `_placeOrderCore()` — early guard re-routes to `_placeOrderCod()` |
+| `admin_order_controller.dart` | New `collectCodPayment(order, collectionMode)` — calls endpoint |
+| `order_detail_screen.dart` (admin) | `_buildCodPaymentCollectionSection()` — Cash/UPI QR buttons |
+| `order_detail_screen.dart` (admin) | `_collectCodPayment()` handler with confirm dialog + setState |
+| `order_detail_screen.dart` (admin) | COD collection details in Payment & Timeline section |
+| `order_confirmation_screen.dart` (user) | "Pay on Delivery" subtitle for COD orders |
+| `order_confirmation_screen.dart` (user) | "Pay on Delivery" label in pricing breakdown |
+| `order_detail_screen.dart` (user) | COD badge chip + "Pay on Delivery" in pricing |
+| `orders_screen.dart` (user) | COD badge on order cards |
+
+### 3.7 Admin Payment Collection Flow (Module 2)
+
+When an order reaches `out_for_delivery` status and it's a COD order (`paymentMode='cod'`) with unpaid payment (`paymentStatus='pending'`), the admin **must collect payment before delivery**.
+
+#### Admin Order Detail Screen — COD Collection UI
+
+```
+Order Detail Screen (admin)
+  │
+  ├── Payment & Timeline section
+  │   ├── Payment status chip (PENDING — warning color)
+  │   ├── Timeline: Ordered, Confirmed, Out for Delivery, Delivered
+  │   └── IF collected: COD: ₹X, Collected by: name, Mode: Cash/UPI QR
+  │
+  └── Lifecycle Actions section
+      │
+      └── IF paymentMode == 'cod' AND paymentStatus != 'paid':
+          → _buildCodPaymentCollectionSection()
+              ┌─────────────────────────────────────────────┐
+              │ 💵 Collect COD Payment                      │
+              │ Collect ₹X.XX before delivery.              │
+              │ ┌──────────┐  ┌──────────┐                  │
+              │ │   Cash   │  │ UPI QR   │                  │
+              │ └──────────┘  └──────────┘                  │
+              └─────────────────────────────────────────────┘
+              │
+              ├── Cash: Confirm dialog → "Collect Cash ₹X.XX?"
+              │   → _orderController.collectCodPayment(order, 'cash')
+              │   → Server: paymentStatus='paid', paymentCollectedAt=now()
+              │   → setState: _order.paymentStatus = 'paid'
+              │   → Photo/OTP/Track buttons appear
+              │
+              └── UPI QR: Same flow with collectionMode='upi_qr'
+```
+
+#### Server-Side `collectCodPayment()` Flow
+
+```
+OrderEndpoint.collectCodPayment(orderId, collectionMode)
+  │
+  ├── Admin auth: ensureAdminSeller(firebaseUid, idToken)
+  │
+  ├── PostgresOrderService.collectCodPayment()
+  │   ├── Fetch CustomerOrderRow
+  │   ├── Guard: paymentMode == 'cod'  (rejects non-COD orders)
+  │   ├── Guard: paymentStatus != 'paid'  (rejects already collected)
+  │   ├── Guard: orderStatus not in ['delivered', 'cancelled']
+  │   ├── Guard: collectionMode in ['cash', 'upi_qr']  (rejects invalid modes)
+  │   │
+  │   ├── UPDATE CustomerOrderRow:
+  │   │   ├── paymentStatus = 'paid'
+  │   │   ├── paymentCollectedAt = now()
+  │   │   ├── paymentCollectedBy = adminFirebaseUid
+  │   │   └── paymentCollectionMode = collectionMode
+  │   │
+  │   └── Return (no PaymentTransactionRow created — COD has no gateway)
+  │
+  └── Audit log: action='collect_cod_payment', metadata={collectionMode}
+```
+
+### 3.8 Delivery Verification Guards (Module 2)
+
+Before any delivery verification can proceed on COD orders, the system **enforces payment collection** at 3 guard points:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  COD Payment Must Be Collected Before Delivery                      │
+│  Guard: if (paymentMode == 'cod' && paymentStatus != 'paid')       │
+│         → throw StateError("COD payment must be collected...")      │
+└─────────────────────────────────────────────────────────────────────┘
+
+  Guard Point 1: generateDeliveryOtp()      (OrderEndpoint)
+    → Called when admin taps "OTP Delivery"
+    → Before status check, after null check
+    → Rejects with StateError if COD unpaid
+
+  Guard Point 2: markDeliveryPhotoPending() (OrderEndpoint)
+    → Called when admin taps "Photo Delivery"
+    → Before status check, after null check
+    → Rejects with StateError if COD unpaid
+
+  Guard Point 3: completePhotoDelivery()    (OrderEndpoint + Service)
+    → Called when admin completes photo delivery
+    → Guarded in BOTH the endpoint AND the service layer
+    → Defense-in-depth: even if endpoint is bypassed, service catches it
+```
+
+#### What Happens on the Admin Screen
+
+```
+out_for_delivery + COD unpaid:
+  ┌─────────────────────────────────────────────┐
+  │ 💵 Collect COD Payment Required              │
+  │                                             │
+  │ [Cash]  [UPI QR]                            │
+  └─────────────────────────────────────────────┘
+  (Photo/OTP/Track buttons are hidden)
+
+out_for_delivery + COD paid:
+  ┌─────────────────────────────────────────────┐
+  │ 📷 Photo Delivery  │ 🔢 OTP Delivery       │
+  │ 🗺️ Track           │                        │
+  └─────────────────────────────────────────────┘
+  (Delivery buttons visible — guards pass)
+```
+
+### 3.9 User-Facing COD Display (Module 2)
+
+| Screen | What Changed |
+|--------|-------------|
+| **Order Confirmation** (post-checkout) | Shows "Pay on Delivery" subtitle instead of "Payment Pending" |
+| **Order Confirmation** (pricing) | Shows "Pay on Delivery: ₹X" instead of "Paid via UPI/Card" |
+| **Order Detail** (user) | Orange "COD" badge chip next to payment status |
+| **Order Detail** (user) | "Pay on Delivery" label in pricing breakdown |
+| **Orders List** (user) | Orange "COD" badge on each COD order card |
 
 ---
 
@@ -1057,7 +1216,70 @@ Solution: Webhook handler checks order.paymentMode early:
 
 ---
 
-## 15. Configuration
+## 15. Security Measures
+
+### 15.1 Payment Integrity
+
+| Security | Where | What It Protects Against |
+|----------|-------|------------------------|
+| **HMAC-SHA256 validation** | `verifyPayment()` + webhook handler | Forgery of payment confirmation callbacks |
+| **Webhook HMAC** | `razorpay_webhook_route.dart` | Impersonation of Razorpay webhook events |
+| **FOR UPDATE transactions** | `completePaymentVerification()`, `createCodOrder()`, `createPendingOrder()` | Race conditions on concurrent payment confirmations |
+| **Idempotency keys** | All order-creation paths | Duplicate order creation from retries |
+
+### 15.2 COD-Specific Security (Module 2)
+
+| Security | Where | What It Protects Against |
+|----------|-------|------------------------|
+| **COD payment guard (4 points)** | `generateDeliveryOtp()`, `markDeliveryPhotoPending()`, `completePhotoDelivery()` (endpoint + service) | Delivery of goods without collecting COD payment |
+| **Payment mode validation** | `collectCodPayment()` | Collection via invalid mode (only `cash`/`upi_qr` accepted) |
+| **Already-collected guard** | `collectCodPayment()` | Double collection of the same COD payment |
+| **Non-COD guard** | `collectCodPayment()` | Collection on non-COD orders (prevents payment status manipulation) |
+| **Order status guard** | `collectCodPayment()` | Collection on delivered/cancelled orders (prevents post-delivery collection) |
+| **Admin auth required** | `OrderEndpoint.collectCodPayment()` | Unauthorized payment collection attempts |
+| **Audit logging** | `collectCodPayment()` | Every collection is logged with `action: 'collect_cod_payment'`, `collectionMode`, and actor identity |
+| **Defense-in-depth (service layer)** | `PostgresDeliveryVerificationService.completePhotoDelivery()` | Even if endpoint is bypassed, service-level guard blocks unpaid delivery |
+
+### 15.3 Payment Flow Guards
+
+| Security | Where | What It Protects Against |
+|----------|-------|------------------------|
+| **COD webhook guard** | `razorpay_webhook_route.dart` | Razorpay sending payment webhook for a COD order (returns 200 "skipped") |
+| **Stock deduction at COD creation** | `createCodOrder()` | No double-sell (stock deducted immediately for COD, unlike online where it's at payment confirmation) |
+| **Stock restoration on COD cancel** | `updateOrderStatus()`, `approveCancellationRequest()` | Stock not lost when COD order is cancelled (both `paymentMode='cod'` paths restored) |
+| **findActivePendingOrder exclusion** | `getUserOrders()`, `findActivePendingOrder()` | COD orders (status `confirmed`) not treated as pending payment — no accidental retry |
+| **FreshPoints guard on COD** | `createCodOrder()` | Prevents FreshPoints redemption on COD when `allowRedemptionOnCOD=false` |
+| **Server-authoritative pricing** | `PricingEngine.calculateCartPricing()` in `createCodOrder()` | Same pricing engine as Pay Now — client cannot manipulate COD amounts |
+
+### 15.4 Webhook Security
+
+```
+Razorpay → Webhook Endpoint
+  │
+  ├─ Step 1: HMAC-SHA256 validation using RAZORPAY_WEBHOOK_SECRET
+  │   → 401 Unauthorized on mismatch
+  │
+  ├─ Step 2: Amount validation
+  │   → Must be INR currency
+  │   → Must match expected amount (within 1 paise tolerance)
+  │
+  ├─ Step 3: Order existence check
+  │   → If order not found → return 200 (non-fatal, don't retry)
+  │
+  ├─ Step 4: COD guard
+  │   → If paymentMode == 'cod' → return 200 "COD order — skipped"
+  │
+  ├─ Step 5: Duplicate detection
+  │   → If already paid with same gatewayPaymentId → return 200 "Already paid"
+  │   → If already paid with DIFFERENT gatewayPaymentId → create auto-refund job
+  │
+  └─ Step 6: FOR UPDATE transaction
+      → Lock rows → re-validate → mark paid/confirmed → release lock
+```
+
+---
+
+## 16. Configuration
 
 ### Required Environment Variables
 
@@ -1078,7 +1300,7 @@ File: `payment_config.dart`
 
 ---
 
-## 16. Architecture Diagram (Summary)
+## 17. Architecture Diagram (Summary)
 
 ```mermaid
 graph TB

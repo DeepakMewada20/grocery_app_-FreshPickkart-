@@ -77,6 +77,9 @@ abstract class Order implements _i1.SerializableModel {
     this.sourceOrderNumber,
     this.complaintId,
     this.paymentMode,
+    this.paymentCollectedAt,
+    this.paymentCollectedBy,
+    this.paymentCollectionMode,
   }) : mrpTotal = mrpTotal ?? 0.0,
        productDiscountAmount = productDiscountAmount ?? 0.0,
        comboDiscountAmount = comboDiscountAmount ?? 0.0,
@@ -147,6 +150,9 @@ abstract class Order implements _i1.SerializableModel {
     String? sourceOrderNumber,
     String? complaintId,
     String? paymentMode,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
   }) = _OrderImpl;
 
   factory Order.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -270,6 +276,14 @@ abstract class Order implements _i1.SerializableModel {
       sourceOrderNumber: jsonSerialization['sourceOrderNumber'] as String?,
       complaintId: jsonSerialization['complaintId'] as String?,
       paymentMode: jsonSerialization['paymentMode'] as String?,
+      paymentCollectedAt: jsonSerialization['paymentCollectedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(
+              jsonSerialization['paymentCollectedAt'],
+            ),
+      paymentCollectedBy: jsonSerialization['paymentCollectedBy'] as String?,
+      paymentCollectionMode:
+          jsonSerialization['paymentCollectionMode'] as String?,
     );
   }
 
@@ -393,6 +407,12 @@ abstract class Order implements _i1.SerializableModel {
 
   String? paymentMode;
 
+  DateTime? paymentCollectedAt;
+
+  String? paymentCollectedBy;
+
+  String? paymentCollectionMode;
+
   /// Returns a shallow copy of this [Order]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -457,6 +477,9 @@ abstract class Order implements _i1.SerializableModel {
     String? sourceOrderNumber,
     String? complaintId,
     String? paymentMode,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -534,6 +557,11 @@ abstract class Order implements _i1.SerializableModel {
       if (sourceOrderNumber != null) 'sourceOrderNumber': sourceOrderNumber,
       if (complaintId != null) 'complaintId': complaintId,
       if (paymentMode != null) 'paymentMode': paymentMode,
+      if (paymentCollectedAt != null)
+        'paymentCollectedAt': paymentCollectedAt?.toJson(),
+      if (paymentCollectedBy != null) 'paymentCollectedBy': paymentCollectedBy,
+      if (paymentCollectionMode != null)
+        'paymentCollectionMode': paymentCollectionMode,
     };
   }
 
@@ -607,6 +635,9 @@ class _OrderImpl extends Order {
     String? sourceOrderNumber,
     String? complaintId,
     String? paymentMode,
+    DateTime? paymentCollectedAt,
+    String? paymentCollectedBy,
+    String? paymentCollectionMode,
   }) : super._(
          orderId: orderId,
          userId: userId,
@@ -668,6 +699,9 @@ class _OrderImpl extends Order {
          sourceOrderNumber: sourceOrderNumber,
          complaintId: complaintId,
          paymentMode: paymentMode,
+         paymentCollectedAt: paymentCollectedAt,
+         paymentCollectedBy: paymentCollectedBy,
+         paymentCollectionMode: paymentCollectionMode,
        );
 
   /// Returns a shallow copy of this [Order]
@@ -735,6 +769,9 @@ class _OrderImpl extends Order {
     Object? sourceOrderNumber = _Undefined,
     Object? complaintId = _Undefined,
     Object? paymentMode = _Undefined,
+    Object? paymentCollectedAt = _Undefined,
+    Object? paymentCollectedBy = _Undefined,
+    Object? paymentCollectionMode = _Undefined,
   }) {
     return Order(
       orderId: orderId ?? this.orderId,
@@ -854,6 +891,15 @@ class _OrderImpl extends Order {
           : this.sourceOrderNumber,
       complaintId: complaintId is String? ? complaintId : this.complaintId,
       paymentMode: paymentMode is String? ? paymentMode : this.paymentMode,
+      paymentCollectedAt: paymentCollectedAt is DateTime?
+          ? paymentCollectedAt
+          : this.paymentCollectedAt,
+      paymentCollectedBy: paymentCollectedBy is String?
+          ? paymentCollectedBy
+          : this.paymentCollectedBy,
+      paymentCollectionMode: paymentCollectionMode is String?
+          ? paymentCollectionMode
+          : this.paymentCollectionMode,
     );
   }
 }

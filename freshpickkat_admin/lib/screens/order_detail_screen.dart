@@ -314,6 +314,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       label:
                           'Delivered: ${_formatDate(order.deliveredAt)} at ${_formatTime(order.deliveredAt)}',
                     ),
+                  if (order.paymentMode == 'cod' && order.paymentCollectedAt != null) ...[
+                    _DetailRow(
+                      icon: Icons.payments_outlined,
+                      label: 'COD: ₹${order.finalAmount.toStringAsFixed(2)}',
+                    ),
+                    _DetailRow(
+                      icon: Icons.person_outline,
+                      label: 'Collected by: ${order.paymentCollectedBy ?? 'N/A'}',
+                    ),
+                    _DetailRow(
+                      icon: Icons.account_balance_wallet_outlined,
+                      label: 'Mode: ${order.paymentCollectionMode == 'cash' ? 'Cash' : 'UPI QR'}',
+                    ),
+                  ],
                 ],
               ),
               SizedBox(height: 22.h),
@@ -624,6 +638,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       );
     } else if (order.status == 'out_for_delivery') {
+      if (order.paymentMode == 'cod' && order.paymentStatus != 'paid') {
+        return _buildCodPaymentCollectionSection(context, order);
+      }
       buttons.add(
         _lifecycleButton(
           context: context,
@@ -739,6 +756,98 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
 
     return Wrap(spacing: 8, runSpacing: 8, children: buttons);
+  }
+
+  Widget _buildCodPaymentCollectionSection(
+      BuildContext context, Order order) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: AdminResponsive.cardPadding(context),
+      decoration: BoxDecoration(
+        color: AdminAppTheme.getWarningContainerColor(context),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: AdminAppTheme.getWarningColor(context).withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.payments_outlined,
+                color: AdminAppTheme.getWarningColor(context),
+                size: 22.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Collect COD Payment',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16.sp.clamp(14.0, 18.0),
+                  color: AdminAppTheme.getWarningColor(context),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Collect ₹${order.finalAmount.toStringAsFixed(2)} before delivery.',
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14.sp.clamp(12.0, 16.0),
+              color: cs.onSurface,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _collectCodPayment(context, order, 'cash'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AdminAppTheme.getSuccessColor(context),
+                    foregroundColor: AdminThemeTokens.white,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.money),
+                  label: Text(
+                    'Cash',
+                    style: AdminTextStyles.button(context)
+                        .copyWith(color: AdminThemeTokens.white),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _collectCodPayment(context, order, 'upi_qr'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: cs.primary,
+                    foregroundColor: AdminThemeTokens.white,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: Text(
+                    'UPI QR',
+                    style: AdminTextStyles.button(context)
+                        .copyWith(color: AdminThemeTokens.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildOtpVerificationSection(BuildContext context, Order order) {
@@ -1047,6 +1156,57 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _collectCodPayment(
+      BuildContext context, Order order, String mode) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(mode == 'cash' ? 'Collect Cash' : 'Collect via UPI QR'),
+        content: Text(
+          'Confirm ₹${order.finalAmount.toStringAsFixed(2)} '
+          '${mode == 'cash' ? 'cash' : 'UPI QR'} payment collection?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AdminAppTheme.getSuccessColor(context),
+              foregroundColor: AdminThemeTokens.white,
+            ),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      await _orderController.collectCodPayment(order, mode);
+      if (context.mounted) {
+        AdminSnackbarService.show(
+          context,
+          '₹${order.finalAmount.toStringAsFixed(2)} collected successfully.',
+        );
+        setState(() {
+          _order = _order.copyWith(
+            paymentStatus: 'paid',
+            paymentCollectedAt: DateTime.now(),
+            paymentCollectedBy: 'You',
+            paymentCollectionMode: mode,
+          );
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        AdminSnackbarService.show(context, 'Payment collection failed: $e');
+      }
+    }
   }
 
   Future<void> _verifyOtp(BuildContext context, Order order) async {

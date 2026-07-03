@@ -60,3 +60,6 @@ fields:
   sourceOrderNumber: String?
   complaintId: String?
   paymentMode: String?
+  paymentCollectedAt: DateTime?
+  paymentCollectedBy: String?
+  paymentCollectionMode: String?

@@ -771,6 +771,50 @@ class PostgresOrderService {
     }
   }
 
+  Future<void> collectCodPayment(
+    Session session, {
+    required String orderId,
+    required String collectionMode,
+    required String adminFirebaseUid,
+  }) async {
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderId),
+    );
+    if (row == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+    if (row.paymentMode != 'cod') {
+      throw StateError(
+        'Order $orderId is not a COD order (paymentMode: ${row.paymentMode})',
+      );
+    }
+    if (row.paymentStatus == 'paid') {
+      throw StateError('COD payment has already been collected for order $orderId');
+    }
+    if (row.orderStatus == 'delivered' || row.orderStatus == 'cancelled') {
+      throw StateError(
+        'Cannot collect COD payment for order in status: ${row.orderStatus}',
+      );
+    }
+
+    if (collectionMode != 'cash' && collectionMode != 'upi_qr') {
+      throw ArgumentError('collectionMode must be "cash" or "upi_qr"');
+    }
+
+    final now = DateTime.now().toUtc();
+    await CustomerOrderRow.db.updateRow(
+      session,
+      row.copyWith(
+        paymentStatus: 'paid',
+        paymentCollectedAt: now,
+        paymentCollectedBy: adminFirebaseUid,
+        paymentCollectionMode: collectionMode,
+        updatedAt: now,
+      ),
+    );
+  }
+
   Future<OrderPage> getOrdersForUser(
     Session session, {
     required String userReference,
@@ -1201,6 +1245,10 @@ class PostgresOrderService {
           couponApplied: order.couponId == null
               ? null
               : couponById[order.couponId!]?.code ?? order.couponId.toString(),
+          paymentMode: order.paymentMode,
+          paymentCollectedAt: order.paymentCollectedAt,
+          paymentCollectedBy: order.paymentCollectedBy,
+          paymentCollectionMode: order.paymentCollectionMode,
         ),
       );
     }

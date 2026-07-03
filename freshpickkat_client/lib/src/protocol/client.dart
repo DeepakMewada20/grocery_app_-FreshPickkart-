@@ -2839,6 +2839,22 @@ class EndpointOrder extends _i1.EndpointRef {
       'idToken': idToken,
     },
   );
+
+  _i2.Future<bool> collectCodPayment(
+    String orderId,
+    String collectionMode, {
+    required String firebaseUid,
+    required String idToken,
+  }) => caller.callServerEndpoint<bool>(
+    'order',
+    'collectCodPayment',
+    {
+      'orderId': orderId,
+      'collectionMode': collectionMode,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
 }
 
 /// {@category Endpoint}

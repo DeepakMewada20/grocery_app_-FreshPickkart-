@@ -654,6 +654,13 @@ class OrderEndpoint extends Endpoint {
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
     }
+    if (order.paymentMode == paymentModeCod &&
+        order.paymentStatus != paymentPaid) {
+      throw StateError(
+        'COD payment must be collected before delivery. '
+        'Current payment status: ${order.paymentStatus}',
+      );
+    }
     if (order.status != statusOutForDelivery &&
         order.status != statusDeliveryOtpPending) {
       throw StateError(
@@ -755,6 +762,13 @@ class OrderEndpoint extends Endpoint {
     final order = await _orders.getOrderById(session, orderId);
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
+    }
+    if (order.paymentMode == paymentModeCod &&
+        order.paymentStatus != paymentPaid) {
+      throw StateError(
+        'COD payment must be collected before delivery. '
+        'Current payment status: ${order.paymentStatus}',
+      );
     }
     if (order.status != statusOutForDelivery) {
       throw StateError(
@@ -1119,6 +1133,13 @@ class OrderEndpoint extends Endpoint {
     if (order == null) {
       throw ArgumentError('Order not found: $orderId');
     }
+    if (order.paymentMode == paymentModeCod &&
+        order.paymentStatus != paymentPaid) {
+      throw StateError(
+        'COD payment must be collected before delivery. '
+        'Current payment status: ${order.paymentStatus}',
+      );
+    }
     if (order.status != statusOutForDelivery &&
         order.status != statusDeliveryPhotoPending) {
       throw StateError(
@@ -1179,6 +1200,42 @@ class OrderEndpoint extends Endpoint {
         ),
       );
     }
+
+    return true;
+  }
+
+  Future<bool> collectCodPayment(
+    Session session,
+    String orderId,
+    String collectionMode, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final order = await _orders.getOrderById(session, orderId);
+    if (order == null) {
+      throw ArgumentError('Order not found: $orderId');
+    }
+
+    await _orders.collectCodPayment(
+      session,
+      orderId: orderId,
+      collectionMode: collectionMode,
+      adminFirebaseUid: firebaseUid,
+    );
+
+    await _audit.write(
+      session,
+      actorUserId: actor.id,
+      action: 'collect_cod_payment',
+      entityType: 'order',
+      entityId: orderId,
+      metadata: {'collectionMode': collectionMode},
+    );
 
     return true;
   }

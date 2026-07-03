@@ -414,6 +414,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 'Payment: ${order.paymentStatus}',
                 _statusColor(order.paymentStatus),
               ),
+              if (order.paymentMode == 'cod')
+                _buildStatusChip(
+                  'COD',
+                  Colors.orange,
+                ),
               if (_showRefundStatus(order)) ...[
                 _buildStatusChip(
                   'Refund: ${_refundLabel(order)}',
@@ -1710,7 +1715,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           SizedBox(height: 4.h),
           _buildRow(
             Icons.payments_outlined,
-            order.freshPointsUsed > 0 ? 'Paid via UPI/Card' : 'Paid',
+            order.freshPointsUsed > 0
+                ? 'Paid via UPI/Card'
+                : order.paymentMode == 'cod'
+                    ? 'Pay on Delivery'
+                    : 'Paid',
             'INR ${
               order.freshPointsUsed > 0
                   ? order.actualPaymentAmount.formatPrice

@@ -7347,6 +7347,45 @@ class _OrderEndpoint {
       }
     });
   }
+
+  _i3.Future<bool> collectCodPayment(
+    _i1.TestSessionBuilder sessionBuilder,
+    String orderId,
+    String collectionMode, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'order',
+            method: 'collectCodPayment',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'order',
+          methodName: 'collectCodPayment',
+          parameters: _i1.testObjectToJson({
+            'orderId': orderId,
+            'collectionMode': collectionMode,
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _OrderPgEndpoint {
