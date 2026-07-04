@@ -201,6 +201,27 @@ void main() {
             currentFreshPoints: 100, totalEarned: 100);
         final invitee = await _seedUser(sessionBuilder, '9999999018');
         final now = DateTime.now().toUtc();
+
+        // Seed the welcome coupon (normally created by applyReferral)
+        final couponCode = 'WELCOMEFPKREW';
+        final welcomeCoupon = await protocol.CouponRow.db.insertRow(session,
+            protocol.CouponRow(
+              code: couponCode,
+              description: 'Welcome reward for using referral code FPKREW',
+              couponType: 'FLAT_DISCOUNT',
+              discountValue: settings.inviteeCouponAmount,
+              minOrderAmount: settings.inviteeCouponMinOrderAmount,
+              maxUsageTotal: 1,
+              maxUsagePerUser: 1,
+              startsAt: now,
+              endsAt: now.add(const Duration(days: 15)),
+              status: 'active',
+              assignedUserId: invitee.id,
+              assignedPhone: '9999999018',
+              createdAt: now,
+              updatedAt: now,
+            ));
+
         final order = await protocol.CustomerOrderRow.db.insertRow(session,
             protocol.CustomerOrderRow(
               orderNumber: 'rew-${now.microsecondsSinceEpoch}',
@@ -215,6 +236,7 @@ void main() {
               finalAmount: 200.0,
               orderType: 'regular',
               paymentMode: 'standard',
+              couponId: welcomeCoupon.id,
               orderedAt: now.subtract(const Duration(hours: 2)),
             ));
         await _seedReferralRow(sessionBuilder, referrer.id!, invitee.id!, '9999999018',
@@ -228,14 +250,6 @@ void main() {
         );
         expect(updated!.status, equals('REWARDED'));
         expect(updated.rewardPointsIssued, equals(settings.referrerRewardPoints));
-
-        final coupon = await protocol.CouponRow.db.findFirstRow(
-          session,
-          where: (t) => t.code.equals('WELCOME${updated.referralCodeUsed}'),
-        );
-        expect(coupon, isNotNull);
-        expect(coupon!.discountValue, equals(settings.inviteeCouponAmount));
-        expect(coupon.maxUsageTotal, equals(1));
 
         final refReload = await protocol.AppUserRow.db.findById(session, referrer.id!);
         expect(refReload!.currentFreshPoints, equals(100 + settings.referrerRewardPoints));
@@ -383,6 +397,7 @@ void main() {
     test('checkOrderForReward rejects self-referral', () async {
       final session = sessionBuilder.build();
       try {
+        await _seedSettingsRow(sessionBuilder, enableFraudScoring: false, inviteeCouponEnabled: false);
         final user = await _seedUser(sessionBuilder, '9999999028', referralCode: 'FPKSELF2');
         final now = DateTime.now().toUtc();
         final order = await protocol.CustomerOrderRow.db.insertRow(session,
@@ -720,15 +735,17 @@ Future<protocol.ReferralSettingsRow> _seedSettingsRow(
   int maxRewardedPerMonth = 20,
   String rewardTriggerStatus = 'DELIVERED',
   bool enableFraudScoring = false,
+  bool inviteeCouponEnabled = false,
 }) async {
   final session = sessionBuilder.build();
   try {
-    return await protocol.ReferralSettingsRow.db.insertRow(
+      return await protocol.ReferralSettingsRow.db.insertRow(
       session,
       protocol.ReferralSettingsRow(
         maxRewardedPerMonth: maxRewardedPerMonth,
         rewardTriggerStatus: rewardTriggerStatus,
         enableFraudScoring: enableFraudScoring,
+        inviteeCouponEnabled: inviteeCouponEnabled,
       ),
     );
   } finally {

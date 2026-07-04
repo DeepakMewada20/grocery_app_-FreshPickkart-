@@ -451,14 +451,21 @@ class PostgresReferralService {
     final settings = await getOrCreateSettings(session);
     if (!settings.isEnabled) return;
 
-    // ── New trigger: coupon must be redeemed on this order ──
-    final couponCode = settings.inviteeCouponCodeTemplate.replaceAll('{CODE}', referral.referralCodeUsed);
-    final referralCoupon = await CouponRow.db.findFirstRow(
-      session,
-      where: (t) => t.code.equals(couponCode),
-    );
-    if (referralCoupon == null) return;
-    if (order.couponId == null || order.couponId != referralCoupon.id) return;
+    // ── If invitee coupon is enabled, it must be redeemed on this order ──
+    if (settings.inviteeCouponEnabled) {
+      final couponCode = settings.inviteeCouponCodeTemplate.replaceAll('{CODE}', referral.referralCodeUsed);
+      final referralCoupon = await CouponRow.db.findFirstRow(
+        session,
+        where: (t) => t.code.equals(couponCode),
+      );
+      if (referralCoupon == null) return;
+      if (order.couponId == null || order.couponId != referralCoupon.id) return;
+    }
+    if (settings.minimumActualPaymentForQualification > 0 &&
+        order.finalAmount < settings.minimumActualPaymentForQualification) {
+      return;
+    }
+
     if (!_isStatusAtOrAfter(
         order.orderStatus, settings.rewardTriggerStatus)) return;
 

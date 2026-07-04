@@ -562,12 +562,6 @@ void main() {
             session, referrer.id!);
         expect(referrerReloaded!.currentFreshPoints, equals(150));
 
-        // Verify only 1 coupon created
-        final coupons = await protocol.CouponRow.db.find(
-          session,
-          where: (t) => t.code.equals('WELCOMEFPKCR1'),
-        );
-        expect(coupons.length, equals(1));
       } finally {
         await session.close();
       }
@@ -621,13 +615,6 @@ void main() {
               t.transactionType.equals('REFERRAL_REWARD'),
         );
         expect(txns.length, equals(1));
-
-        // Verify only 1 coupon
-        final coupons = await protocol.CouponRow.db.find(
-          session,
-          where: (t) => t.code.equals('WELCOMEFPKID1'),
-        );
-        expect(coupons.length, equals(1));
 
         // Verify points only added once
         final referrerReloaded = await protocol.AppUserRow.db.findById(
@@ -915,10 +902,11 @@ Future<protocol.ReferralSettingsRow> _seedSettings(
   int maxRewardedPerDay = 20,
   int maxPendingReferrals = 50,
   int autoReversalWindowDays = 30,
+  bool inviteeCouponEnabled = false,
 }) async {
   final session = sessionBuilder.build();
   try {
-    return await protocol.ReferralSettingsRow.db.insertRow(
+      return await protocol.ReferralSettingsRow.db.insertRow(
       session,
       protocol.ReferralSettingsRow(
         enableFraudScoring: enableFraudScoring,
@@ -927,6 +915,7 @@ Future<protocol.ReferralSettingsRow> _seedSettings(
         maxRewardedPerDay: maxRewardedPerDay,
         maxPendingReferrals: maxPendingReferrals,
         autoReversalWindowDays: autoReversalWindowDays,
+        inviteeCouponEnabled: inviteeCouponEnabled,
       ),
     );
   } finally {
