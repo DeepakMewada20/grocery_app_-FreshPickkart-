@@ -20,13 +20,23 @@ class AdminComplaintController extends GetxController {
   String? complaintTypeFilter;
   String? _nextPageToken;
 
+  static const inProgressStatus = 'In Progress';
+
+  static const _statusFilterMap = {
+    'Pending': 'Pending',
+    'Under Review': 'Under Review',
+    inProgressStatus: 'Pending Refund,Pending Redelivery',
+    'Resolved': 'Resolved',
+    'Rejected': 'Rejected',
+  };
+
   Future<void> load({
     String? status,
     String? issueType,
     String? selectedField,
     String? complaintType,
   }) async {
-    statusFilter = status;
+    statusFilter = status != null ? (_statusFilterMap[status] ?? status) : null;
     issueTypeFilter = issueType;
     selectedFieldFilter = selectedField;
     complaintTypeFilter = complaintType;
@@ -228,6 +238,20 @@ class AdminComplaintController extends GetxController {
         complaintId: complaint.complaintId,
         adminReply: adminReply,
         adminNote: adminNote,
+      );
+    });
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Complaint> resolvePendingComplaint(Complaint complaint) async {
+    final updated = await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final token = await AdminSessionService.requireIdToken();
+      return _client.complaint.resolvePendingComplaint(
+        firebaseUid: uid,
+        idToken: token,
+        complaintId: complaint.complaintId,
       );
     });
     _replace(updated);

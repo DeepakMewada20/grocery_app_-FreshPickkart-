@@ -103,6 +103,7 @@ complaint:
   - reassignRider:
   - rejectComplaint:
   - replyToComplaint:
+  - resolvePendingComplaint:
   - getComplaintDetailHydrated:
   - getUserComplaintDetailHydrated:
   - getRefundForComplaint:

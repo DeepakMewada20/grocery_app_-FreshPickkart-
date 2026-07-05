@@ -283,6 +283,8 @@ class _StatusBadge extends StatelessWidget {
       'Resolved' => Colors.green,
       'Rejected' => Colors.redAccent,
       'Under Review' => Colors.blue,
+      'Pending Refund' => Colors.deepOrange,
+      'Pending Redelivery' => Colors.blueGrey,
       _ => Colors.orange,
     };
     return Container(

@@ -3346,6 +3346,37 @@ class Endpoints extends _i1.EndpointDispatch {
                     adminReply: params['adminReply'],
                   ),
         ),
+        'resolvePendingComplaint': _i1.MethodConnector(
+          name: 'resolvePendingComplaint',
+          params: {
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'complaintId': _i1.ParameterDescription(
+              name: 'complaintId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['complaint'] as _i12.ComplaintEndpoint)
+                  .resolvePendingComplaint(
+                    session,
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                    complaintId: params['complaintId'],
+                  ),
+        ),
         'getComplaintDetailHydrated': _i1.MethodConnector(
           name: 'getComplaintDetailHydrated',
           params: {

@@ -27,7 +27,13 @@ class ComplaintManagementScreen extends StatefulWidget {
 
 class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
     with SingleTickerProviderStateMixin {
-  static const _statuses = ['Pending', 'Under Review', 'Resolved', 'Rejected'];
+  static const _statuses = [
+    'Pending',
+    'Under Review',
+    'In Progress',
+    'Resolved',
+    'Rejected',
+  ];
 
   late final TabController _tabController;
   late final AdminComplaintController _controller;
@@ -187,7 +193,8 @@ class _ComplaintDetailAdminScreenState
       }
     } catch (e) {
       // fallback: just load refund if needed
-      if (_complaint.status == 'Resolved' &&
+      if ((_complaint.status == 'Resolved' ||
+              _complaint.status == 'Pending Refund') &&
           (_complaint.resolutionType?.contains('refund') ?? false)) {
         _loadRefund();
       }
@@ -365,8 +372,46 @@ class _ComplaintDetailAdminScreenState
                   ),
                 ],
                 SizedBox(height: 12.h),
+                if (_complaint.status == 'Pending Refund' ||
+                    _complaint.status == 'Pending Redelivery')
+                  _InfoPanel(
+                    title: 'Pending Resolution',
+                    children: [
+                      Text(
+                        _complaint.status == 'Pending Refund'
+                            ? 'Refund has been initiated. Wait for the refund to process, then resolve.'
+                            : 'Replacement/redelivery has been initiated. Wait for delivery, then resolve.',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
+                      FutureBuilder<Complaint?>(
+                        future: null,
+                        builder: (context, snapshot) {
+                          return ElevatedButton.icon(
+                            onPressed: _busy ? null : _checkAndResolve,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Check & Resolve'),
+                          );
+                        },
+                      ),
+                      if (_complaint.status == 'Pending Refund' &&
+                          _complaintRefund != null) ...[
+                        SizedBox(height: 12.h),
+                        RefundInfoCard(refund: _complaintRefund!),
+                      ],
+                      if (_busy) ...[
+                        SizedBox(height: 12.h),
+                        LinearProgressIndicator(color: cs.primary),
+                      ],
+                    ],
+                  ),
                 if (_complaint.status != 'Resolved' &&
-                    _complaint.status != 'Rejected')
+                    _complaint.status != 'Rejected' &&
+                    _complaint.status != 'Pending Refund' &&
+                    _complaint.status != 'Pending Redelivery')
                   _InfoPanel(
                     title: 'Resolution Actions',
                     children: [
@@ -451,7 +496,7 @@ class _ComplaintDetailAdminScreenState
     try {
       final updated = await action();
       if (mounted) setState(() => _complaint = updated);
-      if (updated.status == 'Resolved' &&
+      if ((updated.status == 'Resolved' || updated.status == 'Pending Refund') &&
           (updated.resolutionType?.contains('refund') ?? false)) {
         await _loadRefund();
       }
@@ -543,6 +588,10 @@ class _ComplaintDetailAdminScreenState
       adminNote: _internalNoteController.text,
     ),
   );
+
+  Future<void> _checkAndResolve() => _run(
+        () => widget.controller.resolvePendingComplaint(_complaint),
+      );
 
   Future<void> _callCustomer(String phone) async {
     final uri = Uri(scheme: 'tel', path: phone);

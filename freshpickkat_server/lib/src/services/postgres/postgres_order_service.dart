@@ -1497,6 +1497,8 @@ class PostgresOrderService {
       await _incrementCodDeliveredCounter(session, row);
       // Auto-unblock user if prepaid order restores COD access
       await _autoUnblockCodIfEligible(session, row);
+      // Resolve pending redelivery complaints for this order
+      await _resolvePendingRedeliveryComplaints(session, row);
     }
 
     return true;
@@ -2752,6 +2754,68 @@ class PostgresOrderService {
       'status': 'cancelled',
       'codFailureReason': reason,
     };
+  }
+
+  Future<void> _resolvePendingRedeliveryComplaints(
+    Session session,
+    CustomerOrderRow deliveredOrder,
+  ) async {
+    // Find complaints with pendingRedeliveryStatus linked to this order
+    // Two cases:
+    // 1. retry_delivery: complaint.orderId == deliveredOrder.id
+    // 2. replacement: complaint.complaintId delivered order's complaintId
+
+    // Case 1: retry_delivery complaints for this order
+    final directComplaints = await ComplaintRow.db.find(
+      session,
+      where: (t) =>
+          t.orderId.equals(deliveredOrder.id!) &
+          t.status.equals('Pending Redelivery') &
+          t.resolutionType.equals('retry_delivery'),
+    );
+    for (final complaint in directComplaints) {
+      if (complaint.id == null) continue;
+      try {
+        await ComplaintRow.db.updateById(
+          session,
+          complaint.id!,
+          columnValues: (t) => [
+            t.status('Resolved'),
+            t.updatedAt(DateTime.now().toUtc()),
+          ],
+        );
+      } catch (_) {}
+    }
+
+    // Case 2: replacement complaints (delivered order has complaintId)
+    final sourceComplaintIdStr = cleanNullableString(
+      deliveredOrder.complaintId,
+    );
+    if (sourceComplaintIdStr != null &&
+        deliveredOrder.orderType == 'replacement') {
+      final sourceComplaintUuid = tryParseUuid(sourceComplaintIdStr);
+      if (sourceComplaintUuid != null) {
+        final replacementComplaint = await ComplaintRow.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.id.equals(sourceComplaintUuid) &
+              t.status.equals('Pending Redelivery') &
+              t.resolutionType.equals('replacement'),
+        );
+        if (replacementComplaint?.id != null) {
+          try {
+            await ComplaintRow.db.updateById(
+              session,
+              replacementComplaint!.id!,
+              columnValues: (t) => [
+                t.status('Resolved'),
+                t.updatedAt(DateTime.now().toUtc()),
+              ],
+            );
+          } catch (_) {}
+        }
+      }
+    }
   }
 
   // --- END COD Abuse Prevention helpers ---

@@ -4118,6 +4118,43 @@ class _ComplaintEndpoint {
     });
   }
 
+  _i3.Future<_i32.Complaint> resolvePendingComplaint(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'complaint',
+            method: 'resolvePendingComplaint',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'complaint',
+          methodName: 'resolvePendingComplaint',
+          parameters: _i1.testObjectToJson({
+            'firebaseUid': firebaseUid,
+            'idToken': idToken,
+            'complaintId': complaintId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i32.Complaint>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i35.ComplaintDetailHydrated> getComplaintDetailHydrated(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,

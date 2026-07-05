@@ -16,6 +16,8 @@ class PostgresComplaintService {
 
   static const pendingStatus = 'Pending';
   static const underReviewStatus = 'Under Review';
+  static const pendingRefundStatus = 'Pending Refund';
+  static const pendingRedeliveryStatus = 'Pending Redelivery';
   static const resolvedStatus = 'Resolved';
   static const rejectedStatus = 'Rejected';
   static const addressChangeField = 'address_change';
@@ -42,6 +44,8 @@ class PostgresComplaintService {
   static const statuses = {
     pendingStatus,
     underReviewStatus,
+    pendingRefundStatus,
+    pendingRedeliveryStatus,
     resolvedStatus,
     rejectedStatus,
   };
@@ -384,7 +388,16 @@ class PostgresComplaintService {
               Expression<dynamic>? expression;
               if (userId != null) expression = t.userId.equals(userId);
               if (status != null && status.isNotEmpty) {
-                final statusExpression = t.status.equals(status);
+                final statuses = status.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+                Expression<dynamic> statusExpression;
+                if (statuses.length == 1) {
+                  statusExpression = t.status.equals(statuses.first);
+                } else {
+                  statusExpression = t.status.equals(statuses.first) | t.status.equals(statuses[1]);
+                  for (var i = 2; i < statuses.length; i++) {
+                    statusExpression = statusExpression | t.status.equals(statuses[i]);
+                  }
+                }
                 expression = expression == null
                     ? statusExpression
                     : expression & statusExpression;
@@ -436,7 +449,16 @@ class PostgresComplaintService {
               Expression<dynamic>? expression;
               if (userId != null) expression = t.userId.equals(userId);
               if (status != null && status.isNotEmpty) {
-                final statusExpression = t.status.equals(status);
+                final statuses = status.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+                Expression<dynamic> statusExpression;
+                if (statuses.length == 1) {
+                  statusExpression = t.status.equals(statuses.first);
+                } else {
+                  statusExpression = t.status.equals(statuses.first) | t.status.equals(statuses[1]);
+                  for (var i = 2; i < statuses.length; i++) {
+                    statusExpression = statusExpression | t.status.equals(statuses[i]);
+                  }
+                }
                 expression = expression == null
                     ? statusExpression
                     : expression & statusExpression;
@@ -664,12 +686,73 @@ class PostgresComplaintService {
     final updated = await _updateComplaintResolution(
       session,
       row,
-      status: resolvedStatus,
+      status: pendingRefundStatus,
       adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: row.complaintType == productType
           ? 'refund'
           : 'delivery_refund',
+    );
+    await _notifyUserStatus(session, row: updated);
+    return (await _hydrateComplaint(session, updated))!;
+  }
+
+  Future<Complaint> resolvePendingComplaint(
+    Session session, {
+    required String complaintId,
+  }) async {
+    final row = await _getComplaintRow(session, complaintId);
+    if (row?.id == null) throw Exception('Complaint not found.');
+    if (row!.status != pendingRefundStatus &&
+        row.status != pendingRedeliveryStatus) {
+      throw Exception('Complaint is not in a pending resolution status.');
+    }
+
+    bool canResolve = false;
+
+    if (row.status == pendingRefundStatus) {
+      final refund = await RefundRecordRow.db.findFirstRow(
+        session,
+        where: (t) => t.complaintId.equals(row.id),
+        orderBy: (t) => t.createdAt,
+        orderDescending: true,
+      );
+      if (refund != null && refund.refundStatus == 'processed') {
+        canResolve = true;
+      } else if (refund != null && refund.refundStatus == 'failed') {
+        throw Exception('Refund failed at payment gateway.');
+      }
+    } else if (row.status == pendingRedeliveryStatus) {
+      if (row.resolutionType == 'replacement') {
+        final replacementOrder = await CustomerOrderRow.db.findFirstRow(
+          session,
+          where: (t) =>
+              t.complaintId.equals(row.id!.toString()) &
+              t.orderType.equals('replacement'),
+        );
+        if (replacementOrder != null &&
+            replacementOrder.orderStatus == 'delivered') {
+          canResolve = true;
+        }
+      } else if (row.resolutionType == 'retry_delivery') {
+        final order = await CustomerOrderRow.db.findById(
+          session,
+          row.orderId,
+        );
+        if (order != null && order.orderStatus == 'delivered') {
+          canResolve = true;
+        }
+      }
+    }
+
+    if (!canResolve) {
+      throw Exception('Resolution conditions not yet met.');
+    }
+
+    final updated = await _updateComplaintResolution(
+      session,
+      row,
+      status: resolvedStatus,
     );
     await _notifyUserStatus(session, row: updated);
     return (await _hydrateComplaint(session, updated))!;
@@ -700,7 +783,7 @@ class PostgresComplaintService {
     final updated = await _updateComplaintResolution(
       session,
       row,
-      status: resolvedStatus,
+      status: pendingRedeliveryStatus,
       adminReply: adminReply,
       adminNote: adminNote,
       resolutionType: 'retry_delivery',
@@ -851,7 +934,7 @@ class PostgresComplaintService {
     final updated = await _updateComplaintResolution(
       session,
       row,
-      status: resolvedStatus,
+      status: pendingRedeliveryStatus,
       adminReply: adminReply,
       adminNote: adminNote == null || adminNote.trim().isEmpty
           ? 'Replacement order $replacementNumber created.'

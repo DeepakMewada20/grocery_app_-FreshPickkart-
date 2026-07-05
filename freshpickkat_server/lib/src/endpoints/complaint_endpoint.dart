@@ -280,13 +280,22 @@ class ComplaintEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    return _complaints.refundComplaint(
-      session,
-      complaintId: complaintId,
-      amount: amount,
-      adminReply: adminReply,
-      adminNote: adminNote,
-    );
+    try {
+      return await _complaints.refundComplaint(
+        session,
+        complaintId: complaintId,
+        amount: amount,
+        adminReply: adminReply,
+        adminNote: adminNote,
+      );
+    } catch (e) {
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      session.log(
+        'refundComplaint failed for $complaintId: $errorMsg',
+        level: LogLevel.error,
+      );
+      throw Exception(errorMsg);
+    }
   }
 
   Future<Complaint> createReplacementOrder(
@@ -396,7 +405,26 @@ class ComplaintEndpoint extends Endpoint {
     );
   }
 
+  /// Admin: Resolve a pending complaint if conditions are met.
+  Future<Complaint> resolvePendingComplaint(
+    Session session, {
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _complaints.resolvePendingComplaint(
+      session,
+      complaintId: complaintId,
+    );
+  }
+
   /// Admin: Get complaint detail hydrated with refund.
+  /// Auto-resolves pending complaints if conditions are met.
   Future<ComplaintDetailHydrated> getComplaintDetailHydrated(
     Session session, {
     required String firebaseUid,
@@ -408,6 +436,10 @@ class ComplaintEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
+
+    // Auto-resolve pending complaints if conditions met
+    await _tryAutoResolve(session, complaintId);
+
     final complaint = await _complaints.getComplaintAdmin(
       session,
       complaintId: complaintId,
@@ -438,6 +470,10 @@ class ComplaintEndpoint extends Endpoint {
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
+
+    // Auto-resolve pending complaints if conditions met
+    await _tryAutoResolve(session, complaintId);
+
     final complaint = await _complaints.getMyComplaint(
       session,
       user: user,
@@ -455,6 +491,18 @@ class ComplaintEndpoint extends Endpoint {
       complaint: complaint,
       refund: refund,
     );
+  }
+
+  /// Internal: Try to auto-resolve a pending complaint if conditions are met.
+  Future<void> _tryAutoResolve(Session session, String complaintId) async {
+    try {
+      await _complaints.resolvePendingComplaint(
+        session,
+        complaintId: complaintId,
+      );
+    } catch (_) {
+      // Not ready to resolve yet — silently ignore
+    }
   }
 
   /// Admin: Get refund details for a complaint.

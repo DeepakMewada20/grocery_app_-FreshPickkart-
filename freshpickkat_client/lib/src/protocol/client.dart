@@ -1585,7 +1585,23 @@ class EndpointComplaint extends _i1.EndpointRef {
     },
   );
 
+  /// Admin: Resolve a pending complaint if conditions are met.
+  _i2.Future<_i31.Complaint> resolvePendingComplaint({
+    required String firebaseUid,
+    required String idToken,
+    required String complaintId,
+  }) => caller.callServerEndpoint<_i31.Complaint>(
+    'complaint',
+    'resolvePendingComplaint',
+    {
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+      'complaintId': complaintId,
+    },
+  );
+
   /// Admin: Get complaint detail hydrated with refund.
+  /// Auto-resolves pending complaints if conditions are met.
   _i2.Future<_i34.ComplaintDetailHydrated> getComplaintDetailHydrated({
     required String firebaseUid,
     required String idToken,
