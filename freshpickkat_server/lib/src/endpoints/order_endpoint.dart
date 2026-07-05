@@ -111,6 +111,9 @@ class OrderEndpoint extends Endpoint {
   Future<protocol.OrderPage> getOrdersPage(
     Session session, {
     String? status,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
     required String firebaseUid,
     required String idToken,
     int limit = 20,
@@ -124,6 +127,9 @@ class OrderEndpoint extends Endpoint {
     return _orders.getOrdersPage(
       session,
       status: status,
+      paymentMode: paymentMode,
+      paymentStatus: paymentStatus,
+      paymentCollectionMode: paymentCollectionMode,
       limit: limit,
       pageToken: pageToken,
     );
@@ -1250,6 +1256,39 @@ class OrderEndpoint extends Endpoint {
     );
 
     return true;
+  }
+
+  Future<protocol.CodPaymentReceipt> getCodPaymentReceipt(
+    Session session, {
+    required String orderId,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return _orders.getCodPaymentReceipt(session, orderId: orderId);
+  }
+
+  Future<protocol.CodPaymentReceipt> getUserCodPaymentReceipt(
+    Session session, {
+    required String orderId,
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final user = await _userGuard.ensureUser(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    final userId = user.id?.toString();
+    return _orders.getUserCodPaymentReceipt(
+      session,
+      orderId: orderId,
+      userId: userId,
+    );
   }
 
   Future<Map<String, dynamic>> markCodDeliveryFailed(

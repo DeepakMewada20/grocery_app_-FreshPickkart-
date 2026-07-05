@@ -73,7 +73,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _loadInitial({bool force = false}) async {
     await _orderController.loadInitial(
       status: _orderController.statusFilter.value,
+      paymentMode: _orderController.paymentModeFilter.value,
+      paymentStatus: _orderController.paymentStatusFilter.value,
+      paymentCollectionMode: _orderController.paymentCollectionModeFilter.value,
       force: force,
+    );
+  }
+
+  Widget _filterChip(String label, String value, RxString currentFilter) {
+    return Padding(
+      padding: EdgeInsets.only(right: 8.w),
+      child: FilterChip(
+        label: Text(label, style: TextStyle(fontSize: 12.sp)),
+        selected: currentFilter.value == value,
+        onSelected: (_) {
+          if (currentFilter.value != value) {
+            currentFilter.value = value;
+            _orderController.loadInitial(
+              status: _orderController.statusFilter.value,
+              paymentMode: _orderController.paymentModeFilter.value,
+              paymentStatus: _orderController.paymentStatusFilter.value,
+              paymentCollectionMode: _orderController.paymentCollectionModeFilter.value,
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -424,6 +448,49 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     if (value == null) return;
                     _orderController.loadInitial(status: value);
                   },
+                ),
+              ),
+              // Payment Mode filter chips
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip('Payment: All', 'all', _orderController.paymentModeFilter),
+                      _filterChip('Online', 'standard', _orderController.paymentModeFilter),
+                      _filterChip('Shareable Link', 'shareable_link', _orderController.paymentModeFilter),
+                      _filterChip('COD', 'cod', _orderController.paymentModeFilter),
+                    ],
+                  ),
+                ),
+              ),
+              // Payment Status filter chips
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip('Payment Status: All', 'all', _orderController.paymentStatusFilter),
+                      _filterChip('Pending', 'pending', _orderController.paymentStatusFilter),
+                      _filterChip('Paid', 'paid', _orderController.paymentStatusFilter),
+                    ],
+                  ),
+                ),
+              ),
+              // Collection Method filter chips
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip('Collection: All', 'all', _orderController.paymentCollectionModeFilter),
+                      _filterChip('Cash', 'cash', _orderController.paymentCollectionModeFilter),
+                      _filterChip('UPI QR', 'upi_qr', _orderController.paymentCollectionModeFilter),
+                    ],
+                  ),
                 ),
               ),
               Expanded(

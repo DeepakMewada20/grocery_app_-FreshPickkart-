@@ -794,6 +794,9 @@ class PostgresOrderService {
     if (row.paymentStatus == 'paid') {
       throw StateError('COD payment has already been collected for order $orderId');
     }
+    if (row.paymentCollectedAt != null) {
+      throw StateError('COD payment already collected for order $orderId');
+    }
     if (row.orderStatus == 'delivered' || row.orderStatus == 'cancelled') {
       throw StateError(
         'Cannot collect COD payment for order in status: ${row.orderStatus}',
@@ -814,6 +817,82 @@ class PostgresOrderService {
         paymentCollectionMode: collectionMode,
         updatedAt: now,
       ),
+    );
+  }
+
+  Future<CodPaymentReceipt> getCodPaymentReceipt(
+    Session session, {
+    required String orderId,
+  }) async {
+    final order = await getOrderById(session, orderId);
+    if (order == null) throw Exception('Order not found');
+    if (order.paymentMode != 'cod') throw Exception('Not a COD order');
+    if (order.paymentStatus != 'paid') throw Exception('COD payment not yet collected');
+
+    String? collectedByName;
+    if (order.paymentCollectedBy != null) {
+      try {
+        final adminUser = await AppUserRow.db.findFirstRow(
+          session,
+          where: (t) => t.firebaseUid.equals(order.paymentCollectedBy!),
+        );
+        collectedByName = adminUser?.name ?? adminUser?.phoneNumber;
+      } catch (_) {}
+    }
+
+    String? gatewayRef;
+    final parsedOrderId = parseUuid(orderId, fieldName: 'orderId');
+    final txn = await PaymentTransactionRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderId.equals(parsedOrderId),
+    );
+    gatewayRef = txn?.gatewayPaymentId;
+
+    return CodPaymentReceipt(
+      orderNumber: order.orderId,
+      paymentMethod: 'Cash on Delivery',
+      collectionMethod: order.paymentCollectionMode ?? 'cash',
+      amountCollected: order.finalAmount,
+      collectionTime: order.paymentCollectedAt,
+      collectedBy: collectedByName ?? order.paymentCollectedBy,
+      paymentStatus: order.paymentStatus,
+      gatewayTransactionReference: gatewayRef,
+    );
+  }
+
+  Future<CodPaymentReceipt> getUserCodPaymentReceipt(
+    Session session, {
+    required String orderId,
+    String? userId,
+  }) async {
+    final order = await getOrderById(session, orderId);
+    if (order == null) throw Exception('Order not found');
+    if (order.paymentMode != 'cod') throw Exception('Not a COD order');
+    if (order.paymentStatus != 'paid') throw Exception('COD payment not yet collected');
+    if (userId != null && order.userId != userId) {
+      throw Exception('Order does not belong to this user');
+    }
+
+    String? collectedByName;
+    if (order.paymentCollectedBy != null) {
+      try {
+        final adminUser = await AppUserRow.db.findFirstRow(
+          session,
+          where: (t) => t.firebaseUid.equals(order.paymentCollectedBy!),
+        );
+        collectedByName = adminUser?.name ?? adminUser?.phoneNumber;
+      } catch (_) {}
+    }
+
+    return CodPaymentReceipt(
+      orderNumber: order.orderId,
+      paymentMethod: 'Cash on Delivery',
+      collectionMethod: order.paymentCollectionMode ?? 'cash',
+      amountCollected: order.finalAmount,
+      collectionTime: order.paymentCollectedAt,
+      collectedBy: collectedByName ?? order.paymentCollectedBy,
+      paymentStatus: order.paymentStatus,
+      gatewayTransactionReference: null,
     );
   }
 
@@ -1361,6 +1440,9 @@ class PostgresOrderService {
     int limit = 20,
     String? pageToken,
     String? status,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
   }) async {
     final pageSize = clampPageLimit(
       limit,
@@ -1371,13 +1453,19 @@ class PostgresOrderService {
     final totalCount = await getOrdersCount(
       session,
       status: status,
+      paymentMode: paymentMode,
+      paymentStatus: paymentStatus,
+      paymentCollectionMode: paymentCollectionMode,
     );
 
     final rows = await CustomerOrderRow.db.find(
       session,
-      where: status == null || status.trim().isEmpty
-          ? null
-          : (t) => t.orderStatus.equals(status.trim()),
+      where: _buildOrderWhereClause(
+        status: status,
+        paymentMode: paymentMode,
+        paymentStatus: paymentStatus,
+        paymentCollectionMode: paymentCollectionMode,
+      ),
       limit: pageSize + 1,
       orderBy: (t) => t.orderedAt,
       orderDescending: true,
@@ -1417,12 +1505,18 @@ class PostgresOrderService {
   Future<int> getOrdersCount(
     Session session, {
     String? status,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
   }) {
     return CustomerOrderRow.db.count(
       session,
-      where: status == null || status.trim().isEmpty
-          ? null
-          : (t) => t.orderStatus.equals(status.trim()),
+      where: _buildOrderWhereClause(
+        status: status,
+        paymentMode: paymentMode,
+        paymentStatus: paymentStatus,
+        paymentCollectionMode: paymentCollectionMode,
+      ),
     );
   }
 
@@ -2819,6 +2913,51 @@ class PostgresOrderService {
   }
 
   // --- END COD Abuse Prevention helpers ---
+
+  /// Builds a combined WHERE expression for order queries with optional
+  /// filters on status, paymentMode, paymentStatus, and paymentCollectionMode.
+  /// Returns null if no filters are provided.
+  WhereExpressionBuilder<CustomerOrderRowTable>? _buildOrderWhereClause({
+    String? status,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
+  }) {
+    final hasStatus = status != null && status.trim().isNotEmpty;
+    final hasPaymentMode = paymentMode != null && paymentMode.trim().isNotEmpty;
+    final hasPaymentStatus =
+        paymentStatus != null && paymentStatus.trim().isNotEmpty;
+    final hasPaymentCollectionMode =
+        paymentCollectionMode != null && paymentCollectionMode.trim().isNotEmpty;
+
+    if (!hasStatus &&
+        !hasPaymentMode &&
+        !hasPaymentStatus &&
+        !hasPaymentCollectionMode) {
+      return null;
+    }
+
+    return (t) {
+      Expression<dynamic>? expr;
+      if (hasStatus) {
+        expr = t.orderStatus.equals(status.trim());
+      }
+      if (hasPaymentMode) {
+        final modeExpr = t.paymentMode.equals(paymentMode.trim());
+        expr = expr == null ? modeExpr : expr & modeExpr;
+      }
+      if (hasPaymentStatus) {
+        final psExpr = t.paymentStatus.equals(paymentStatus.trim());
+        expr = expr == null ? psExpr : expr & psExpr;
+      }
+      if (hasPaymentCollectionMode) {
+        final pcmExpr =
+            t.paymentCollectionMode.equals(paymentCollectionMode.trim());
+        expr = expr == null ? pcmExpr : expr & pcmExpr;
+      }
+      return expr!;
+    };
+  }
 }
 
 class _OrderCursor {

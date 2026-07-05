@@ -2931,6 +2931,21 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'paymentMode': _i1.ParameterDescription(
+              name: 'paymentMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentStatus': _i1.ParameterDescription(
+              name: 'paymentStatus',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentCollectionMode': _i1.ParameterDescription(
+              name: 'paymentCollectionMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'limit': _i1.ParameterDescription(
               name: 'limit',
               type: _i1.getType<int>(),
@@ -2955,6 +2970,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     issueType: params['issueType'],
                     selectedField: params['selectedField'],
                     complaintType: params['complaintType'],
+                    paymentMode: params['paymentMode'],
+                    paymentStatus: params['paymentStatus'],
+                    paymentCollectionMode: params['paymentCollectionMode'],
                     limit: params['limit'],
                     pageToken: params['pageToken'],
                   ),
@@ -5294,6 +5312,21 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'paymentMode': _i1.ParameterDescription(
+              name: 'paymentMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentStatus': _i1.ParameterDescription(
+              name: 'paymentStatus',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentCollectionMode': _i1.ParameterDescription(
+              name: 'paymentCollectionMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'firebaseUid': _i1.ParameterDescription(
               name: 'firebaseUid',
               type: _i1.getType<String>(),
@@ -5323,6 +5356,9 @@ class Endpoints extends _i1.EndpointDispatch {
                   (endpoints['order'] as _i20.OrderEndpoint).getOrdersPage(
                     session,
                     status: params['status'],
+                    paymentMode: params['paymentMode'],
+                    paymentStatus: params['paymentStatus'],
+                    paymentCollectionMode: params['paymentCollectionMode'],
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     limit: params['limit'],
@@ -6139,6 +6175,68 @@ class Endpoints extends _i1.EndpointDispatch {
                     session,
                     params['orderId'],
                     params['collectionMode'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'getCodPaymentReceipt': _i1.MethodConnector(
+          name: 'getCodPaymentReceipt',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i20.OrderEndpoint)
+                  .getCodPaymentReceipt(
+                    session,
+                    orderId: params['orderId'],
+                    firebaseUid: params['firebaseUid'],
+                    idToken: params['idToken'],
+                  ),
+        ),
+        'getUserCodPaymentReceipt': _i1.MethodConnector(
+          name: 'getUserCodPaymentReceipt',
+          params: {
+            'orderId': _i1.ParameterDescription(
+              name: 'orderId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['order'] as _i20.OrderEndpoint)
+                  .getUserCodPaymentReceipt(
+                    session,
+                    orderId: params['orderId'],
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                   ),
@@ -6991,6 +7089,21 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'paymentMode': _i1.ParameterDescription(
+              name: 'paymentMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'paymentCollectionMode': _i1.ParameterDescription(
+              name: 'paymentCollectionMode',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+            'codFilter': _i1.ParameterDescription(
+              name: 'codFilter',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
             'firebaseUid': _i1.ParameterDescription(
               name: 'firebaseUid',
               type: _i1.getType<String>(),
@@ -7022,6 +7135,9 @@ class Endpoints extends _i1.EndpointDispatch {
                     query: params['query'],
                     status: params['status'],
                     paymentStatus: params['paymentStatus'],
+                    paymentMode: params['paymentMode'],
+                    paymentCollectionMode: params['paymentCollectionMode'],
+                    codFilter: params['codFilter'],
                     firebaseUid: params['firebaseUid'],
                     idToken: params['idToken'],
                     limit: params['limit'],

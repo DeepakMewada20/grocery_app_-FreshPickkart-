@@ -1728,6 +1728,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             cs,
             isTotal: true,
           ),
+          if (order.paymentMode == 'cod' && order.paymentStatus == 'paid')
+            Padding(
+              padding: EdgeInsets.only(top: 12.h),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _showCodPaymentReceipt,
+                  icon: const Icon(Icons.receipt_long, size: 18),
+                  label: const Text('View Receipt'),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1770,6 +1782,89 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
             minFontSize: 11,
             maxLines: 1,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCodPaymentReceipt() async {
+    try {
+      final receipt = await OrderService.instance.getCodPaymentReceipt(
+        widget.orderId,
+      );
+      if (!mounted || receipt == null) return;
+
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Payment Receipt',
+                  style: TextStyle(
+                    fontSize: 18.sp.clamp(16.0, 20.0),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              const Divider(),
+              _receiptRow('Order Number', receipt.orderNumber),
+              _receiptRow('Payment Method', receipt.paymentMethod),
+              _receiptRow(
+                'Collection Method',
+                receipt.collectionMethod == 'cash' ? 'Cash' : 'UPI QR',
+              ),
+              _receiptRow(
+                'Amount Collected',
+                '₹${receipt.amountCollected.toStringAsFixed(2)}',
+              ),
+              if (receipt.collectionTime != null)
+                _receiptRow(
+                  'Collection Time',
+                  _formatDate(receipt.collectionTime!),
+                ),
+              if (receipt.collectedBy != null)
+                _receiptRow('Collected By', receipt.collectedBy!),
+              _receiptRow('Payment Status', receipt.paymentStatus),
+              if (receipt.gatewayTransactionReference != null)
+                _receiptRow(
+                  'Transaction Ref',
+                  receipt.gatewayTransactionReference!,
+                ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      AppLogger.error('Receipt', e);
+      if (mounted) {
+        AppSnackbar.show('Failed to load receipt', e.toString());
+      }
+    }
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -1841,6 +1936,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   bool _isPaymentBlocked(Order order) {
+    if (order.paymentMode == 'cod') return false;
     return order.paymentStatus == 'pending' ||
         order.paymentStatus == 'failed' ||
         order.paymentStatus == 'cancelled';
@@ -1912,7 +2008,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         : amount;
 
     // Stage 3: Out For Delivery — show warning first
-    if (status == 'out_for_delivery') {
+    if (status == 'out_for_delivery' && order.paymentMode != 'cod') {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -1944,78 +2040,107 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     // Stage 2/3: packed or out_for_delivery — reason dialog
     if (status == 'packed' || status == 'out_for_delivery') {
-      final reasonController = TextEditingController();
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Request Order Cancellation?'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your order is currently being prepared.\n\n'
-                'Cancellation requires approval from our team.\n\n'
-                'If approved, the refund will be processed according to our cancellation policy.',
+      final isCod = order.paymentMode == 'cod';
+      if (isCod) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cancel Order?'),
+            content: const Text(
+              'Are you sure you want to cancel this order?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Keep Order'),
               ),
-              if (status == 'out_for_delivery') ...[
-                SizedBox(height: 12.h),
-                Container(
-                  padding: EdgeInsets.all(12.w),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.error.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Text(
-                    'Estimated refund: ₹${refundEstimate.formatPrice}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13.sp,
-                    ),
-                  ),
-                ),
-              ],
-              SizedBox(height: 12.h),
-              TextField(
-                controller: reasonController,
-                decoration: const InputDecoration(
-                  labelText: 'Reason (optional)',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 2,
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Cancel Order'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Keep Order'),
+        );
+        if (confirmed == true) {
+          _cancelOrder();
+        }
+      } else {
+        final reasonController = TextEditingController();
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Request Order Cancellation?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your order is currently being prepared.\n\n'
+                  'Cancellation requires approval from our team.\n\n'
+                  'If approved, the refund will be processed according to our cancellation policy.',
+                ),
+                if (status == 'out_for_delivery') ...[
+                  SizedBox(height: 12.h),
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: Text(
+                      'Estimated refund: ₹${refundEstimate.formatPrice}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                  ),
+                ],
+                SizedBox(height: 12.h),
+                TextField(
+                  controller: reasonController,
+                  decoration: const InputDecoration(
+                    labelText: 'Reason (optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Request Cancellation'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed == true) {
-        _requestCancellation(reason: reasonController.text.trim());
-        reasonController.dispose();
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Keep Order'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Request Cancellation'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true) {
+          _requestCancellation(reason: reasonController.text.trim());
+          reasonController.dispose();
+        }
       }
       return;
     }
 
-    // Stage 1: placed/confirmed — direct cancel with full refund
+    // Stage 1: placed/confirmed — direct cancel
+    final isCod = order.paymentMode == 'cod';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Cancel Order?'),
         content: Text(
-          'Your order has not entered processing yet.\n\n'
-          'If you cancel now, you will receive a full refund of ₹${amount.formatPrice}.',
+          isCod
+              ? 'Are you sure you want to cancel this order?'
+              : 'Your order has not entered processing yet.\n\n'
+                  'If you cancel now, you will receive a full refund of ₹${amount.formatPrice}.',
         ),
         actions: [
           TextButton(

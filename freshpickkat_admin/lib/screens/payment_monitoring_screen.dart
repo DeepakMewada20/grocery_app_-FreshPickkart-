@@ -99,6 +99,8 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
           if (_healthMetrics != null) _buildHealthBanner(context),
           _buildSearchBar(context),
           _buildFilterChips(context),
+          _buildCodFilterChips(context),
+          _buildCollectionModeChips(context),
           Expanded(child: _buildOrderList(context)),
         ],
       ),
@@ -247,6 +249,55 @@ class _PaymentMonitoringScreenState extends State<PaymentMonitoringScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCodFilterChips(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 2.h),
+      child: Obx(
+        () => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChip('All', '', _controller.codFilter, _controller.setCodFilter),
+              _buildFilterChip('COD Pending', 'cod_pending', _controller.codFilter, _controller.setCodFilter),
+              _buildFilterChip('COD Paid', 'cod_paid', _controller.codFilter, _controller.setCodFilter),
+              _buildFilterChip('Online Paid', 'online_paid', _controller.codFilter, _controller.setCodFilter),
+              _buildFilterChip('Link Pending', 'link_pending', _controller.codFilter, _controller.setCodFilter),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCollectionModeChips(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 2.h),
+      child: Obx(
+        () => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChip('Collection: All', '', _controller.collectionModeFilter, _controller.setCollectionModeFilter),
+              _buildFilterChip('Cash', 'cash', _controller.collectionModeFilter, _controller.setCollectionModeFilter),
+              _buildFilterChip('UPI QR', 'upi_qr', _controller.collectionModeFilter, _controller.setCollectionModeFilter),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, RxString currentFilter, void Function(String) onChanged) {
+    return Padding(
+      padding: EdgeInsets.only(right: 6.w),
+      child: FilterChip(
+        label: Text(label, style: TextStyle(fontSize: 12.sp)),
+        selected: currentFilter.value == value,
+        onSelected: (_) => onChanged(value),
       ),
     );
   }

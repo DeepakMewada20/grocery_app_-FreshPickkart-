@@ -716,6 +716,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    if (_isCodPayment) {
+      await _placeOrderCod();
+      return;
+    }
+
     // 1. If an initial refresh is still running, wait for it first
     if (_refreshFuture != null) {
       _setProcessing(true, clearError: true, status: 'Finalizing basket...');

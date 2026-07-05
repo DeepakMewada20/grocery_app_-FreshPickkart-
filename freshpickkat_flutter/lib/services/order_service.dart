@@ -71,6 +71,22 @@ class OrderService {
     );
   }
 
+  Future<CodPaymentReceipt?> getCodPaymentReceipt(String orderId) async {
+    try {
+      final auth = AuthController.instance;
+      final user = auth.currentUser;
+      if (user == null) return null;
+      final idToken = await auth.requireIdToken();
+      return await _client.order.getUserCodPaymentReceipt(
+        orderId: orderId,
+        firebaseUid: user.uid,
+        idToken: idToken,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Order?> updateDeliveryAddress({
     required String orderId,
     required Address deliveryAddress,

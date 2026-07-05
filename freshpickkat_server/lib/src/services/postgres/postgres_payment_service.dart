@@ -1288,6 +1288,9 @@ class PostgresPaymentService {
     String? query,
     String? status,
     String? paymentStatus,
+    String? paymentMode,
+    String? paymentCollectionMode,
+    String? codFilter,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -1318,6 +1321,42 @@ class PostgresPaymentService {
     if (paymentStatus != null && paymentStatus.trim().isNotEmpty) {
       conditions.add('co."paymentStatus" = @paymentStatus');
       params['paymentStatus'] = paymentStatus.trim();
+    }
+
+    if (paymentMode != null && paymentMode.trim().isNotEmpty) {
+      conditions.add('co."paymentMode" = @paymentMode');
+      params['paymentMode'] = paymentMode.trim();
+    }
+
+    if (paymentCollectionMode != null &&
+        paymentCollectionMode.trim().isNotEmpty) {
+      conditions.add('co."paymentCollectionMode" = @paymentCollectionMode');
+      params['paymentCollectionMode'] = paymentCollectionMode.trim();
+    }
+
+    if (codFilter != null && codFilter.trim().isNotEmpty) {
+      switch (codFilter.trim()) {
+        case 'cod_pending':
+          conditions.add(
+            'co."paymentMode" = \'cod\' AND co."paymentStatus" = \'pending\'',
+          );
+          break;
+        case 'cod_paid':
+          conditions.add(
+            'co."paymentMode" = \'cod\' AND co."paymentStatus" = \'paid\'',
+          );
+          break;
+        case 'online_paid':
+          conditions.add(
+            'co."paymentMode" = \'standard\' AND co."paymentStatus" = \'paid\'',
+          );
+          break;
+        case 'link_pending':
+          conditions.add(
+            'co."paymentMode" = \'shareable_link\' AND co."paymentStatus" = \'pending\'',
+          );
+          break;
+      }
     }
 
     final whereClause = conditions.join(' AND ');

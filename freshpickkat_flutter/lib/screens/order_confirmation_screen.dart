@@ -174,7 +174,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildSuccessHeader(ColorScheme cs) {
     final isPaid = _order?.paymentStatus == 'paid';
-    final headerColor = isPaid ? Colors.green : Colors.orange;
+    final isCod = _order?.paymentMode == 'cod';
+    final headerColor = (isPaid || isCod) ? Colors.green : Colors.orange;
 
     return Container(
       width: double.infinity,

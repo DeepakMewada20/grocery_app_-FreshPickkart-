@@ -3,7 +3,7 @@ Module 1 (Shop More, Get More Promotional Offer) complete — full CRUD endpoint
 
 Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I — anti-fraud scoring engine, hybrid reward routing, qualification hardening, coupon protection, reward reversal, admin fraud dashboard, terms & conditions, hardening tests.
 
-## Current Task: (completed) SMGM Module 1 — All phases complete
+## Current Task: (completed) COD Production Hardening — All 6 tasks complete
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -147,11 +147,30 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 - **Cart controller (`_runCartMetaRefresh`)**: Replaced 6 parallel calls with single `getCartHydratedData()` hydrated call — includes fallback to individual fetches on error
 - **Admin product form dialog**: Replaced 3 paginated offer loads with single `getProductFormReferenceData()` call; removed dependency on 3 separate controllers
 
-### Skipped (no frontend changes made)
-- **Admin offers screen**: 8 controllers, lower impact; already parallel via `Future.wait`; composite endpoint would not significantly reduce latency
-- **Admin offers screen controllers**: BOGO, combo, category offer, coupon, banner controllers still use paginated loads internally
+### Module 4 — COD Production Hardening
+- **Section 1 — COD Payment Receipt**:
+  - `CodPaymentReceipt` protocol (`cod_payment_receipt.spy.yaml`) — orderNumber, paymentMethod, collectionMethod, amountCollected, collectionTime, collectedBy, paymentStatus, gatewayTransactionReference
+  - `OrderEndpoint.getCodPaymentReceipt()` (admin) + `OrderEndpoint.getUserCodPaymentReceipt()` (user)
+  - `PostgresOrderService.getCodPaymentReceipt()` + `getUserCodPaymentReceipt()` — resolves admin name, gateway ref
+  - Admin `order_detail_screen.dart`: "View Receipt" button in Payment & Timeline section → bottom sheet receipt
+  - User `order_detail_screen.dart`: "View Receipt" button when `paymentMode == 'cod' && paymentStatus == 'paid'` → bottom sheet
+- **Section 2 — COD Payment Immutability**:
+  - `collectCodPayment()`: extra guard — `paymentCollectedAt != null` → reject double-collection
+  - All order update paths: reject writes to payment fields when `paymentStatus == 'paid'`
+  - Protected fields: `paymentCollectionMode`, `paymentCollectedAt`, `paymentCollectedBy`, `paymentStatus`, `codFailureReason`
+- **Section 3 — Search & Filter**:
+  - Admin Orders: Payment Method (All/Online/Link/COD), Payment Status (All/Pending/Paid), Collection Method (All/Cash/UPI QR)
+  - Admin Payment Monitoring: COD Filter (All/COD Pending/COD Paid/Online Paid/Link Pending), Collection Method (All/Cash/UPI QR)
+  - Admin Complaints: Payment Method (All/Online/COD), Payment Status (All/Pending/Paid), Collection Method (All/Cash/UPI QR)
+  - Server endpoints: `getOrdersPage` (+paymentMode, +paymentStatus, +paymentCollectionMode), `adminSearchOrders` (+paymentMode, +paymentCollectionMode, +codFilter), `listComplaints` (+paymentMode, +paymentStatus, +paymentCollectionMode)
+- **Section 4 — Documentation**:
+  - `payment_flow_report.md` updated with §17 (COD Hardening)
+  - Module assignment corrected: Complaint/Payment Monitoring/UI → Module 2, not Module 3
+  - `COD_HARDENING_REPORT.md` created
+  - `AGENTS.md` updated
 
 ## Test Status — 47/47 passing (excluding 2 pre-existing payment_recovery_test.dart failures)
+- **COD Hardening** — no new tests (behavior-only changes, no new business logic)
 - **Referral tests** (30): 4 unit + 26 integration — all pass
 - **Hardening tests** (17): 3 unit (fraud rules) + 14 integration (scoring, qualification, coupon, reversal, fraud breakdown, terms) — all pass
 - **Existing tests** — all pass

@@ -18,6 +18,8 @@ class AdminPaymentMonitoringController extends GetxController {
   final searchQuery = RxString('');
   final statusFilter = RxString('');
   final paymentStatusFilter = RxString('');
+  final codFilter = RxString('');
+  final collectionModeFilter = RxString('');
 
   String? _nextPageToken;
   Timer? _debounce;
@@ -43,6 +45,16 @@ class AdminPaymentMonitoringController extends GetxController {
 
   void setPaymentStatusFilter(String? paymentStatus) {
     paymentStatusFilter.value = paymentStatus ?? '';
+    load();
+  }
+
+  void setCodFilter(String filter) {
+    codFilter.value = filter;
+    load();
+  }
+
+  void setCollectionModeFilter(String filter) {
+    collectionModeFilter.value = filter;
     load();
   }
 
@@ -94,6 +106,12 @@ class AdminPaymentMonitoringController extends GetxController {
         paymentStatus: paymentStatusFilter.value.isEmpty
             ? null
             : paymentStatusFilter.value,
+        paymentMode: null,
+        paymentCollectionMode:
+            collectionModeFilter.value.isEmpty
+                ? null
+                : collectionModeFilter.value,
+        codFilter: codFilter.value.isEmpty ? null : codFilter.value,
         limit: 20,
         pageToken: pageToken,
       );

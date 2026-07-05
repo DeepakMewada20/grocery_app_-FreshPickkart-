@@ -317,6 +317,9 @@ class PostgresComplaintService {
     String? issueType,
     String? selectedField,
     String? complaintType,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
     int limit = 20,
     String? pageToken,
   }) {
@@ -326,6 +329,9 @@ class PostgresComplaintService {
       issueType: cleanNullableString(issueType),
       selectedField: cleanNullableString(selectedField),
       complaintType: cleanNullableString(complaintType),
+      paymentMode: cleanNullableString(paymentMode),
+      paymentStatus: cleanNullableString(paymentStatus),
+      paymentCollectionMode: cleanNullableString(paymentCollectionMode),
       limit: limit,
       pageToken: pageToken,
     );
@@ -365,6 +371,9 @@ class PostgresComplaintService {
     String? issueType,
     String? selectedField,
     String? complaintType,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -374,13 +383,55 @@ class PostgresComplaintService {
         : null;
     final safeLimit = clampPageLimit(limit);
 
+    final hasPaymentFilter =
+        (paymentMode != null && paymentMode.isNotEmpty) ||
+        (paymentStatus != null && paymentStatus.isNotEmpty) ||
+        (paymentCollectionMode != null && paymentCollectionMode.isNotEmpty);
+
+    Set<UuidValue>? matchingOrderIds;
+    if (hasPaymentFilter) {
+      final orderConditions = <String>['1=1'];
+      final orderParams = <String, dynamic>{};
+      if (paymentMode != null && paymentMode.isNotEmpty) {
+        orderConditions.add('"paymentMode" = @paymentMode');
+        orderParams['paymentMode'] = paymentMode;
+      }
+      if (paymentStatus != null && paymentStatus.isNotEmpty) {
+        orderConditions.add('"paymentStatus" = @paymentStatus');
+        orderParams['paymentStatus'] = paymentStatus;
+      }
+      if (paymentCollectionMode != null && paymentCollectionMode.isNotEmpty) {
+        orderConditions.add('"paymentCollectionMode" = @paymentCollectionMode');
+        orderParams['paymentCollectionMode'] = paymentCollectionMode;
+      }
+      final orderWhere = orderConditions.join(' AND ');
+      final orderRows = await session.db.unsafeQuery(
+        'SELECT id FROM customer_order WHERE $orderWhere',
+        parameters: QueryParameters.named(orderParams),
+      );
+      matchingOrderIds = orderRows
+          .map((r) => r.toColumnMap()['id']?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .map((s) => tryParseUuid(s))
+          .whereType<UuidValue>()
+          .toSet();
+      if (matchingOrderIds.isEmpty) {
+        return ComplaintPage(
+          complaints: const [],
+          nextPageToken: null,
+          totalCount: 0,
+        );
+      }
+    }
+
     final hasRowFilter =
         userId != null ||
         (status != null && status.isNotEmpty) ||
         (issueType != null && issueType.isNotEmpty) ||
         (selectedField != null && selectedField.isNotEmpty) ||
         (complaintType != null && complaintType.isNotEmpty) ||
-        before != null;
+        before != null ||
+        matchingOrderIds != null;
     final rows = await ComplaintRow.db.find(
       session,
       where: hasRowFilter
@@ -426,6 +477,12 @@ class PostgresComplaintService {
                     ? beforeExpression
                     : expression & beforeExpression;
               }
+              if (matchingOrderIds != null) {
+                final orderFilter = t.orderId.inSet(matchingOrderIds);
+                expression = expression == null
+                    ? orderFilter
+                    : expression & orderFilter;
+              }
               return expression!;
             }
           : null,
@@ -441,7 +498,8 @@ class PostgresComplaintService {
         (status != null && status.isNotEmpty) ||
         (issueType != null && issueType.isNotEmpty) ||
         (selectedField != null && selectedField.isNotEmpty) ||
-        (complaintType != null && complaintType.isNotEmpty);
+        (complaintType != null && complaintType.isNotEmpty) ||
+        matchingOrderIds != null;
     final totalCount = await ComplaintRow.db.count(
       session,
       where: hasCountFilter
@@ -480,6 +538,12 @@ class PostgresComplaintService {
                 expression = expression == null
                     ? typeExpression
                     : expression & typeExpression;
+              }
+              if (matchingOrderIds != null) {
+                final orderFilter = t.orderId.inSet(matchingOrderIds);
+                expression = expression == null
+                    ? orderFilter
+                    : expression & orderFilter;
               }
               return expression!;
             }

@@ -198,6 +198,8 @@ order:
   - getDashboardStats:
   - completePhotoDelivery:
   - collectCodPayment:
+  - getCodPaymentReceipt:
+  - getUserCodPaymentReceipt:
   - markCodDeliveryFailed:
 orderPg:
   - createPendingOrder:

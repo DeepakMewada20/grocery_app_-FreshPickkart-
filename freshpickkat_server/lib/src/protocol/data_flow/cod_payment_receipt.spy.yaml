@@ -1,0 +1,10 @@
+class: CodPaymentReceipt
+fields:
+  orderNumber: String
+  paymentMethod: String
+  collectionMethod: String
+  amountCollected: double
+  collectionTime: DateTime?
+  collectedBy: String?
+  paymentStatus: String
+  gatewayTransactionReference: String?

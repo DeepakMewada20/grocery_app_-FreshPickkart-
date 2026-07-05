@@ -184,6 +184,7 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
   }
 
   double _calculateRefund() {
+    if (widget.order.paymentMode == 'cod') return 0;
     final reasonData = _parseCancellationReason();
     final originalStatus = reasonData['originalStatus'] ?? '';
     final cashAmount = widget.order.freshPointsUsed > 0
@@ -196,10 +197,61 @@ class _CancellationDetailSheetState extends State<_CancellationDetailSheet> {
   }
 
   Future<void> _handleApprove() async {
+    final isCod = widget.order.paymentMode == 'cod';
     final calculatedRefund = _calculateRefund();
     final overrideController = TextEditingController(
       text: calculatedRefund.toStringAsFixed(2),
     );
+
+    if (isCod) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Approve Cancellation'),
+            content: const Text(
+              'This is a Cash on Delivery order. No refund is needed. '
+              'Are you sure you want to approve this cancellation?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Approve'),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed != true) return;
+
+      setState(() => _approving = true);
+      try {
+        final note = _adminNoteController.text;
+        final actionResult = await widget.controller.approve(
+          widget.order.orderId,
+          adminNote: note,
+        );
+        if (mounted) {
+          AdminSnackbarService.show(Get.context!, 'Approved: ${actionResult.message ?? 'Cancellation approved successfully.'}');
+          Navigator.pop(context);
+          widget.controller.reload();
+        }
+      } catch (e) {
+        if (mounted) AdminSnackbarService.show(Get.context!, 'Error: $e');
+      } finally {
+        if (mounted) setState(() => _approving = false);
+      }
+      return;
+    }
+
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {

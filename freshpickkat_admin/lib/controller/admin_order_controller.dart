@@ -30,19 +30,34 @@ class AdminOrderController extends GetxController {
   final Map<String, int> _totalCounts = {};
 
   RxString statusFilter = 'all'.obs;
+  RxString paymentModeFilter = 'all'.obs;
+  RxString paymentStatusFilter = 'all'.obs;
+  RxString paymentCollectionModeFilter = 'all'.obs;
 
-  Future<void> loadInitial({String? status, bool force = false}) async {
-    statusFilter.value = status ?? 'all';
+  String get _filterKey =>
+      '${statusFilter.value}|${paymentModeFilter.value}|${paymentStatusFilter.value}|${paymentCollectionModeFilter.value}';
+
+  Future<void> loadInitial({
+    String? status,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
+    bool force = false,
+  }) async {
+    if (status != null) statusFilter.value = status;
+    if (paymentMode != null) paymentModeFilter.value = paymentMode;
+    if (paymentStatus != null) paymentStatusFilter.value = paymentStatus;
+    if (paymentCollectionMode != null) paymentCollectionModeFilter.value = paymentCollectionMode;
 
     if (force) {
-      _nextPageTokens[statusFilter.value] = null;
-      _hasMoreMap[statusFilter.value] = true;
-      _totalCounts[statusFilter.value] = 0;
+      _nextPageTokens[_filterKey] = null;
+      _hasMoreMap[_filterKey] = true;
+      _totalCounts[_filterKey] = 0;
     }
 
-    nextPageToken.value = _nextPageTokens[statusFilter.value];
-    totalCount.value = _totalCounts[statusFilter.value] ?? 0;
-    hasMore.value = _hasMoreMap[statusFilter.value] ?? true;
+    nextPageToken.value = _nextPageTokens[_filterKey];
+    totalCount.value = _totalCounts[_filterKey] ?? 0;
+    hasMore.value = _hasMoreMap[_filterKey] ?? true;
     error.value = null;
 
     isLoading.value = true;
@@ -72,27 +87,26 @@ class AdminOrderController extends GetxController {
           limit: pageSize,
           pageToken: nextPageToken.value,
           status: statusFilter.value == 'all' ? null : statusFilter.value,
+          paymentMode: paymentModeFilter.value == 'all' ? null : paymentModeFilter.value,
+          paymentStatus: paymentStatusFilter.value == 'all' ? null : paymentStatusFilter.value,
+          paymentCollectionMode: paymentCollectionModeFilter.value == 'all' ? null : paymentCollectionModeFilter.value,
         );
       });
 
       final bool isFirstPage = nextPageToken.value == null;
 
-      _nextPageTokens[statusFilter.value] = page.nextPageToken;
-      _totalCounts[statusFilter.value] = page.totalCount;
-      _hasMoreMap[statusFilter.value] =
+      _nextPageTokens[_filterKey] = page.nextPageToken;
+      _totalCounts[_filterKey] = page.totalCount;
+      _hasMoreMap[_filterKey] =
           page.nextPageToken != null && page.orders.isNotEmpty;
 
       nextPageToken.value = page.nextPageToken;
       totalCount.value = page.totalCount;
-      hasMore.value = _hasMoreMap[statusFilter.value]!;
+      hasMore.value = _hasMoreMap[_filterKey]!;
 
-      // If it's the first page (initial or force), clear old orders for this status
+      // If it's the first page (initial or force), clear orders for this filter combo
       if (isFirstPage) {
-        if (statusFilter.value == 'all') {
-          orders.clear();
-        } else {
-          orders.removeWhere((o) => o.status == statusFilter.value);
-        }
+        orders.clear();
       }
 
       for (final newOrder in page.orders) {
@@ -130,7 +144,16 @@ class AdminOrderController extends GetxController {
     if (target.isEmpty) return false;
 
     statusFilter.value = 'all';
-    await loadInitial(status: 'all', force: true);
+    paymentModeFilter.value = 'all';
+    paymentStatusFilter.value = 'all';
+    paymentCollectionModeFilter.value = 'all';
+    await loadInitial(
+      status: 'all',
+      paymentMode: 'all',
+      paymentStatus: 'all',
+      paymentCollectionMode: 'all',
+      force: true,
+    );
     if (orders.any((order) => order.orderId == target)) return true;
 
     var pagesScanned = 0;
@@ -321,6 +344,20 @@ class AdminOrderController extends GetxController {
         order.orderId,
         reason,
         failureNote: failureNote,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<CodPaymentReceipt?> getCodPaymentReceipt(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.getCodPaymentReceipt(
+        orderId: orderId,
         firebaseUid: uid,
         idToken: idToken,
       );

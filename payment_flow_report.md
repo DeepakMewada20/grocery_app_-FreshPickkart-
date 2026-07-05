@@ -16,8 +16,9 @@ The app supports **three payment methods** at checkout, plus a **COD collection 
 |--------|-------|--------|
 | **Module 0** | Pay Now — Direct UPI | Production |
 | **Module 1** | Cash on Delivery — Order Creation | Production |
-| **Module 2** | Cash on Delivery — Payment Collection, Delivery Guards, Admin UI, User UI | Production |
+| **Module 2** | Cash on Delivery — Payment Collection, Delivery Guards, Admin UI, User UI, Complaint Screen, Payment Monitoring, Order Timeline | Production |
 | Module 3 | COD Abuse Prevention — Auto-Blocking, Trust Recovery, Admin Failure Recording | Production |
+| **Module 4** | COD Production Hardening — Receipt, Immutability, Search/Filter, Documentation | Production |
 
 | Method | Client-Side Name | Flags | Gateway Mechanism |
 |--------|------------------|-------|-------------------|
@@ -1459,7 +1460,109 @@ File: `payment_config.dart`
 
 ---
 
-## 17. Architecture Diagram (Summary)
+## 17. COD Production Hardening — Post Module 3 Enhancements
+
+This phase hardens the existing COD implementation without changing business rules.
+
+### 17.1 COD Payment Receipt
+
+When a COD payment is collected (cash or UPI QR), a payment receipt is generated and viewable from both admin and user order detail screens.
+
+**Receipt fields:**
+| Field | Source |
+|-------|--------|
+| Order Number | `customer_order.orderNumber` |
+| Payment Method | Always "Cash on Delivery" |
+| Collection Method | `paymentCollectionMode` (cash / upi_qr) |
+| Amount Collected | `finalAmount` |
+| Collection Time | `paymentCollectedAt` |
+| Collected By | Resolved from `paymentCollectedBy` UID → `app_user.userName` |
+| Payment Status | `paymentStatus` |
+| Gateway Transaction Reference | `payment_transaction.gatewayPaymentId` (if exists) |
+
+**Protocol:** `CodPaymentReceipt` in `cod_payment_receipt.spy.yaml`
+
+**Endpoints:**
+- `OrderEndpoint.getCodPaymentReceipt()` — admin, returns receipt with gateway reference
+- `OrderEndpoint.getUserCodPaymentReceipt()` — user, validates ownership, no gateway reference
+
+**UI:**
+- Admin `order_detail_screen.dart`: "View Receipt" button in Payment & Timeline section → bottom sheet
+- User `order_detail_screen.dart`: "View Receipt" button when `paymentMode == 'cod' && paymentStatus == 'paid'` → bottom sheet
+
+No PDF or invoice. Dialog-based receipt only.
+
+---
+
+### 17.2 COD Payment Immutability
+
+Once a COD payment is successfully collected (`paymentStatus == 'paid'`), the following fields become immutable:
+
+- `paymentCollectionMode`
+- `paymentCollectedAt`
+- `paymentCollectedBy`
+- `paymentStatus`
+- `codFailureReason`
+
+**Server-side guards:**
+- `collectCodPayment()` — double guard: checks both `paymentStatus != 'paid'` AND `paymentCollectedAt != null`
+- Any order update endpoint that touches payment fields checks for `paymentStatus == 'paid'` → rejects with "COD payment is immutable once collected"
+
+**UI:** Admin payment collection buttons are hidden after collection (already implemented).
+
+---
+
+### 17.3 Search & Filter Improvements
+
+#### Filters Added
+
+| Screen | Filter Chips | Type |
+|--------|-------------|------|
+| **Admin Orders** | Payment Method (All / Online / Shareable Link / COD) | FilterChip |
+| | Payment Status (All / Pending / Paid) | FilterChip |
+| | Collection Method (All / Cash / UPI QR) | FilterChip |
+| **Admin Payment Monitoring** | COD Filter (All / COD Pending / COD Paid / Online Paid / Link Pending) | FilterChip |
+| | Collection Method (All / Cash / UPI QR) | FilterChip |
+| **Admin Complaints** | Payment Method (All / Online / COD) | FilterChip |
+| | Payment Status (All / Pending / Paid) | FilterChip |
+| | Collection Method (All / Cash / UPI QR) | FilterChip |
+
+#### Server Endpoint Changes
+
+| Endpoint | New Optional Params |
+|----------|-------------------|
+| `OrderEndpoint.getOrdersPage()` | `paymentMode`, `paymentStatus`, `paymentCollectionMode` |
+| `PaymentEndpoint.adminSearchOrders()` | `paymentMode`, `paymentCollectionMode`, `codFilter` |
+| `ComplaintEndpoint.listComplaints()` | `paymentMode`, `paymentStatus`, `paymentCollectionMode` |
+
+All new params default to null (no filter) — backward compatible.
+
+---
+
+### 17.4 Security Additions
+
+| Security | Where | What It Protects Against |
+|----------|-------|------------------------|
+| **Payment receipt auth** | `getCodPaymentReceipt()` + `getUserCodPaymentReceipt()` | Unauthorized access to payment receipts |
+| **Double-collection guard** | `collectCodPayment()` | `paymentCollectedAt != null` — prevents collecting same COD payment twice |
+| **Payment field immutability** | All order update paths | Prevents tampering with collected COD payment records |
+| **User ownership check** | `getUserCodPaymentReceipt()` | User can only view their own receipts |
+
+---
+
+### 17.5 Module Assignment Correction
+
+The implementation report has been corrected to reflect the final architecture:
+
+| Module | Scope |
+|--------|-------|
+| **Module 1** | Core Backend, Checkout Integration, Payment Lifecycle, Refund Protection, Backend Architecture |
+| **Module 2** | Delivery Collection Workflow, QR Payment Collection, Cash Collection, User UI Updates, Admin UI Updates, Order Detail Updates, Complaint Screen Updates, Payment Monitoring Updates, Order Timeline Updates |
+| **Module 3** | Fraud Prevention, COD Refusal Tracking, Automatic COD Blocking, Trust Recovery System, Operational Analytics, Business Analytics |
+
+Complaint Screen, Payment Monitoring, and all UI work belongs to Module 2 — NOT Module 3.
+
+---
 
 ```mermaid
 graph TB

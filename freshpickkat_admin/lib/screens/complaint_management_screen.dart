@@ -76,68 +76,121 @@ class _ComplaintManagementScreenState extends State<ComplaintManagementScreen>
           tabs: _statuses.map((status) => Tab(text: status)).toList(),
         ),
       ),
-      body: Obx(() {
-        if (_controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final error = _controller.error.value;
-        if (error != null) {
-          return AdminStateView.error(
-            message: error,
-            onRetry: () => _controller.load(status: _controller.statusFilter),
-          );
-        }
-        if (_controller.complaints.isEmpty) {
-          return AdminStateView.empty(
-            title: 'No complaints',
-            message:
-                'No ${(_controller.statusFilter ?? 'pending').toLowerCase()} complaints.',
-            onRefresh: () => _controller.load(status: _controller.statusFilter),
-          );
-        }
-        return RefreshIndicator(
-          onRefresh: () => _controller.load(status: _controller.statusFilter),
-          child: ListView.separated(
-            padding: AdminResponsive.pagePadding(
-              context,
-            ).copyWith(bottom: AdminResponsive.bottomInset(context)),
-            itemCount:
-                _controller.complaints.length +
-                (_controller.hasMore.value ? 1 : 0),
-            separatorBuilder: (_, _) => SizedBox(height: 10.h),
-            itemBuilder: (context, index) {
-              if (index >= _controller.complaints.length) {
-                return Center(
-                  child: OutlinedButton(
-                    onPressed: _controller.isLoadingMore.value
-                        ? null
-                        : _controller.loadMore,
-                    child: Text(
-                      _controller.isLoadingMore.value
-                          ? 'Loading...'
-                          : 'Load more',
-                    ),
+      body: Column(
+        children: [
+          _buildPaymentFilterChips(context),
+          Expanded(
+            child: Obx(() {
+              if (_controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final error = _controller.error.value;
+              if (error != null) {
+                return AdminStateView.error(
+                  message: error,
+                  onRetry: () => _controller.load(
+                    status: _controller.statusFilter,
                   ),
                 );
               }
-              final complaint = _controller.complaints[index];
-              return _ComplaintCard(
-                complaint: complaint,
-                onTap: () async {
-                  await Get.to(
-                    () => _ComplaintDetailAdminScreen(
+              if (_controller.complaints.isEmpty) {
+                return AdminStateView.empty(
+                  title: 'No complaints',
+                  message:
+                      'No ${(_controller.statusFilter ?? 'pending').toLowerCase()} complaints.',
+                  onRefresh: () => _controller.load(
+                    status: _controller.statusFilter,
+                  ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () => _controller.load(
+                  status: _controller.statusFilter,
+                ),
+                child: ListView.separated(
+                  padding: AdminResponsive.pagePadding(
+                    context,
+                  ).copyWith(
+                    bottom: AdminResponsive.bottomInset(context),
+                  ),
+                  itemCount:
+                      _controller.complaints.length +
+                      (_controller.hasMore.value ? 1 : 0),
+                  separatorBuilder: (_, _) => SizedBox(height: 10.h),
+                  itemBuilder: (context, index) {
+                    if (index >= _controller.complaints.length) {
+                      return Center(
+                        child: OutlinedButton(
+                          onPressed: _controller.isLoadingMore.value
+                              ? null
+                              : _controller.loadMore,
+                          child: Text(
+                            _controller.isLoadingMore.value
+                                ? 'Loading...'
+                                : 'Load more',
+                          ),
+                        ),
+                      );
+                    }
+                    final complaint = _controller.complaints[index];
+                    return _ComplaintCard(
                       complaint: complaint,
-                      controller: _controller,
-                    ),
-                  );
-                  if (mounted)
-                    _controller.load(status: _controller.statusFilter);
-                },
+                      onTap: () async {
+                        await Get.to(
+                          () => _ComplaintDetailAdminScreen(
+                            complaint: complaint,
+                            controller: _controller,
+                          ),
+                        );
+                        if (mounted)
+                          _controller.load(
+                            status: _controller.statusFilter,
+                          );
+                      },
+                    );
+                  },
+                ),
               );
-            },
+            }),
           ),
-        );
-      }),
+        ],
+      ),
+    );
+  }
+  Widget _buildPaymentFilterChips(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+      child: Obx(
+        () => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChip('Payment: All', '', _controller.paymentModeFilter, (v) => _controller.load(paymentMode: v.isEmpty ? null : v)),
+              _buildFilterChip('Online', 'standard', _controller.paymentModeFilter, (v) => _controller.load(paymentMode: v.isEmpty ? null : v)),
+              _buildFilterChip('COD', 'cod', _controller.paymentModeFilter, (v) => _controller.load(paymentMode: v.isEmpty ? null : v)),
+              SizedBox(width: 16.w),
+              _buildFilterChip('Pay Status: All', '', _controller.paymentStatusFilter, (v) => _controller.load(paymentStatus: v.isEmpty ? null : v)),
+              _buildFilterChip('Pending', 'pending', _controller.paymentStatusFilter, (v) => _controller.load(paymentStatus: v.isEmpty ? null : v)),
+              _buildFilterChip('Paid', 'paid', _controller.paymentStatusFilter, (v) => _controller.load(paymentStatus: v.isEmpty ? null : v)),
+              SizedBox(width: 16.w),
+              _buildFilterChip('Collection: All', '', _controller.paymentCollectionModeFilter, (v) => _controller.load(paymentCollectionMode: v.isEmpty ? null : v)),
+              _buildFilterChip('Cash', 'cash', _controller.paymentCollectionModeFilter, (v) => _controller.load(paymentCollectionMode: v.isEmpty ? null : v)),
+              _buildFilterChip('UPI QR', 'upi_qr', _controller.paymentCollectionModeFilter, (v) => _controller.load(paymentCollectionMode: v.isEmpty ? null : v)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, RxString currentFilter, void Function(String) onChanged) {
+    return Padding(
+      padding: EdgeInsets.only(right: 6.w),
+      child: FilterChip(
+        label: Text(label, style: TextStyle(fontSize: 12.sp)),
+        selected: currentFilter.value == value,
+        onSelected: (_) => onChanged(value),
+      ),
     );
   }
 }

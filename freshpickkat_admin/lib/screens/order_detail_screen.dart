@@ -327,6 +327,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       icon: Icons.account_balance_wallet_outlined,
                       label: 'Mode: ${order.paymentCollectionMode == 'cash' ? 'Cash' : 'UPI QR'}',
                     ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 4.h),
+                      child: TextButton.icon(
+                        onPressed: _showCodPaymentReceipt,
+                        icon: Icon(Icons.receipt_long, size: 18.sp),
+                        label: Text(
+                          'View Receipt',
+                          style: TextStyle(fontSize: 13.sp.clamp(11.0, 14.0)),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -1374,7 +1385,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     try {
       await _orderController.markCodDeliveryFailed(
         order,
-        selectedReason,
+        selectedReason!,
         failureNote: noteController.text.trim().isEmpty
             ? null
             : noteController.text.trim(),
@@ -1915,6 +1926,86 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ? Theme.of(context).colorScheme.onSurface
                   : AdminAppTheme.getTextPrimaryColor(context),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showCodPaymentReceipt() async {
+    try {
+      final receipt = await _orderController.getCodPaymentReceipt(widget.order.orderId);
+      if (!mounted || receipt == null) return;
+
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Payment Receipt',
+                  style: TextStyle(
+                    fontSize: 18.sp.clamp(16.0, 20.0),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              const Divider(),
+              _receiptRow('Order Number', receipt.orderNumber),
+              _receiptRow('Payment Method', receipt.paymentMethod),
+              _receiptRow(
+                'Collection Method',
+                receipt.collectionMethod == 'cash' ? 'Cash' : 'UPI QR',
+              ),
+              _receiptRow(
+                'Amount Collected',
+                '₹${receipt.amountCollected.toStringAsFixed(2)}',
+              ),
+              if (receipt.collectionTime != null)
+                _receiptRow(
+                  'Collection Time',
+                  '${_formatDate(receipt.collectionTime)} ${_formatTime(receipt.collectionTime)}',
+                ),
+              if (receipt.collectedBy != null)
+                _receiptRow('Collected By', receipt.collectedBy!),
+              _receiptRow('Payment Status', receipt.paymentStatus),
+              if (receipt.gatewayTransactionReference != null)
+                _receiptRow(
+                  'Transaction Ref',
+                  receipt.gatewayTransactionReference!,
+                ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        AdminSnackbarService.show(context, 'Failed to load receipt: $e');
+      }
+    }
+  }
+
+  Widget _receiptRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ],
       ),

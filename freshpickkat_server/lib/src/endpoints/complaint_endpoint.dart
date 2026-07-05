@@ -190,6 +190,9 @@ class ComplaintEndpoint extends Endpoint {
     String? issueType,
     String? selectedField,
     String? complaintType,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
     int limit = 20,
     String? pageToken,
   }) async {
@@ -204,6 +207,9 @@ class ComplaintEndpoint extends Endpoint {
       issueType: issueType,
       selectedField: selectedField,
       complaintType: complaintType,
+      paymentMode: paymentMode,
+      paymentStatus: paymentStatus,
+      paymentCollectionMode: paymentCollectionMode,
       limit: limit,
       pageToken: pageToken,
     );

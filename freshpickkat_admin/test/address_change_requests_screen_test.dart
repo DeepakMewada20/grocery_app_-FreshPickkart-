@@ -91,6 +91,9 @@ class _FakeAdminComplaintController extends AdminComplaintController {
     String? issueType,
     String? selectedField,
     String? complaintType,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
   }) async {}
 
   @override

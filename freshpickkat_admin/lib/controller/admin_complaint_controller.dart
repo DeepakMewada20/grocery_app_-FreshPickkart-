@@ -18,6 +18,9 @@ class AdminComplaintController extends GetxController {
   String? issueTypeFilter;
   String? selectedFieldFilter;
   String? complaintTypeFilter;
+  final RxString paymentModeFilter = ''.obs;
+  final RxString paymentStatusFilter = ''.obs;
+  final RxString paymentCollectionModeFilter = ''.obs;
   String? _nextPageToken;
 
   static const inProgressStatus = 'In Progress';
@@ -35,11 +38,19 @@ class AdminComplaintController extends GetxController {
     String? issueType,
     String? selectedField,
     String? complaintType,
+    String? paymentMode,
+    String? paymentStatus,
+    String? paymentCollectionMode,
   }) async {
     statusFilter = status != null ? (_statusFilterMap[status] ?? status) : null;
     issueTypeFilter = issueType;
     selectedFieldFilter = selectedField;
     complaintTypeFilter = complaintType;
+    if (paymentMode != null) paymentModeFilter.value = paymentMode;
+    if (paymentStatus != null) paymentStatusFilter.value = paymentStatus;
+    if (paymentCollectionMode != null) {
+      paymentCollectionModeFilter.value = paymentCollectionMode;
+    }
     _nextPageToken = null;
     hasMore.value = false;
     isLoading.value = true;
@@ -86,6 +97,16 @@ class AdminComplaintController extends GetxController {
         issueType: issueTypeFilter,
         selectedField: selectedFieldFilter,
         complaintType: complaintTypeFilter,
+        paymentMode:
+            paymentModeFilter.value.isEmpty ? null : paymentModeFilter.value,
+        paymentStatus:
+            paymentStatusFilter.value.isEmpty
+                ? null
+                : paymentStatusFilter.value,
+        paymentCollectionMode:
+            paymentCollectionModeFilter.value.isEmpty
+                ? null
+                : paymentCollectionModeFilter.value,
         limit: 20,
         pageToken: pageToken,
       );
