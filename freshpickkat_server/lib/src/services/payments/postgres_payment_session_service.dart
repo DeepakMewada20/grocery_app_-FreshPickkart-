@@ -144,7 +144,7 @@ class PostgresPaymentSessionService {
         updatedAt: now,
       );
 
-      await PaymentSessionRow.db.insertRow(
+      final insertedSession = await PaymentSessionRow.db.insertRow(
         session,
         newSession,
         transaction: transaction,
@@ -157,17 +157,19 @@ class PostgresPaymentSessionService {
         description: 'COD payment - Order ${lockedOrder.orderNumber}',
         notes: {
           'order_id': lockedOrder.orderNumber,
-          'session_id': newSession.id?.toString() ?? '',
+          'session_id': insertedSession.id?.toString() ?? '',
         },
       );
 
       if (qrResponse['statusCode'] != 200) {
-        // Rollback: delete the session row
-        await PaymentSessionRow.db.delete(
-          session,
-          [newSession],
-          transaction: transaction,
-        );
+        // Rollback: delete the inserted session row
+        if (insertedSession.id != null) {
+          await PaymentSessionRow.db.delete(
+            session,
+            [insertedSession],
+            transaction: transaction,
+          );
+        }
 
         session.log(
           'Failed to create Razorpay UPI QR: ${qrResponse['body']}',
@@ -194,7 +196,7 @@ class PostgresPaymentSessionService {
 
       await PaymentSessionRow.db.updateRow(
         session,
-        newSession.copyWith(
+        insertedSession.copyWith(
           razorpayQrId: razorpayQrId.isNotEmpty ? razorpayQrId : null,
           qrImageUrl: qrImageUrl.isNotEmpty ? qrImageUrl : null,
           updatedAt: now,
@@ -204,11 +206,11 @@ class PostgresPaymentSessionService {
 
       final result = await PaymentSessionRow.db.findById(
         session,
-        newSession.id!,
+        insertedSession.id!,
         transaction: transaction,
       );
 
-      return _buildSessionData(result ?? newSession);
+      return _buildSessionData(result ?? insertedSession);
     });
   }
 
