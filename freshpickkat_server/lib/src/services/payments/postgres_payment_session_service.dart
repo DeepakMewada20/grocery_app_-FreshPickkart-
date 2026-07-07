@@ -159,6 +159,7 @@ class PostgresPaymentSessionService {
           'order_id': lockedOrder.orderNumber,
           'session_id': insertedSession.id?.toString() ?? '',
         },
+        expiryMinutes: 15,
       );
 
       if (qrResponse['statusCode'] != 200) {
@@ -193,6 +194,16 @@ class PostgresPaymentSessionService {
       final qrData = qrResponse['data'] as Map<String, dynamic>;
       final razorpayQrId = qrData['id']?.toString() ?? '';
       final qrImageUrl = qrData['image_url']?.toString() ?? '';
+
+      session.log(
+        'Razorpay UPI QR created: id=$razorpayQrId image_url=$qrImageUrl',
+      );
+      if (qrImageUrl.isEmpty) {
+        session.log(
+          'WARNING: qrImageUrl is empty for order ${lockedOrder.orderNumber}',
+          level: LogLevel.warning,
+        );
+      }
 
       await PaymentSessionRow.db.updateRow(
         session,

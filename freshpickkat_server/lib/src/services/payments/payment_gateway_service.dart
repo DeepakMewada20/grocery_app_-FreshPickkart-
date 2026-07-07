@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
@@ -222,8 +223,10 @@ class PaymentGatewayService {
     final closeBy = now.add(Duration(minutes: expiryMinutes));
     final closeByUnix = (closeBy.millisecondsSinceEpoch / 1000).round();
 
+    final orderNumber = description.replaceAll('COD payment - Order ', '');
     final body = <String, dynamic>{
       'type': 'upi_qr',
+      'name': 'COD-Order-$orderNumber',
       'usage': 'single_use',
       'fixed_amount': true,
       'payment_amount': amountInPaise,
@@ -243,6 +246,10 @@ class PaymentGatewayService {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 30));
+
+    stderr.writeln(
+      '[Razorpay QR] statusCode=${response.statusCode} body=${response.body}',
+    );
 
     return {
       'statusCode': response.statusCode,
