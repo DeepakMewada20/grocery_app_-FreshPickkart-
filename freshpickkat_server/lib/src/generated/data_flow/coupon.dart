@@ -30,6 +30,7 @@ abstract class Coupon
     this.endDate,
     this.expiryDate,
     this.usageLimit,
+    this.maxUsagePerUser,
     required this.usedCount,
     required this.isActive,
     required this.couponCategory,
@@ -52,6 +53,7 @@ abstract class Coupon
     DateTime? endDate,
     DateTime? expiryDate,
     int? usageLimit,
+    int? maxUsagePerUser,
     required int usedCount,
     required bool isActive,
     required String couponCategory,
@@ -86,6 +88,7 @@ abstract class Coupon
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['expiryDate']),
       usageLimit: jsonSerialization['usageLimit'] as int?,
+      maxUsagePerUser: jsonSerialization['maxUsagePerUser'] as int?,
       usedCount: jsonSerialization['usedCount'] as int,
       isActive: _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
       couponCategory: jsonSerialization['couponCategory'] as String,
@@ -122,6 +125,8 @@ abstract class Coupon
 
   int? usageLimit;
 
+  int? maxUsagePerUser;
+
   int usedCount;
 
   bool isActive;
@@ -150,6 +155,7 @@ abstract class Coupon
     DateTime? endDate,
     DateTime? expiryDate,
     int? usageLimit,
+    int? maxUsagePerUser,
     int? usedCount,
     bool? isActive,
     String? couponCategory,
@@ -175,6 +181,7 @@ abstract class Coupon
       if (endDate != null) 'endDate': endDate?.toJson(),
       if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
+      if (maxUsagePerUser != null) 'maxUsagePerUser': maxUsagePerUser,
       'usedCount': usedCount,
       'isActive': isActive,
       'couponCategory': couponCategory,
@@ -202,6 +209,7 @@ abstract class Coupon
       if (endDate != null) 'endDate': endDate?.toJson(),
       if (expiryDate != null) 'expiryDate': expiryDate?.toJson(),
       if (usageLimit != null) 'usageLimit': usageLimit,
+      if (maxUsagePerUser != null) 'maxUsagePerUser': maxUsagePerUser,
       'usedCount': usedCount,
       'isActive': isActive,
       'couponCategory': couponCategory,
@@ -234,6 +242,7 @@ class _CouponImpl extends Coupon {
     DateTime? endDate,
     DateTime? expiryDate,
     int? usageLimit,
+    int? maxUsagePerUser,
     required int usedCount,
     required bool isActive,
     required String couponCategory,
@@ -254,6 +263,7 @@ class _CouponImpl extends Coupon {
          endDate: endDate,
          expiryDate: expiryDate,
          usageLimit: usageLimit,
+         maxUsagePerUser: maxUsagePerUser,
          usedCount: usedCount,
          isActive: isActive,
          couponCategory: couponCategory,
@@ -280,6 +290,7 @@ class _CouponImpl extends Coupon {
     Object? endDate = _Undefined,
     Object? expiryDate = _Undefined,
     Object? usageLimit = _Undefined,
+    Object? maxUsagePerUser = _Undefined,
     int? usedCount,
     bool? isActive,
     String? couponCategory,
@@ -309,6 +320,9 @@ class _CouponImpl extends Coupon {
       endDate: endDate is DateTime? ? endDate : this.endDate,
       expiryDate: expiryDate is DateTime? ? expiryDate : this.expiryDate,
       usageLimit: usageLimit is int? ? usageLimit : this.usageLimit,
+      maxUsagePerUser: maxUsagePerUser is int?
+          ? maxUsagePerUser
+          : this.maxUsagePerUser,
       usedCount: usedCount ?? this.usedCount,
       isActive: isActive ?? this.isActive,
       couponCategory: couponCategory ?? this.couponCategory,

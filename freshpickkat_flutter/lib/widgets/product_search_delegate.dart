@@ -46,6 +46,10 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   @override
   Widget buildResults(BuildContext context) {
     if (searchController.selectedOfferFilter.value.isNotEmpty) {
+      if (searchController.offerResults.isEmpty &&
+          !searchController.isLoadingResults.value) {
+        searchController.searchProductsWithOfferFilter(query);
+      }
       return _buildOfferResultsBody(context);
     }
 
@@ -225,11 +229,23 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     return Obx(() {
       if (searchController.isLoadingResults.value &&
           searchController.offerResults.isEmpty) {
-        return const Center(child: CircularProgressIndicator());
+        return Column(
+          children: [
+            _buildOfferChips(context),
+            const Expanded(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ],
+        );
       }
 
       if (searchController.offerResults.isEmpty) {
-        return _buildNoResults(context);
+        return Column(
+          children: [
+            _buildOfferChips(context),
+            Expanded(child: _buildNoResults(context)),
+          ],
+        );
       }
 
       final filter = searchController.selectedOfferFilter.value;
@@ -352,9 +368,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                     filter.value,
                     query: query,
                   );
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => showResults(context),
-                  );
+                  showResults(context);
                 },
               ),
             );

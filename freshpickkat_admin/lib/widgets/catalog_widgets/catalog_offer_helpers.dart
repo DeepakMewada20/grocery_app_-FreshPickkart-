@@ -20,12 +20,18 @@ List<Coupon> filterCatalogCoupons(
   List<Coupon> coupons,
   String query, {
   String statusFilter = 'all',
+  String categoryFilter = 'all',
 }) {
-  final byStatus = _filterCatalogCouponsByStatus(coupons, statusFilter);
+  var filtered = _filterCatalogCouponsByStatus(coupons, statusFilter);
+  if (categoryFilter != 'all') {
+    filtered = filtered
+        .where((coupon) => coupon.couponCategory == categoryFilter)
+        .toList();
+  }
   final normalized = query.toLowerCase().trim();
-  if (normalized.isEmpty) return byStatus;
+  if (normalized.isEmpty) return filtered;
 
-  return byStatus.where((coupon) {
+  return filtered.where((coupon) {
     return coupon.code.toLowerCase().contains(normalized) ||
         coupon.description.toLowerCase().contains(normalized) ||
         coupon.couponCategory.toLowerCase().contains(normalized) ||

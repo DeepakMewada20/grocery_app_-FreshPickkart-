@@ -535,7 +535,7 @@ class PostgresAdminService {
     final users = await AppUserRow.db.find(
       session,
       where: (t) => t.status.equals('active'),
-      orderBy: (t) => t.createdAt,
+      orderBy: (t) => t.updatedAt,
       orderDescending: true,
       limit: clampPageLimit(limit, defaultLimit: 100, maxLimit: 500),
     );

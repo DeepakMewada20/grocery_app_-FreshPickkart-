@@ -80,7 +80,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  Widget _filterChip(String label, String value, RxString currentFilter) {
+  Widget _orderFilterChip(
+    String label,
+    String value,
+    RxString currentFilter,
+    AdminOrderController ctrl, {
+    required VoidCallback onSelect,
+  }) {
     return Padding(
       padding: EdgeInsets.only(right: 8.w),
       child: FilterChip(
@@ -89,11 +95,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         onSelected: (_) {
           if (currentFilter.value != value) {
             currentFilter.value = value;
-            _orderController.loadInitial(
-              status: _orderController.statusFilter.value,
-              paymentMode: _orderController.paymentModeFilter.value,
-              paymentStatus: _orderController.paymentStatusFilter.value,
-              paymentCollectionMode: _orderController.paymentCollectionModeFilter.value,
+            onSelect();
+            ctrl.loadInitial(
+              status: ctrl.statusFilter.value,
+              paymentMode: ctrl.paymentModeFilter.value,
+              paymentStatus: ctrl.paymentStatusFilter.value,
+              paymentCollectionMode: ctrl.paymentCollectionModeFilter.value,
             );
           }
         },
@@ -442,53 +449,73 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   AdminResponsive.pageHorizontalPadding(context),
                   8.h,
                 ),
-                child: _StatusFilterChips(
-                  currentFilter: _orderController.statusFilter.value,
-                  onChanged: (value) {
-                    if (value == null) return;
-                    _orderController.loadInitial(status: value);
-                  },
-                ),
-              ),
-              // Payment Mode filter chips
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _filterChip('Payment: All', 'all', _orderController.paymentModeFilter),
-                      _filterChip('Online', 'standard', _orderController.paymentModeFilter),
-                      _filterChip('Shareable Link', 'shareable_link', _orderController.paymentModeFilter),
-                      _filterChip('COD', 'cod', _orderController.paymentModeFilter),
-                    ],
-                  ),
-                ),
-              ),
-              // Payment Status filter chips
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _filterChip('Payment Status: All', 'all', _orderController.paymentStatusFilter),
-                      _filterChip('Pending', 'pending', _orderController.paymentStatusFilter),
-                      _filterChip('Paid', 'paid', _orderController.paymentStatusFilter),
-                    ],
-                  ),
-                ),
-              ),
-              // Collection Method filter chips
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _filterChip('Collection: All', 'all', _orderController.paymentCollectionModeFilter),
-                      _filterChip('Cash', 'cash', _orderController.paymentCollectionModeFilter),
-                      _filterChip('UPI QR', 'upi_qr', _orderController.paymentCollectionModeFilter),
+                      ...['all', 'placed', 'confirmed', 'packed', 'out_for_delivery', 'delivery_otp_pending', 'delivered', 'cancelled', 'replacement'].map((value) {
+                        final labels = <String, String>{
+                          'all': 'All Orders', 'placed': 'Placed', 'confirmed': 'Confirmed',
+                          'packed': 'Packed', 'out_for_delivery': 'Out for delivery',
+                          'delivery_otp_pending': 'OTP Pending', 'delivered': 'Delivered',
+                          'cancelled': 'Cancelled', 'replacement': 'Replacement',
+                        };
+                        final isSelected = _orderController.statusFilter.value == value &&
+                            _orderController.paymentModeFilter.value == 'all' &&
+                            _orderController.paymentStatusFilter.value == 'all' &&
+                            _orderController.paymentCollectionModeFilter.value == 'all';
+                        return Padding(
+                          padding: EdgeInsets.only(right: 8.w),
+                          child: FilterChip(
+                            selected: isSelected,
+                            onSelected: (_) {
+                              if (_orderController.statusFilter.value != value) {
+                                _orderController.statusFilter.value = value;
+                                _orderController.paymentModeFilter.value = 'all';
+                                _orderController.paymentStatusFilter.value = 'all';
+                                _orderController.paymentCollectionModeFilter.value = 'all';
+                                _orderController.loadInitial(status: value);
+                              }
+                            },
+                            label: Text(labels[value]!, style: TextStyle(fontSize: 12.sp)),
+                          ),
+                        );
+                      }),
+                      _orderFilterChip('Cash on Delivery', 'cod', _orderController.paymentModeFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentStatusFilter.value = 'all';
+                        _orderController.paymentCollectionModeFilter.value = 'all';
+                      }),
+                      _orderFilterChip('Online', 'standard', _orderController.paymentModeFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentStatusFilter.value = 'all';
+                        _orderController.paymentCollectionModeFilter.value = 'all';
+                      }),
+                      _orderFilterChip('Link', 'shareable_link', _orderController.paymentModeFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentStatusFilter.value = 'all';
+                        _orderController.paymentCollectionModeFilter.value = 'all';
+                      }),
+                      _orderFilterChip('Paid', 'paid', _orderController.paymentStatusFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentModeFilter.value = 'all';
+                        _orderController.paymentCollectionModeFilter.value = 'all';
+                      }),
+                      _orderFilterChip('Unpaid', 'pending', _orderController.paymentStatusFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentModeFilter.value = 'all';
+                        _orderController.paymentCollectionModeFilter.value = 'all';
+                      }),
+                      _orderFilterChip('COD Cash', 'cash', _orderController.paymentCollectionModeFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentModeFilter.value = 'all';
+                        _orderController.paymentStatusFilter.value = 'all';
+                      }),
+                      _orderFilterChip('COD UPI QR', 'upi_qr', _orderController.paymentCollectionModeFilter, _orderController, onSelect: () {
+                        _orderController.statusFilter.value = 'all';
+                        _orderController.paymentModeFilter.value = 'all';
+                        _orderController.paymentStatusFilter.value = 'all';
+                      }),
                     ],
                   ),
                 ),
@@ -599,79 +626,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 }
 
-class _StatusFilterChips extends StatelessWidget {
-  const _StatusFilterChips({
-    required this.currentFilter,
-    required this.onChanged,
-  });
 
-  final String currentFilter;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final filters = [
-      ('all', 'All Orders'),
-      ('placed', 'Placed'),
-      ('confirmed', 'Confirmed'),
-      ('packed', 'Packed'),
-      ('out_for_delivery', 'Out for delivery'),
-      ('delivery_otp_pending', 'OTP Pending'),
-      ('delivered', 'Delivered'),
-      ('cancelled', 'Cancelled'),
-      ('replacement', 'Replacement'),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          ...filters.map((filter) {
-            final value = filter.$1;
-            final label = filter.$2;
-            final isSelected = currentFilter == value;
-
-            return Padding(
-              padding: EdgeInsets.only(right: 8.w),
-              child: FilterChip(
-                selected: isSelected,
-                onSelected: (selected) {
-                  onChanged(value);
-                },
-                label: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12.sp.clamp(10.0, 13.0),
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  ),
-                ),
-                backgroundColor: AdminAppTheme.getTextSecondaryColor(
-                  context,
-                ).withValues(alpha: 0.08),
-                selectedColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.12),
-                side: BorderSide(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : AdminAppTheme.getTextSecondaryColor(
-                          context,
-                        ).withValues(alpha: 0.2),
-                  width: 1,
-                ),
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : AdminAppTheme.getTextSecondaryColor(context),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
 
 class _OrderCard extends StatefulWidget {
   const _OrderCard({

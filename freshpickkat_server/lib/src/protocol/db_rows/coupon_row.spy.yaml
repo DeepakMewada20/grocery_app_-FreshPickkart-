@@ -6,7 +6,7 @@ fields:
   code: String
   description: String?
   couponType: String
-  couponCategory: String, default='All'
+  couponCategory: String, default='General'
   discountValue: double?
   minOrderAmount: double, default=0
   maxDiscountAmount: double?

@@ -36,7 +36,7 @@ abstract class CouponRow
     this.productIds,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : couponCategory = couponCategory ?? 'All',
+  }) : couponCategory = couponCategory ?? 'General',
        minOrderAmount = minOrderAmount ?? 0.0,
        usedCount = usedCount ?? 0,
        status = status ?? 'active',

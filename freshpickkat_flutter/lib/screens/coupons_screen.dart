@@ -462,7 +462,7 @@ class _CouponListCard extends StatelessWidget {
                               : '₹${coupon.discountValue!.formatPrice} OFF',
                           cs: cs,
                         ),
-                      if (coupon.maxDiscount != null)
+                      if (coupon.type == 'PERCENTAGE_DISCOUNT' && coupon.maxDiscount != null)
                         _detail(
                           icon: Icons.trending_down_rounded,
                           label: 'Upto',

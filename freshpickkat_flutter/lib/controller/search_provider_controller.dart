@@ -167,9 +167,10 @@ class SearchProviderController extends GetxController {
     selectedOfferFilter.value = selectedOfferFilter.value == filter
         ? ''
         : filter;
-    expandedComboId.value = null; // Clear expanded combo when filter changes
+    expandedComboId.value = null;
 
     if (selectedOfferFilter.value.isNotEmpty) {
+      offerResults.clear();
       await searchProductsWithOfferFilter(query);
     } else if (query.trim().isNotEmpty) {
       await searchProducts(query);
@@ -220,7 +221,7 @@ class SearchProviderController extends GetxController {
       hasMoreOfferResults.value = result.nextPageToken != null;
       if (normalizedQuery.isNotEmpty) await saveSearch(normalizedQuery);
     } catch (e) {
-      AppLogger.error('Search', 'OfferProducts: $e');
+      AppLogger.error('Search', 'OfferProducts(filter=$filter, query=$query): $e');
       offerResults.clear();
     } finally {
       isLoadingResults.value = false;

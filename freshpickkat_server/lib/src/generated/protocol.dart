@@ -2319,7 +2319,7 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
-          columnDefault: '\'All\'::text',
+          columnDefault: '\'General\'::text',
         ),
         _i2.ColumnDefinition(
           name: 'discountValue',

@@ -77,12 +77,12 @@ class PostgresCouponService {
           code: normalizedCode,
           description: cleanNullableString(coupon.description),
           couponType: _resolveCouponType(coupon),
-          couponCategory: cleanNullableString(coupon.couponCategory) ?? 'All',
+          couponCategory: cleanNullableString(coupon.couponCategory) ?? 'General',
           discountValue: coupon.discountValue,
           minOrderAmount: coupon.minOrderAmount,
           maxDiscountAmount: coupon.maxDiscountAmount ?? coupon.maxDiscount,
           maxUsageTotal: coupon.usageLimit,
-          maxUsagePerUser: null,
+          maxUsagePerUser: coupon.maxUsagePerUser,
           loyaltyRequiredOrders: coupon.loyaltyRequiredOrders,
           usedCount: coupon.usedCount,
           startsAt: coupon.startDate?.toUtc(),
@@ -127,12 +127,12 @@ class PostgresCouponService {
         existing.copyWith(
           description: cleanNullableString(coupon.description),
           couponType: _resolveCouponType(coupon),
-          couponCategory: cleanNullableString(coupon.couponCategory) ?? 'All',
+          couponCategory: cleanNullableString(coupon.couponCategory) ?? 'General',
           discountValue: coupon.discountValue,
           minOrderAmount: coupon.minOrderAmount,
           maxDiscountAmount: coupon.maxDiscountAmount ?? coupon.maxDiscount,
           maxUsageTotal: coupon.usageLimit,
-          maxUsagePerUser: existing.maxUsagePerUser,
+          maxUsagePerUser: coupon.maxUsagePerUser,
           loyaltyRequiredOrders: coupon.loyaltyRequiredOrders,
           usedCount: coupon.usedCount,
           startsAt: coupon.startDate?.toUtc(),
@@ -384,6 +384,7 @@ class PostgresCouponService {
             endDate: row.endsAt,
             expiryDate: row.endsAt,
             usageLimit: row.maxUsageTotal,
+            maxUsagePerUser: row.maxUsagePerUser,
             usedCount: row.usedCount,
             isActive: row.status == 'active',
             couponCategory: row.couponCategory,
@@ -527,12 +528,7 @@ class PostgresCouponService {
     if (expiryDate != null && now.isAfter(expiryDate)) {
       return _CouponEvaluation.notApplicable(coupon, 'Coupon has expired');
     }
-    if (coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!) {
-      return _CouponEvaluation.notApplicable(
-        coupon,
-        'Coupon usage limit has been reached',
-      );
-    }
+
     if (normalizedSubtotal < coupon.minOrderAmount) {
       return _CouponEvaluation.notApplicable(
         coupon,
@@ -565,7 +561,7 @@ class PostgresCouponService {
     }
 
     var eligibleSubtotal = normalizedSubtotal;
-    if (couponType == 'PRODUCT_BASED') {
+    if (couponType == 'PRODUCT_BASED' || coupon.couponCategory == 'Product Based') {
       eligibleSubtotal = _calculateEligibleProductSubtotal(
         coupon: coupon,
         cartItems: cartItems,

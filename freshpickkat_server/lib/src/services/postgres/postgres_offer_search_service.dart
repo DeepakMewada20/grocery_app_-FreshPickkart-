@@ -234,7 +234,7 @@ class PostgresOfferSearchService {
         return 'AND is_free_delivery = TRUE';
       case 'free_gift':
       case 'free gift':
-        return 'AND smgm.id IS NOT NULL';
+        return '';
       default:
         return '';
     }
@@ -245,13 +245,15 @@ class PostgresOfferSearchService {
       case 'bogo':
         return '''
         AND bo.status = 'active'
-        AND NOW() BETWEEN bo."startsAt" AND bo."endsAt"
+        AND (bo."startsAt" IS NULL OR bo."startsAt" <= NOW())
+        AND (bo."endsAt" IS NULL OR bo."endsAt" >= NOW())
         ''';
       case 'free_gift':
       case 'free gift':
         return '''
         AND smgm.status = 'active'
-        AND NOW() BETWEEN smgm."startsAt" AND smgm."endsAt"
+        AND (smgm."startsAt" IS NULL OR smgm."startsAt" <= NOW())
+        AND (smgm."endsAt" IS NULL OR smgm."endsAt" >= NOW())
         ''';
       default:
         return '';
@@ -362,7 +364,7 @@ class PostgresOfferSearchService {
             default_variant."salePrice",
             0
           ) AS list_price,
-          (p."isFreeDelivery" OR c."isFreeDelivery") AS is_free_delivery,
+          p."isFreeDelivery" AS is_free_delivery,
           $categoryOfferPrice AS category_offer_price
         FROM product p
         JOIN category c ON c.id = p."categoryId"
@@ -388,7 +390,8 @@ class PostgresOfferSearchService {
           FROM category_offer co
           WHERE co."categoryId" = p."categoryId"
             AND co.status = 'active'
-            AND NOW() BETWEEN co."startsAt" AND co."endsAt"
+            AND (co."startsAt" IS NULL OR co."startsAt" <= NOW())
+            AND (co."endsAt" IS NULL OR co."endsAt" >= NOW())
           ORDER BY co.priority DESC
           LIMIT 1
         ) active_category_offer ON TRUE
