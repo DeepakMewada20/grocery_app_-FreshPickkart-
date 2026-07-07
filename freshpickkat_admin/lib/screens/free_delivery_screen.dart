@@ -321,9 +321,6 @@ class _DeliveryConfigCard extends StatelessWidget {
                   Text(
                     'Base fee: ₹${config!.baseDeliveryFee.toStringAsFixed(2)}',
                   ),
-                  Text(
-                    'Free threshold: ${config!.freeDeliveryThreshold != null ? '₹${config!.freeDeliveryThreshold!.toStringAsFixed(2)}' : 'Not set'}',
-                  ),
                   const SizedBox(height: 12),
                   Text(
                     'Slabs',
@@ -440,7 +437,6 @@ class _DeliveryConfigBottomSheet extends StatefulWidget {
 class _DeliveryConfigBottomSheetState
     extends State<_DeliveryConfigBottomSheet> {
   late final TextEditingController _baseFeeController;
-  late final TextEditingController _freeThresholdController;
   late final List<_DeliverySlabDraft> _slabs;
   bool _isSaving = false;
 
@@ -449,9 +445,6 @@ class _DeliveryConfigBottomSheetState
     super.initState();
     _baseFeeController = TextEditingController(
       text: widget.config.baseDeliveryFee.toStringAsFixed(2),
-    );
-    _freeThresholdController = TextEditingController(
-      text: widget.config.freeDeliveryThreshold?.toStringAsFixed(2) ?? '',
     );
     _slabs = widget.config.slabs
         .map(
@@ -473,7 +466,6 @@ class _DeliveryConfigBottomSheetState
   @override
   void dispose() {
     _baseFeeController.dispose();
-    _freeThresholdController.dispose();
     for (final slab in _slabs) {
       slab.dispose();
     }
@@ -529,15 +521,6 @@ class _DeliveryConfigBottomSheetState
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Base delivery fee (₹)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  TextField(
-                    controller: _freeThresholdController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Free delivery threshold (₹)',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -685,18 +668,10 @@ class _DeliveryConfigBottomSheetState
 
   Future<void> _save() async {
     final baseFeeText = _baseFeeController.text.trim();
-    final thresholdText = _freeThresholdController.text.trim();
     final baseFee = double.tryParse(baseFeeText);
-    final threshold = thresholdText.isEmpty
-        ? null
-        : double.tryParse(thresholdText);
 
     if (baseFee == null || baseFee < 0) {
       AdminSnackbarService.show(context, 'Base delivery fee must be a valid non-negative number.');
-      return;
-    }
-    if (threshold != null && threshold <= 0) {
-      AdminSnackbarService.show(context, 'Free delivery threshold must be greater than 0.');
       return;
     }
 
@@ -742,7 +717,6 @@ class _DeliveryConfigBottomSheetState
 
     final updated = widget.config.copyWith(
       baseDeliveryFee: baseFee,
-      freeDeliveryThreshold: threshold,
       slabs: slabs,
       updatedAt: DateTime.now(),
     );

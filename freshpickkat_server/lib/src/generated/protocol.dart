@@ -3076,12 +3076,6 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'double',
         ),
         _i2.ColumnDefinition(
-          name: 'freeDeliveryThreshold',
-          columnType: _i2.ColumnType.doublePrecision,
-          isNullable: true,
-          dartType: 'double?',
-        ),
-        _i2.ColumnDefinition(
           name: 'isActive',
           columnType: _i2.ColumnType.boolean,
           isNullable: false,

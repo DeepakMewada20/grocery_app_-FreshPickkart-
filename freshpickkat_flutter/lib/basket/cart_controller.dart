@@ -364,55 +364,67 @@ class CartController extends GetxController {
     final currentSubtotal = subtotal;
     final config = _cachedDeliveryConfig;
     double fee = 40.0;
-    double threshold = 300;
+    double? freeThreshold;
     String? message;
+
     if (config != null) {
-      threshold = config.freeDeliveryThreshold ?? threshold;
-      if (config.freeDeliveryThreshold != null &&
-          currentSubtotal >= config.freeDeliveryThreshold!) {
-        fee = 0.0;
-        message = 'Free delivery unlocked';
-      } else {
-        final matchingSlab = config.slabs.firstWhereOrNull(
-          (slab) =>
-              currentSubtotal >= slab.minOrderAmount &&
-              currentSubtotal <= slab.maxOrderAmount,
-        );
-        fee = matchingSlab?.fee ?? config.baseDeliveryFee;
-        final remaining = (threshold - currentSubtotal).clamp(
-          0,
-          double.infinity,
-        );
-        message =
-            'Add ₹${remaining.toDouble().formatPrice} more for free delivery';
-      }
-    } else if (currentSubtotal >= 300) {
-      fee = 0.0;
-      message = 'Free delivery unlocked';
-    } else if (currentSubtotal >= 200) {
-      fee = 20.0;
-      message =
-          'Add ₹${(300 - currentSubtotal).clamp(0, double.infinity).toDouble().formatPrice} more for free delivery';
+      final matchingSlab = config.slabs.firstWhereOrNull(
+        (slab) =>
+            currentSubtotal >= slab.minOrderAmount &&
+            currentSubtotal <= slab.maxOrderAmount,
+      );
+      fee = matchingSlab?.fee ?? config.baseDeliveryFee;
+      freeThreshold = config.slabs
+          .where((s) => s.fee <= 0)
+          .map((s) => s.minOrderAmount)
+          .fold<double?>(null, (minVal, amount) =>
+              minVal == null || amount < minVal ? amount : minVal);
     } else {
-      message =
-          'Add ₹${(threshold - currentSubtotal).clamp(0, double.infinity).toDouble().formatPrice} more for free delivery';
+      // Fallback defaults when no config loaded
+      if (currentSubtotal >= 300) {
+        fee = 0.0;
+        freeThreshold = 300;
+      } else if (currentSubtotal >= 200) {
+        fee = 20.0;
+        freeThreshold = 300;
+      } else {
+        freeThreshold = 300;
+      }
     }
+
+    if (fee <= 0) {
+      message = 'Free delivery unlocked';
+    } else if (freeThreshold != null && freeThreshold > 0) {
+      final remaining = (freeThreshold - currentSubtotal).clamp(
+        0,
+        double.infinity,
+      );
+      message =
+          'Add ₹${remaining.toDouble().formatPrice} more for free delivery';
+    }
+
+    final remaining = freeThreshold != null && freeThreshold > 0
+        ? (freeThreshold - currentSubtotal).clamp(0, double.infinity).toDouble()
+        : 0.0;
+    final progress = freeThreshold != null && freeThreshold > 0
+        ? ((currentSubtotal / freeThreshold) * 100.0).clamp(0.0, 100.0).toDouble()
+        : fee <= 0
+            ? 100.0
+            : 0.0;
+
     estimatedDeliveryFee.value = fee;
     localDeliveryPricing.value = DeliveryPricingResult(
       deliveryFee: fee,
       isFree: fee <= 0,
       message: message,
-      remainingAmount: (threshold - currentSubtotal).clamp(0, double.infinity),
-      progressPercent: threshold <= 0
-          ? 0
-          : ((currentSubtotal / threshold) * 100).clamp(0, 100).toDouble(),
+      remainingAmount: remaining,
+      progressPercent: progress,
       appliedRuleType: config != null
           ? 'cached_delivery_config'
           : 'local_estimate',
       appliedRuleName: config != null
           ? 'Cached delivery estimate'
           : 'Local delivery estimate',
-      freeDeliveryThreshold: threshold,
       baseDeliveryFee: config?.baseDeliveryFee ?? 40,
     );
   }

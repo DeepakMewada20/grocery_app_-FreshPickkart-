@@ -18,7 +18,6 @@ abstract class DeliveryConfigRow
     this.id,
     required this.configKey,
     required this.baseDeliveryFee,
-    this.freeDeliveryThreshold,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -30,7 +29,6 @@ abstract class DeliveryConfigRow
     _i1.UuidValue? id,
     required String configKey,
     required double baseDeliveryFee,
-    double? freeDeliveryThreshold,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -43,8 +41,6 @@ abstract class DeliveryConfigRow
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       configKey: jsonSerialization['configKey'] as String,
       baseDeliveryFee: (jsonSerialization['baseDeliveryFee'] as num).toDouble(),
-      freeDeliveryThreshold:
-          (jsonSerialization['freeDeliveryThreshold'] as num?)?.toDouble(),
       isActive: jsonSerialization['isActive'] == null
           ? null
           : _i1.BoolJsonExtension.fromJson(jsonSerialization['isActive']),
@@ -68,8 +64,6 @@ abstract class DeliveryConfigRow
 
   double baseDeliveryFee;
 
-  double? freeDeliveryThreshold;
-
   bool isActive;
 
   DateTime createdAt;
@@ -86,7 +80,6 @@ abstract class DeliveryConfigRow
     _i1.UuidValue? id,
     String? configKey,
     double? baseDeliveryFee,
-    double? freeDeliveryThreshold,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -98,8 +91,6 @@ abstract class DeliveryConfigRow
       if (id != null) 'id': id?.toJson(),
       'configKey': configKey,
       'baseDeliveryFee': baseDeliveryFee,
-      if (freeDeliveryThreshold != null)
-        'freeDeliveryThreshold': freeDeliveryThreshold,
       'isActive': isActive,
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
@@ -148,7 +139,6 @@ class _DeliveryConfigRowImpl extends DeliveryConfigRow {
     _i1.UuidValue? id,
     required String configKey,
     required double baseDeliveryFee,
-    double? freeDeliveryThreshold,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -156,7 +146,6 @@ class _DeliveryConfigRowImpl extends DeliveryConfigRow {
          id: id,
          configKey: configKey,
          baseDeliveryFee: baseDeliveryFee,
-         freeDeliveryThreshold: freeDeliveryThreshold,
          isActive: isActive,
          createdAt: createdAt,
          updatedAt: updatedAt,
@@ -170,7 +159,6 @@ class _DeliveryConfigRowImpl extends DeliveryConfigRow {
     Object? id = _Undefined,
     String? configKey,
     double? baseDeliveryFee,
-    Object? freeDeliveryThreshold = _Undefined,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -179,9 +167,6 @@ class _DeliveryConfigRowImpl extends DeliveryConfigRow {
       id: id is _i1.UuidValue? ? id : this.id,
       configKey: configKey ?? this.configKey,
       baseDeliveryFee: baseDeliveryFee ?? this.baseDeliveryFee,
-      freeDeliveryThreshold: freeDeliveryThreshold is double?
-          ? freeDeliveryThreshold
-          : this.freeDeliveryThreshold,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -201,12 +186,6 @@ class DeliveryConfigRowUpdateTable
   _i1.ColumnValue<double, double> baseDeliveryFee(double value) =>
       _i1.ColumnValue(
         table.baseDeliveryFee,
-        value,
-      );
-
-  _i1.ColumnValue<double, double> freeDeliveryThreshold(double? value) =>
-      _i1.ColumnValue(
-        table.freeDeliveryThreshold,
         value,
       );
 
@@ -240,10 +219,6 @@ class DeliveryConfigRowTable extends _i1.Table<_i1.UuidValue?> {
       'baseDeliveryFee',
       this,
     );
-    freeDeliveryThreshold = _i1.ColumnDouble(
-      'freeDeliveryThreshold',
-      this,
-    );
     isActive = _i1.ColumnBool(
       'isActive',
       this,
@@ -267,8 +242,6 @@ class DeliveryConfigRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnDouble baseDeliveryFee;
 
-  late final _i1.ColumnDouble freeDeliveryThreshold;
-
   late final _i1.ColumnBool isActive;
 
   late final _i1.ColumnDateTime createdAt;
@@ -280,7 +253,6 @@ class DeliveryConfigRowTable extends _i1.Table<_i1.UuidValue?> {
     id,
     configKey,
     baseDeliveryFee,
-    freeDeliveryThreshold,
     isActive,
     createdAt,
     updatedAt,

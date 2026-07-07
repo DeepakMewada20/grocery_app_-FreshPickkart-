@@ -404,12 +404,6 @@ class ValidationService {
     if (config.baseDeliveryFee < 0) {
       throw InvalidParametersException('Base delivery fee cannot be negative');
     }
-    if (config.freeDeliveryThreshold != null &&
-        config.freeDeliveryThreshold! < 0) {
-      throw InvalidParametersException(
-        'Free delivery threshold cannot be negative',
-      );
-    }
     for (final slab in config.slabs) {
       if (slab.minOrderAmount < 0 ||
           slab.maxOrderAmount < slab.minOrderAmount ||

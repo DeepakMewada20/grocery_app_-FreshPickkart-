@@ -1,0 +1,48 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "alterTable",
+      "alterTable": {
+        "__className__": "serverpod.TableMigration",
+        "name": "delivery_config",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "freeDeliveryThreshold"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "__className__": "serverpod.DatabaseMigrationWarning",
+            "type": "columnDropped",
+            "message": "Column \"freeDeliveryThreshold\" of table \"delivery_config\" will be dropped.",
+            "table": "delivery_config",
+            "columns": [
+              "freeDeliveryThreshold"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"freeDeliveryThreshold\" of table \"delivery_config\" will be dropped.",
+      "table": "delivery_config",
+      "columns": [
+        "freeDeliveryThreshold"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

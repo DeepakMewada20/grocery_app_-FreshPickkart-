@@ -100,7 +100,6 @@ class: DeliveryConfig
 fields:
   configId: String?
   baseDeliveryFee: double        # Default fee (e.g., ₹40)
-  freeDeliveryThreshold: double? # Cart total threshold for free delivery
   slabs: List<DeliverySlab>      # Slab definitions
   isActive: bool
   updatedAt: DateTime
@@ -579,10 +578,6 @@ static void validateDeliveryConfig(DeliveryConfig config) {
   if (config.baseDeliveryFee < 0)
     → throw 'Base delivery fee cannot be negative'
 
-  // Free delivery threshold non-negative
-  if (freeDeliveryThreshold != null && freeDeliveryThreshold < 0)
-    → throw 'Free delivery threshold cannot be negative'
-
   // Slab validation
   for (each slab):
     if (minOrderAmount < 0 || maxOrderAmount < minOrderAmount || fee < 0)
@@ -705,7 +700,6 @@ CREATE TABLE "delivery_config" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "configKey" text NOT NULL UNIQUE,
     "baseDeliveryFee" double precision NOT NULL,
-    "freeDeliveryThreshold" double precision,
     "isActive" boolean NOT NULL DEFAULT true,
     "createdAt" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -746,13 +740,17 @@ CREATE TABLE "delivery_rule" (
 );
 ```
 
-### Migration (20260707080601754):
+### Migration (20260707080601754) — ruleType → sortOrder:
 ```sql
--- Preserve data with RENAME, no DROP+ADD
 ALTER TABLE "delivery_rule" RENAME COLUMN "priority" TO "sortOrder";
 ALTER TABLE "delivery_rule" DROP COLUMN "ruleType";
 ALTER TABLE "delivery_rule" ALTER COLUMN "startsAt" DROP NOT NULL;
 ALTER TABLE "delivery_rule" ALTER COLUMN "endsAt" DROP NOT NULL;
+```
+
+### Migration (20260707084420676) — freeDeliveryThreshold removed:
+```sql
+ALTER TABLE "delivery_config" DROP COLUMN "freeDeliveryThreshold";
 ```
 
 ---

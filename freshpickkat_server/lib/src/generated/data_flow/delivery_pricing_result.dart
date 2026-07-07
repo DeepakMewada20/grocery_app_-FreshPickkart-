@@ -26,7 +26,6 @@ abstract class DeliveryPricingResult
     this.appliedRuleName,
     this.freeDeliveryProductId,
     this.freeDeliveryProductName,
-    this.freeDeliveryThreshold,
     required this.baseDeliveryFee,
   });
 
@@ -42,7 +41,6 @@ abstract class DeliveryPricingResult
     String? appliedRuleName,
     String? freeDeliveryProductId,
     String? freeDeliveryProductName,
-    double? freeDeliveryThreshold,
     required double baseDeliveryFee,
   }) = _DeliveryPricingResultImpl;
 
@@ -65,8 +63,6 @@ abstract class DeliveryPricingResult
           jsonSerialization['freeDeliveryProductId'] as String?,
       freeDeliveryProductName:
           jsonSerialization['freeDeliveryProductName'] as String?,
-      freeDeliveryThreshold:
-          (jsonSerialization['freeDeliveryThreshold'] as num?)?.toDouble(),
       baseDeliveryFee: (jsonSerialization['baseDeliveryFee'] as num).toDouble(),
     );
   }
@@ -93,8 +89,6 @@ abstract class DeliveryPricingResult
 
   String? freeDeliveryProductName;
 
-  double? freeDeliveryThreshold;
-
   double baseDeliveryFee;
 
   /// Returns a shallow copy of this [DeliveryPricingResult]
@@ -112,7 +106,6 @@ abstract class DeliveryPricingResult
     String? appliedRuleName,
     String? freeDeliveryProductId,
     String? freeDeliveryProductName,
-    double? freeDeliveryThreshold,
     double? baseDeliveryFee,
   });
   @override
@@ -132,8 +125,6 @@ abstract class DeliveryPricingResult
         'freeDeliveryProductId': freeDeliveryProductId,
       if (freeDeliveryProductName != null)
         'freeDeliveryProductName': freeDeliveryProductName,
-      if (freeDeliveryThreshold != null)
-        'freeDeliveryThreshold': freeDeliveryThreshold,
       'baseDeliveryFee': baseDeliveryFee,
     };
   }
@@ -155,8 +146,6 @@ abstract class DeliveryPricingResult
         'freeDeliveryProductId': freeDeliveryProductId,
       if (freeDeliveryProductName != null)
         'freeDeliveryProductName': freeDeliveryProductName,
-      if (freeDeliveryThreshold != null)
-        'freeDeliveryThreshold': freeDeliveryThreshold,
       'baseDeliveryFee': baseDeliveryFee,
     };
   }
@@ -182,7 +171,6 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
     String? appliedRuleName,
     String? freeDeliveryProductId,
     String? freeDeliveryProductName,
-    double? freeDeliveryThreshold,
     required double baseDeliveryFee,
   }) : super._(
          deliveryFee: deliveryFee,
@@ -196,7 +184,6 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
          appliedRuleName: appliedRuleName,
          freeDeliveryProductId: freeDeliveryProductId,
          freeDeliveryProductName: freeDeliveryProductName,
-         freeDeliveryThreshold: freeDeliveryThreshold,
          baseDeliveryFee: baseDeliveryFee,
        );
 
@@ -216,7 +203,6 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
     Object? appliedRuleName = _Undefined,
     Object? freeDeliveryProductId = _Undefined,
     Object? freeDeliveryProductName = _Undefined,
-    Object? freeDeliveryThreshold = _Undefined,
     double? baseDeliveryFee,
   }) {
     return DeliveryPricingResult(
@@ -247,9 +233,6 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
       freeDeliveryProductName: freeDeliveryProductName is String?
           ? freeDeliveryProductName
           : this.freeDeliveryProductName,
-      freeDeliveryThreshold: freeDeliveryThreshold is double?
-          ? freeDeliveryThreshold
-          : this.freeDeliveryThreshold,
       baseDeliveryFee: baseDeliveryFee ?? this.baseDeliveryFee,
     );
   }

@@ -11,5 +11,4 @@ fields:
   appliedRuleName: String?
   freeDeliveryProductId: String?
   freeDeliveryProductName: String?
-  freeDeliveryThreshold: double?
   baseDeliveryFee: double

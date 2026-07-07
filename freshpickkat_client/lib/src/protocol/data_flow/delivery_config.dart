@@ -18,7 +18,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
   DeliveryConfig._({
     this.configId,
     required this.baseDeliveryFee,
-    this.freeDeliveryThreshold,
     required this.slabs,
     required this.isActive,
     required this.updatedAt,
@@ -27,7 +26,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
   factory DeliveryConfig({
     String? configId,
     required double baseDeliveryFee,
-    double? freeDeliveryThreshold,
     required List<_i2.DeliverySlab> slabs,
     required bool isActive,
     required DateTime updatedAt,
@@ -37,8 +35,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
     return DeliveryConfig(
       configId: jsonSerialization['configId'] as String?,
       baseDeliveryFee: (jsonSerialization['baseDeliveryFee'] as num).toDouble(),
-      freeDeliveryThreshold:
-          (jsonSerialization['freeDeliveryThreshold'] as num?)?.toDouble(),
       slabs: _i3.Protocol().deserialize<List<_i2.DeliverySlab>>(
         jsonSerialization['slabs'],
       ),
@@ -53,8 +49,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
 
   double baseDeliveryFee;
 
-  double? freeDeliveryThreshold;
-
   List<_i2.DeliverySlab> slabs;
 
   bool isActive;
@@ -67,7 +61,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
   DeliveryConfig copyWith({
     String? configId,
     double? baseDeliveryFee,
-    double? freeDeliveryThreshold,
     List<_i2.DeliverySlab>? slabs,
     bool? isActive,
     DateTime? updatedAt,
@@ -78,8 +71,6 @@ abstract class DeliveryConfig implements _i1.SerializableModel {
       '__className__': 'DeliveryConfig',
       if (configId != null) 'configId': configId,
       'baseDeliveryFee': baseDeliveryFee,
-      if (freeDeliveryThreshold != null)
-        'freeDeliveryThreshold': freeDeliveryThreshold,
       'slabs': slabs.toJson(valueToJson: (v) => v.toJson()),
       'isActive': isActive,
       'updatedAt': updatedAt.toJson(),
@@ -98,14 +89,12 @@ class _DeliveryConfigImpl extends DeliveryConfig {
   _DeliveryConfigImpl({
     String? configId,
     required double baseDeliveryFee,
-    double? freeDeliveryThreshold,
     required List<_i2.DeliverySlab> slabs,
     required bool isActive,
     required DateTime updatedAt,
   }) : super._(
          configId: configId,
          baseDeliveryFee: baseDeliveryFee,
-         freeDeliveryThreshold: freeDeliveryThreshold,
          slabs: slabs,
          isActive: isActive,
          updatedAt: updatedAt,
@@ -118,7 +107,6 @@ class _DeliveryConfigImpl extends DeliveryConfig {
   DeliveryConfig copyWith({
     Object? configId = _Undefined,
     double? baseDeliveryFee,
-    Object? freeDeliveryThreshold = _Undefined,
     List<_i2.DeliverySlab>? slabs,
     bool? isActive,
     DateTime? updatedAt,
@@ -126,9 +114,6 @@ class _DeliveryConfigImpl extends DeliveryConfig {
     return DeliveryConfig(
       configId: configId is String? ? configId : this.configId,
       baseDeliveryFee: baseDeliveryFee ?? this.baseDeliveryFee,
-      freeDeliveryThreshold: freeDeliveryThreshold is double?
-          ? freeDeliveryThreshold
-          : this.freeDeliveryThreshold,
       slabs: slabs ?? this.slabs.map((e0) => e0.copyWith()).toList(),
       isActive: isActive ?? this.isActive,
       updatedAt: updatedAt ?? this.updatedAt,

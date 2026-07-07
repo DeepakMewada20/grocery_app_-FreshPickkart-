@@ -26,7 +26,6 @@ class PostgresDeliveryService {
     return DeliveryConfig(
       configId: row.id!.toString(),
       baseDeliveryFee: row.baseDeliveryFee,
-      freeDeliveryThreshold: row.freeDeliveryThreshold,
       slabs: slabs
           .map(
             (slab) => DeliverySlab(
@@ -59,7 +58,6 @@ class PostgresDeliveryService {
           DeliveryConfigRow(
             configKey: _defaultConfigKey,
             baseDeliveryFee: config.baseDeliveryFee,
-            freeDeliveryThreshold: config.freeDeliveryThreshold,
             isActive: config.isActive,
             createdAt: now,
             updatedAt: now,
@@ -71,7 +69,6 @@ class PostgresDeliveryService {
           session,
           row.copyWith(
             baseDeliveryFee: config.baseDeliveryFee,
-            freeDeliveryThreshold: config.freeDeliveryThreshold,
             isActive: config.isActive,
             updatedAt: now,
           ),
@@ -348,7 +345,6 @@ class PostgresDeliveryService {
     return DeliveryConfig(
       configId: _defaultConfigKey,
       baseDeliveryFee: 40,
-      freeDeliveryThreshold: 300,
       slabs: [
         DeliverySlab(minOrderAmount: 0, maxOrderAmount: 199, fee: 40),
         DeliverySlab(minOrderAmount: 200, maxOrderAmount: 299, fee: 20),

@@ -5,7 +5,6 @@ fields:
   id: UuidValue?, defaultPersist=random
   configKey: String
   baseDeliveryFee: double
-  freeDeliveryThreshold: double?
   isActive: bool, default=true
   createdAt: DateTime, defaultModel=now, defaultPersist=now
   updatedAt: DateTime, defaultModel=now, defaultPersist=now

@@ -36,7 +36,6 @@ class DeliveryChargeCalculator {
       appliedRuleName: 'Product Free Delivery',
       freeDeliveryProductId: firstFreeProductId,
       freeDeliveryProductName: firstFreeProductName,
-      freeDeliveryThreshold: normalPricing.freeDeliveryThreshold,
       baseDeliveryFee: normalPricing.deliveryFee,
     );
   }

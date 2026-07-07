@@ -208,7 +208,6 @@ class DeliveryEngine {
         appliedRuleId: result.appliedRuleId,
         appliedRuleType: result.appliedRuleType,
         appliedRuleName: result.appliedRuleName,
-        freeDeliveryThreshold: result.freeDeliveryThreshold,
         baseDeliveryFee: result.baseDeliveryFee,
       );
     }
@@ -220,7 +219,6 @@ class DeliveryEngine {
       deliverySource: 'base_fee',
       appliedRuleType: null,
       appliedRuleName: null,
-      freeDeliveryThreshold: config.freeDeliveryThreshold,
       baseDeliveryFee: config.baseDeliveryFee,
     );
   }
@@ -252,7 +250,6 @@ class DeliveryEngine {
     required String appliedRuleType,
     required String appliedRuleName,
   }) {
-    final freeThreshold = config.freeDeliveryThreshold;
     double? remainingAmount;
     double? progressPercent;
     String? message;
@@ -261,6 +258,22 @@ class DeliveryEngine {
       message = 'FREE Delivery unlocked';
       progressPercent = 100;
       remainingAmount = 0;
+    } else {
+      double? freeThreshold;
+      for (final s in config.slabs) {
+        if (s.fee <= 0 && (freeThreshold == null || s.minOrderAmount < freeThreshold)) {
+          freeThreshold = s.minOrderAmount;
+        }
+      }
+      if (freeThreshold != null && freeThreshold > 0) {
+        final diff = freeThreshold - cartTotal;
+        if (diff > 0) {
+          remainingAmount = diff;
+          message = 'Add ₹${diff.toStringAsFixed(0)} more for free delivery';
+          progressPercent =
+              ((cartTotal / freeThreshold) * 100).clamp(0, 100).toDouble();
+        }
+      }
     }
 
     return DeliveryPricingResult(
@@ -273,7 +286,6 @@ class DeliveryEngine {
       appliedRuleId: appliedRuleId,
       appliedRuleType: appliedRuleType,
       appliedRuleName: appliedRuleName,
-      freeDeliveryThreshold: freeThreshold,
       baseDeliveryFee: deliveryFee < 0 ? 0 : deliveryFee,
     );
   }
