@@ -417,6 +417,17 @@ class ValidationService {
         throw InvalidParametersException('Invalid delivery slab configuration');
       }
     }
+
+    // Check for overlapping slabs
+    final sorted = List<protocol.DeliverySlab>.from(config.slabs)
+      ..sort((a, b) => a.minOrderAmount.compareTo(b.minOrderAmount));
+    for (var i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i].maxOrderAmount >= sorted[i + 1].minOrderAmount) {
+        throw InvalidParametersException(
+          'Delivery slabs must not overlap: slab ${i+1} (₹${sorted[i].minOrderAmount}-₹${sorted[i].maxOrderAmount}) overlaps with slab ${i+2} (₹${sorted[i+1].minOrderAmount}-₹${sorted[i+1].maxOrderAmount})',
+        );
+      }
+    }
   }
 
   static void validateDeliveryRule(protocol.DeliveryRule rule) {
@@ -426,16 +437,10 @@ class ValidationService {
     if (rule.deliveryFee < 0) {
       throw InvalidParametersException('Delivery fee cannot be negative');
     }
-    if (rule.priority < 0) {
-      throw InvalidParametersException('Priority cannot be negative');
-    }
     final startDate = rule.startDate;
     final endDate = rule.endDate;
     if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
       throw InvalidParametersException('End date must be after start date');
-    }
-    if (rule.ruleType != 'special_event' && rule.ruleType != 'user_rule') {
-      throw InvalidParametersException('Invalid delivery rule type');
     }
     final targetType = rule.targetUserType?.trim().toLowerCase();
     if (targetType != null &&

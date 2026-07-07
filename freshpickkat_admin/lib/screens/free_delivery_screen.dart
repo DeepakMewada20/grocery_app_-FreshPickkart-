@@ -89,16 +89,24 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
                       child: Text('No special delivery rules configured'),
                     ),
                   ),
-                ..._controller.deliveryRules.map(
-                  (rule) => _DeliveryRuleCard(
-                    rule: rule,
-                    onToggle: (isActive) => _controller.toggleDeliveryRule(
-                      rule.ruleId ?? '',
-                      isActive,
-                    ),
-                    onEdit: () => _showRuleDialog(rule: rule),
-                    onDelete: () => _deleteRule(rule),
-                  ),
+                ..._controller.deliveryRules.asMap().entries.map(
+                  (entry) {
+                    final index = entry.key;
+                    final rule = entry.value;
+                    return _DeliveryRuleCard(
+                      rule: rule,
+                      isFirst: index == 0,
+                      isLast: index == _controller.deliveryRules.length - 1,
+                      onToggle: (isActive) => _controller.toggleDeliveryRule(
+                        rule.ruleId ?? '',
+                        isActive,
+                      ),
+                      onEdit: () => _showRuleDialog(rule: rule),
+                      onDelete: () => _deleteRule(rule),
+                      onMoveUp: () => _moveRule(rule, up: true),
+                      onMoveDown: () => _moveRule(rule, up: false),
+                    );
+                  },
                 ),
               ],
             ),
@@ -223,6 +231,20 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
     );
   }
 
+  Future<void> _moveRule(DeliveryRule rule, {required bool up}) async {
+    final ruleId = rule.ruleId;
+    if (ruleId == null || ruleId.isEmpty) return;
+    final success = up
+        ? await _controller.moveRuleUp(ruleId)
+        : await _controller.moveRuleDown(ruleId);
+    if (mounted) {
+      AdminSnackbarService.show(
+        context,
+        success ? 'Rule moved ${up ? "up" : "down"}' : 'Failed to move rule',
+      );
+    }
+  }
+
   void _deleteRule(DeliveryRule rule) {
     final ruleId = rule.ruleId;
     if (ruleId == null || ruleId.isEmpty) {
@@ -330,34 +352,70 @@ class _DeliveryConfigCard extends StatelessWidget {
 class _DeliveryRuleCard extends StatelessWidget {
   const _DeliveryRuleCard({
     required this.rule,
+    required this.isFirst,
+    required this.isLast,
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
+    required this.onMoveUp,
+    required this.onMoveDown,
   });
 
   final DeliveryRule rule;
+  final bool isFirst;
+  final bool isLast;
   final ValueChanged<bool> onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onMoveUp;
+  final VoidCallback onMoveDown;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: ListTile(
-        title: Text(rule.name),
-        subtitle: Text(
-          'Fee ₹${rule.deliveryFee.toStringAsFixed(2)} • Priority ${rule.priority} • ${rule.targetUserType == 'specific_order' ? 'specific_order (${rule.targetOrderCount})' : (rule.targetUserType ?? 'all users')}',
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'toggle') onToggle(!rule.isActive);
-            if (value == 'edit') onEdit();
-            if (value == 'delete') onDelete();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'toggle', child: Text('Toggle Active')),
-            PopupMenuItem(value: 'edit', child: Text('Edit')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        child: Row(
+          children: [
+            // Move up/down buttons
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.keyboard_arrow_up, size: 20),
+                  onPressed: isFirst ? null : onMoveUp,
+                  tooltip: 'Move up',
+                  visualDensity: VisualDensity.compact,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                  onPressed: isLast ? null : onMoveDown,
+                  tooltip: 'Move down',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            // Rule info
+            Expanded(
+              child: ListTile(
+                title: Text(rule.name),
+                subtitle: Text(
+                  'Fee ₹${rule.deliveryFee.toStringAsFixed(2)} • Sort ${rule.sortOrder} • ${rule.targetUserType == 'specific_order' ? 'specific_order (${rule.targetOrderCount})' : (rule.targetUserType ?? 'all users')}',
+                ),
+                trailing: PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'toggle') onToggle(!rule.isActive);
+                    if (value == 'edit') onEdit();
+                    if (value == 'delete') onDelete();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'toggle', child: Text('Toggle Active')),
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -715,9 +773,7 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _feeController;
-  late final TextEditingController _priorityController;
   late final TextEditingController _targetOrderCountController;
-  late String _ruleType;
   late String _targetUserType;
   bool _hasExpiry = false;
   DateTime? _startDate;
@@ -735,16 +791,12 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
     _feeController = TextEditingController(
       text: rule?.deliveryFee.toStringAsFixed(2) ?? '0',
     );
-    _priorityController = TextEditingController(
-      text: rule?.priority.toString() ?? '1',
-    );
     _targetOrderCountController = TextEditingController(
       text: rule?.targetOrderCount?.toString() ?? '5',
     );
-    _ruleType = rule?.ruleType ?? 'special_event';
     _targetUserType = rule?.targetUserType ?? 'all';
     if (rule != null) {
-      _hasExpiry = true;
+      _hasExpiry = rule.startDate != null || rule.endDate != null;
       _startDate = rule.startDate;
       _endDate = rule.endDate;
     }
@@ -755,7 +807,6 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
     _nameController.dispose();
     _descriptionController.dispose();
     _feeController.dispose();
-    _priorityController.dispose();
     _targetOrderCountController.dispose();
     super.dispose();
   }
@@ -823,26 +874,6 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                   ),
                   SizedBox(height: 12.h),
                   DropdownButtonFormField<String>(
-                    initialValue: _ruleType,
-                    decoration: const InputDecoration(
-                      labelText: 'Rule type',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'special_event',
-                        child: Text('Special Event'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'user_rule',
-                        child: Text('User Rule'),
-                      ),
-                    ],
-                    onChanged: (value) =>
-                        setState(() => _ruleType = value ?? 'special_event'),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
                     initialValue: _targetUserType,
                     decoration: const InputDecoration(
                       labelText: 'Target user',
@@ -882,71 +913,63 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 12.h),
-                  TextField(
-                    controller: _priorityController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Priority (higher is evaluated first)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
                   SizedBox(height: 16.h),
-                  if (_ruleType != 'user_rule') ...[
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Set Expiry Dates'),
-                      subtitle: Text(
-                        _hasExpiry && _startDate != null && _endDate != null
-                            ? 'Rule runs from ${_startDate!.day}/${_startDate!.month}/${_startDate!.year} to ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
-                            : 'Rule never expires until manually deactivated',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      value: _hasExpiry,
-                      onChanged: _isSaving
-                          ? null
-                          : (v) {
-                              setState(() {
-                                _hasExpiry = v;
-                                if (v) {
-                                  _startDate ??= DateTime.now();
-                                  _endDate ??= DateTime.now().add(const Duration(days: 30));
-                                }
-                              });
-                            },
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Set Expiry Dates'),
+                    subtitle: Text(
+                      _hasExpiry && _startDate != null && _endDate != null
+                          ? 'This rule is active only during the selected period'
+                          : 'This rule is permanent',
+                      style: const TextStyle(fontSize: 12),
                     ),
-                    if (_hasExpiry) ...[
-                      SizedBox(height: 6.h),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _pickDate(isStart: true),
-                              icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(
-                                _startDate != null
-                                    ? 'Start: ${_startDate!.day}/${_startDate!.month}'
-                                    : 'Start',
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                    value: _hasExpiry,
+                    onChanged: _isSaving
+                        ? null
+                        : (v) {
+                            setState(() {
+                              _hasExpiry = v;
+                              if (v) {
+                                _startDate ??= DateTime.now();
+                                _endDate ??= DateTime.now().add(const Duration(days: 30));
+                              } else {
+                                _startDate = null;
+                                _endDate = null;
+                              }
+                            });
+                          },
+                  ),
+                  if (_hasExpiry) ...[
+                    SizedBox(height: 6.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickDate(isStart: true),
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              _startDate != null
+                                  ? 'Start: ${_startDate!.day}/${_startDate!.month}'
+                                  : 'Start',
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _pickDate(isStart: false),
-                              icon: const Icon(Icons.calendar_today, size: 16),
-                              label: Text(
-                                _endDate != null
-                                    ? 'End: ${_endDate!.day}/${_endDate!.month}'
-                                    : 'End',
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickDate(isStart: false),
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              _endDate != null
+                                  ? 'End: ${_endDate!.day}/${_endDate!.month}'
+                                  : 'End',
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ],
                   SizedBox(height: 24.h),
                   FilledButton(
@@ -974,7 +997,6 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
   Future<void> _save() async {
     final name = _nameController.text.trim();
     final feeText = _feeController.text.trim();
-    final priorityText = _priorityController.text.trim();
     final orderCountText = _targetOrderCountController.text.trim();
 
     if (name.isEmpty) {
@@ -984,11 +1006,6 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
     final fee = double.tryParse(feeText);
     if (fee == null || fee < 0) {
       AdminSnackbarService.show(context, 'Delivery fee must be a valid non-negative number.');
-      return;
-    }
-    final priority = int.tryParse(priorityText);
-    if (priority == null || priority < 1) {
-      AdminSnackbarService.show(context, 'Priority must be a positive integer.');
       return;
     }
     if (_targetUserType == 'specific_order') {
@@ -1015,16 +1032,15 @@ class _DeliveryRuleBottomSheetState extends State<_DeliveryRuleBottomSheet> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
-      ruleType: _ruleType,
       deliveryFee: fee,
-      priority: priority,
+      sortOrder: widget.rule?.sortOrder ?? 0,
       targetUserType: _targetUserType,
       targetOrderCount: _targetUserType == 'specific_order'
           ? int.tryParse(orderCountText)
           : null,
       isActive: widget.rule?.isActive ?? true,
-      startDate: _hasExpiry ? (_startDate ?? DateTime.now()) : DateTime.now(),
-      endDate: _hasExpiry ? (_endDate ?? DateTime.now().add(const Duration(days: 30))) : DateTime(2099, 12, 31),
+      startDate: _hasExpiry ? _startDate : null,
+      endDate: _hasExpiry ? _endDate : null,
       createdAt: widget.rule?.createdAt ?? DateTime.now(),
     );
 

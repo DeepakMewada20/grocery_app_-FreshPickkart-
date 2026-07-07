@@ -4281,6 +4281,70 @@ class Endpoints extends _i1.EndpointDispatch {
                         params['idToken'],
                       ),
         ),
+        'moveDeliveryRuleUp': _i1.MethodConnector(
+          name: 'moveDeliveryRuleUp',
+          params: {
+            'ruleId': _i1.ParameterDescription(
+              name: 'ruleId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i15.FreeDeliveryEndpoint)
+                      .moveDeliveryRuleUp(
+                        session,
+                        params['ruleId'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
+        'moveDeliveryRuleDown': _i1.MethodConnector(
+          name: 'moveDeliveryRuleDown',
+          params: {
+            'ruleId': _i1.ParameterDescription(
+              name: 'ruleId',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'firebaseUid': _i1.ParameterDescription(
+              name: 'firebaseUid',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'idToken': _i1.ParameterDescription(
+              name: 'idToken',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['freeDelivery'] as _i15.FreeDeliveryEndpoint)
+                      .moveDeliveryRuleDown(
+                        session,
+                        params['ruleId'],
+                        params['firebaseUid'],
+                        params['idToken'],
+                      ),
+        ),
         'calculateDeliveryPricing': _i1.MethodConnector(
           name: 'calculateDeliveryPricing',
           params: {

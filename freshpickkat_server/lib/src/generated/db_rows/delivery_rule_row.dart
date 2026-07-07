@@ -18,18 +18,17 @@ abstract class DeliveryRuleRow
     this.id,
     required this.name,
     this.description,
-    required this.ruleType,
     required this.deliveryFee,
-    int? priority,
+    int? sortOrder,
     this.targetUserType,
     this.targetOrderCount,
-    required this.startsAt,
-    required this.endsAt,
+    this.startsAt,
+    this.endsAt,
     String? status,
     this.deactivatedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : priority = priority ?? 0,
+  }) : sortOrder = sortOrder ?? 0,
        status = status ?? 'active',
        createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
@@ -38,13 +37,12 @@ abstract class DeliveryRuleRow
     _i1.UuidValue? id,
     required String name,
     String? description,
-    required String ruleType,
     required double deliveryFee,
-    int? priority,
+    int? sortOrder,
     String? targetUserType,
     int? targetOrderCount,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -58,15 +56,16 @@ abstract class DeliveryRuleRow
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       name: jsonSerialization['name'] as String,
       description: jsonSerialization['description'] as String?,
-      ruleType: jsonSerialization['ruleType'] as String,
       deliveryFee: (jsonSerialization['deliveryFee'] as num).toDouble(),
-      priority: jsonSerialization['priority'] as int?,
+      sortOrder: jsonSerialization['sortOrder'] as int?,
       targetUserType: jsonSerialization['targetUserType'] as String?,
       targetOrderCount: jsonSerialization['targetOrderCount'] as int?,
-      startsAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['startsAt'],
-      ),
-      endsAt: _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
+      startsAt: jsonSerialization['startsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['startsAt']),
+      endsAt: jsonSerialization['endsAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['endsAt']),
       status: jsonSerialization['status'] as String?,
       deactivatedAt: jsonSerialization['deactivatedAt'] == null
           ? null
@@ -93,19 +92,17 @@ abstract class DeliveryRuleRow
 
   String? description;
 
-  String ruleType;
-
   double deliveryFee;
 
-  int priority;
+  int sortOrder;
 
   String? targetUserType;
 
   int? targetOrderCount;
 
-  DateTime startsAt;
+  DateTime? startsAt;
 
-  DateTime endsAt;
+  DateTime? endsAt;
 
   String status;
 
@@ -125,9 +122,8 @@ abstract class DeliveryRuleRow
     _i1.UuidValue? id,
     String? name,
     String? description,
-    String? ruleType,
     double? deliveryFee,
-    int? priority,
+    int? sortOrder,
     String? targetUserType,
     int? targetOrderCount,
     DateTime? startsAt,
@@ -144,13 +140,12 @@ abstract class DeliveryRuleRow
       if (id != null) 'id': id?.toJson(),
       'name': name,
       if (description != null) 'description': description,
-      'ruleType': ruleType,
       'deliveryFee': deliveryFee,
-      'priority': priority,
+      'sortOrder': sortOrder,
       if (targetUserType != null) 'targetUserType': targetUserType,
       if (targetOrderCount != null) 'targetOrderCount': targetOrderCount,
-      'startsAt': startsAt.toJson(),
-      'endsAt': endsAt.toJson(),
+      if (startsAt != null) 'startsAt': startsAt?.toJson(),
+      if (endsAt != null) 'endsAt': endsAt?.toJson(),
       'status': status,
       if (deactivatedAt != null) 'deactivatedAt': deactivatedAt?.toJson(),
       'createdAt': createdAt.toJson(),
@@ -200,13 +195,12 @@ class _DeliveryRuleRowImpl extends DeliveryRuleRow {
     _i1.UuidValue? id,
     required String name,
     String? description,
-    required String ruleType,
     required double deliveryFee,
-    int? priority,
+    int? sortOrder,
     String? targetUserType,
     int? targetOrderCount,
-    required DateTime startsAt,
-    required DateTime endsAt,
+    DateTime? startsAt,
+    DateTime? endsAt,
     String? status,
     DateTime? deactivatedAt,
     DateTime? createdAt,
@@ -215,9 +209,8 @@ class _DeliveryRuleRowImpl extends DeliveryRuleRow {
          id: id,
          name: name,
          description: description,
-         ruleType: ruleType,
          deliveryFee: deliveryFee,
-         priority: priority,
+         sortOrder: sortOrder,
          targetUserType: targetUserType,
          targetOrderCount: targetOrderCount,
          startsAt: startsAt,
@@ -236,13 +229,12 @@ class _DeliveryRuleRowImpl extends DeliveryRuleRow {
     Object? id = _Undefined,
     String? name,
     Object? description = _Undefined,
-    String? ruleType,
     double? deliveryFee,
-    int? priority,
+    int? sortOrder,
     Object? targetUserType = _Undefined,
     Object? targetOrderCount = _Undefined,
-    DateTime? startsAt,
-    DateTime? endsAt,
+    Object? startsAt = _Undefined,
+    Object? endsAt = _Undefined,
     String? status,
     Object? deactivatedAt = _Undefined,
     DateTime? createdAt,
@@ -252,17 +244,16 @@ class _DeliveryRuleRowImpl extends DeliveryRuleRow {
       id: id is _i1.UuidValue? ? id : this.id,
       name: name ?? this.name,
       description: description is String? ? description : this.description,
-      ruleType: ruleType ?? this.ruleType,
       deliveryFee: deliveryFee ?? this.deliveryFee,
-      priority: priority ?? this.priority,
+      sortOrder: sortOrder ?? this.sortOrder,
       targetUserType: targetUserType is String?
           ? targetUserType
           : this.targetUserType,
       targetOrderCount: targetOrderCount is int?
           ? targetOrderCount
           : this.targetOrderCount,
-      startsAt: startsAt ?? this.startsAt,
-      endsAt: endsAt ?? this.endsAt,
+      startsAt: startsAt is DateTime? ? startsAt : this.startsAt,
+      endsAt: endsAt is DateTime? ? endsAt : this.endsAt,
       status: status ?? this.status,
       deactivatedAt: deactivatedAt is DateTime?
           ? deactivatedAt
@@ -286,18 +277,13 @@ class DeliveryRuleRowUpdateTable extends _i1.UpdateTable<DeliveryRuleRowTable> {
     value,
   );
 
-  _i1.ColumnValue<String, String> ruleType(String value) => _i1.ColumnValue(
-    table.ruleType,
-    value,
-  );
-
   _i1.ColumnValue<double, double> deliveryFee(double value) => _i1.ColumnValue(
     table.deliveryFee,
     value,
   );
 
-  _i1.ColumnValue<int, int> priority(int value) => _i1.ColumnValue(
-    table.priority,
+  _i1.ColumnValue<int, int> sortOrder(int value) => _i1.ColumnValue(
+    table.sortOrder,
     value,
   );
 
@@ -312,16 +298,17 @@ class DeliveryRuleRowUpdateTable extends _i1.UpdateTable<DeliveryRuleRowTable> {
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime value) =>
+  _i1.ColumnValue<DateTime, DateTime> startsAt(DateTime? value) =>
       _i1.ColumnValue(
         table.startsAt,
         value,
       );
 
-  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime value) => _i1.ColumnValue(
-    table.endsAt,
-    value,
-  );
+  _i1.ColumnValue<DateTime, DateTime> endsAt(DateTime? value) =>
+      _i1.ColumnValue(
+        table.endsAt,
+        value,
+      );
 
   _i1.ColumnValue<String, String> status(String value) => _i1.ColumnValue(
     table.status,
@@ -359,16 +346,12 @@ class DeliveryRuleRowTable extends _i1.Table<_i1.UuidValue?> {
       'description',
       this,
     );
-    ruleType = _i1.ColumnString(
-      'ruleType',
-      this,
-    );
     deliveryFee = _i1.ColumnDouble(
       'deliveryFee',
       this,
     );
-    priority = _i1.ColumnInt(
-      'priority',
+    sortOrder = _i1.ColumnInt(
+      'sortOrder',
       this,
       hasDefault: true,
     );
@@ -415,11 +398,9 @@ class DeliveryRuleRowTable extends _i1.Table<_i1.UuidValue?> {
 
   late final _i1.ColumnString description;
 
-  late final _i1.ColumnString ruleType;
-
   late final _i1.ColumnDouble deliveryFee;
 
-  late final _i1.ColumnInt priority;
+  late final _i1.ColumnInt sortOrder;
 
   late final _i1.ColumnString targetUserType;
 
@@ -442,9 +423,8 @@ class DeliveryRuleRowTable extends _i1.Table<_i1.UuidValue?> {
     id,
     name,
     description,
-    ruleType,
     deliveryFee,
-    priority,
+    sortOrder,
     targetUserType,
     targetOrderCount,
     startsAt,

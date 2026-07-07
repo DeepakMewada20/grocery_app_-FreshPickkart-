@@ -21,14 +21,16 @@ class DeliveryEngine {
       matchingRules.add(rule);
     }
 
-    matchingRules.sort((a, b) => a.priority.compareTo(b.priority));
+    matchingRules.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     if (matchingRules.isNotEmpty) {
       final selectedRule = matchingRules.first;
       return _buildResult(
         deliveryFee: selectedRule.deliveryFee,
         cartTotal: cartTotal,
         config: config,
-        appliedRuleType: selectedRule.ruleType,
+        deliverySource: 'delivery_rule',
+        appliedRuleId: selectedRule.ruleId,
+        appliedRuleType: 'delivery_rule',
         appliedRuleName: selectedRule.name,
       );
     }
@@ -39,6 +41,7 @@ class DeliveryEngine {
         deliveryFee: slab.fee,
         cartTotal: cartTotal,
         config: config,
+        deliverySource: 'delivery_slab',
         appliedRuleType: 'slab',
         appliedRuleName:
             '₹${slab.minOrderAmount.toStringAsFixed(0)} - ₹${slab.maxOrderAmount.toStringAsFixed(0)} slab',
@@ -49,6 +52,7 @@ class DeliveryEngine {
       deliveryFee: config.baseDeliveryFee,
       cartTotal: cartTotal,
       config: config,
+      deliverySource: 'base_fee',
       appliedRuleType: 'base_fee',
       appliedRuleName: 'Base delivery fee',
     );
@@ -79,6 +83,10 @@ class DeliveryEngine {
     return _storage.getAllDeliveryRules(session);
   }
 
+  static Future<List<DeliveryRule>> getAllDeliveryRulesIncludingInactive(Session session) {
+    return _storage.getAllDeliveryRulesIncludingInactive(session);
+  }
+
   static Future<bool> upsertDeliveryRule(
     Session session,
     DeliveryRule rule,
@@ -96,6 +104,14 @@ class DeliveryEngine {
     bool isActive,
   ) {
     return _storage.setDeliveryRuleActive(session, ruleId, isActive);
+  }
+
+  static Future<bool> moveDeliveryRuleUp(Session session, String ruleId) {
+    return _storage.moveDeliveryRuleUp(session, ruleId);
+  }
+
+  static Future<bool> moveDeliveryRuleDown(Session session, String ruleId) {
+    return _storage.moveDeliveryRuleDown(session, ruleId);
   }
 
   static DeliverySlab? _matchSlab(double cartTotal, List<DeliverySlab> slabs) {
@@ -169,7 +185,7 @@ class DeliveryEngine {
       matchingRules.add(rule);
     }
 
-    matchingRules.sort((a, b) => a.priority.compareTo(b.priority));
+    matchingRules.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     if (matchingRules.isNotEmpty) {
       final rule = matchingRules.first;
       final message = _buildOfferMessage(rule);
@@ -177,7 +193,9 @@ class DeliveryEngine {
         deliveryFee: rule.deliveryFee,
         cartTotal: 0,
         config: config,
-        appliedRuleType: rule.ruleType,
+        deliverySource: 'delivery_rule',
+        appliedRuleId: rule.ruleId,
+        appliedRuleType: 'delivery_rule',
         appliedRuleName: rule.name,
       );
       return DeliveryPricingResult(
@@ -186,6 +204,8 @@ class DeliveryEngine {
         message: message,
         remainingAmount: result.remainingAmount,
         progressPercent: result.progressPercent,
+        deliverySource: result.deliverySource,
+        appliedRuleId: result.appliedRuleId,
         appliedRuleType: result.appliedRuleType,
         appliedRuleName: result.appliedRuleName,
         freeDeliveryThreshold: result.freeDeliveryThreshold,
@@ -197,6 +217,7 @@ class DeliveryEngine {
       deliveryFee: config.baseDeliveryFee,
       isFree: false,
       message: null,
+      deliverySource: 'base_fee',
       appliedRuleType: null,
       appliedRuleName: null,
       freeDeliveryThreshold: config.freeDeliveryThreshold,
@@ -226,6 +247,8 @@ class DeliveryEngine {
     required double deliveryFee,
     required double cartTotal,
     required DeliveryConfig config,
+    required String deliverySource,
+    String? appliedRuleId,
     required String appliedRuleType,
     required String appliedRuleName,
   }) {
@@ -246,6 +269,8 @@ class DeliveryEngine {
       message: message,
       remainingAmount: remainingAmount,
       progressPercent: progressPercent,
+      deliverySource: deliverySource,
+      appliedRuleId: appliedRuleId,
       appliedRuleType: appliedRuleType,
       appliedRuleName: appliedRuleName,
       freeDeliveryThreshold: freeThreshold,

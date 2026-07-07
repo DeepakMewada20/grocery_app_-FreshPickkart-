@@ -226,7 +226,9 @@ class PostgresOrderService {
                 pricing.originalDeliveryFee - pricing.deliveryFee,
             freeDeliveryApplied: pricing.freeDeliveryApplied,
             freeDeliveryReason: pricing.freeDeliveryApplied
-                ? (pricing.deliveryPricing?.appliedRuleName ?? 'Free Delivery')
+                ? (pricing.deliveryPricing?.appliedRuleId
+                    ?? pricing.deliveryPricing?.appliedRuleName
+                    ?? 'Free Delivery')
                 : null,
             freshPointsUsed: pricing.freshPointsRedeemed,
             freshPointsValue: pricing.freshPointsDiscount,
@@ -585,7 +587,9 @@ class PostgresOrderService {
                 pricing.originalDeliveryFee - pricing.deliveryFee,
             freeDeliveryApplied: pricing.freeDeliveryApplied,
             freeDeliveryReason: pricing.freeDeliveryApplied
-                ? (pricing.deliveryPricing?.appliedRuleName ?? 'Free Delivery')
+                ? (pricing.deliveryPricing?.appliedRuleId
+                    ?? pricing.deliveryPricing?.appliedRuleName
+                    ?? 'Free Delivery')
                 : null,
             freshPointsUsed: pricing.freshPointsRedeemed,
             freshPointsValue: pricing.freshPointsDiscount,
@@ -2387,14 +2391,25 @@ class PostgresOrderService {
   }
 
   String _buildDeliverySnapshot(CartPricingResult pricing) {
+    final deliveryPricing = pricing.deliveryPricing;
     return jsonEncode({
       'deliveryCharge': pricing.deliveryFee,
       'originalDeliveryFee': pricing.originalDeliveryFee,
       'deliveryDiscountAmount':
           pricing.originalDeliveryFee - pricing.deliveryFee,
       'freeDeliveryApplied': pricing.freeDeliveryApplied,
-      if (pricing.freeDeliveryApplied && pricing.deliveryPricing != null)
-        'freeDeliveryReason': pricing.deliveryPricing!.appliedRuleName,
+      if (deliveryPricing != null) ...{
+        if (deliveryPricing.deliverySource != null)
+          'deliverySource': deliveryPricing.deliverySource,
+        if (deliveryPricing.appliedRuleId != null)
+          'appliedRuleId': deliveryPricing.appliedRuleId,
+        if (deliveryPricing.appliedRuleName != null)
+          'freeDeliveryReason': deliveryPricing.appliedRuleName,
+        if (deliveryPricing.freeDeliveryProductId != null)
+          'freeDeliveryProductId': deliveryPricing.freeDeliveryProductId,
+        if (deliveryPricing.freeDeliveryProductName != null)
+          'freeDeliveryProductName': deliveryPricing.freeDeliveryProductName,
+      },
     });
   }
 

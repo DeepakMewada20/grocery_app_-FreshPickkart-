@@ -163,8 +163,8 @@ class FreeDeliveryEndpoint extends Endpoint {
   }) async {
     final rules = await getAllDeliveryRules(session, firebaseUid, idToken);
     rules.sort((a, b) {
-      final priorityCompare = a.priority.compareTo(b.priority);
-      if (priorityCompare != 0) return priorityCompare;
+      final sortCompare = a.sortOrder.compareTo(b.sortOrder);
+      if (sortCompare != 0) return sortCompare;
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
@@ -271,6 +271,34 @@ class FreeDeliveryEndpoint extends Endpoint {
       idToken: idToken,
     );
     return DeliveryEngine.setDeliveryRuleActive(session, ruleId, isActive);
+  }
+
+  Future<bool> moveDeliveryRuleUp(
+    Session session,
+    String ruleId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return DeliveryEngine.moveDeliveryRuleUp(session, ruleId);
+  }
+
+  Future<bool> moveDeliveryRuleDown(
+    Session session,
+    String ruleId,
+    String firebaseUid,
+    String idToken,
+  ) async {
+    await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+    return DeliveryEngine.moveDeliveryRuleDown(session, ruleId);
   }
 
   Future<DeliveryPricingResult> calculateDeliveryPricing(

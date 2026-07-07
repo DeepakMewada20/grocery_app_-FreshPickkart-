@@ -260,24 +260,40 @@ class DependencyChecker {
     UuidValue ruleId,
   ) async {
     final refs = <String>[];
+    final ruleIdStr = ruleId.toString();
 
-    // Check orders that applied this delivery rule (via freeDeliveryReason text match)
+    // Try Rule ID first (new orders store ID in freeDeliveryReason)
+    int orderCount = await CustomerOrderRow.db.count(
+      session,
+      where: (t) =>
+          t.freeDeliveryApplied.equals(true) &
+          t.freeDeliveryReason.equals(ruleIdStr),
+    );
+
+    // Fallback to Rule Name (old orders store name in freeDeliveryReason)
     final ruleRow = await DeliveryRuleRow.db.findById(session, ruleId);
-    final ruleName = ruleRow?.name;
-    if (ruleName != null && ruleName.isNotEmpty) {
-      final orderCount = await CustomerOrderRow.db.count(
+    if (ruleRow?.name != null && ruleRow!.name.isNotEmpty) {
+      final nameCount = await CustomerOrderRow.db.count(
         session,
         where: (t) =>
             t.freeDeliveryApplied.equals(true) &
-            t.freeDeliveryReason.equals(ruleName),
+            t.freeDeliveryReason.equals(ruleRow.name),
       );
-      if (orderCount > 0) {
-        refs.add('$orderCount order(s)');
-      }
+      // Subtract the ID matches from name count
+      final idCount = await CustomerOrderRow.db.count(
+        session,
+        where: (t) =>
+            t.freeDeliveryApplied.equals(true) &
+            t.freeDeliveryReason.equals(ruleIdStr),
+      );
+      orderCount += (nameCount - idCount).clamp(0, nameCount);
+    }
+
+    if (orderCount > 0) {
+      refs.add('$orderCount order(s)');
     }
 
     // Check banners referencing this delivery rule via offerId
-    final ruleIdStr = ruleId.toString();
     final bannerCount = await BannerRow.db.count(
       session,
       where: (t) => t.offerId.equals(ruleIdStr) & t.status.equals('active'),

@@ -5,13 +5,12 @@ fields:
   id: UuidValue?, defaultPersist=random
   name: String
   description: String?
-  ruleType: String
   deliveryFee: double
-  priority: int, default=0
+  sortOrder: int, default=0
   targetUserType: String?
   targetOrderCount: int?
-  startsAt: DateTime
-  endsAt: DateTime
+  startsAt: DateTime?
+  endsAt: DateTime?
   status: String, default='active'
   deactivatedAt: DateTime?
   createdAt: DateTime, defaultModel=now, defaultPersist=now

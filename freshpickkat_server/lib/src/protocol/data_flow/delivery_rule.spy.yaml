@@ -3,12 +3,11 @@ fields:
   ruleId: String?
   name: String
   description: String?
-  ruleType: String
   deliveryFee: double
-  priority: int
+  sortOrder: int
   targetUserType: String?
   targetOrderCount: int?
   isActive: bool
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime?
+  endDate: DateTime?
   createdAt: DateTime

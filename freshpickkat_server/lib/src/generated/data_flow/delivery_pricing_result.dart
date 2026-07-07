@@ -20,8 +20,12 @@ abstract class DeliveryPricingResult
     this.message,
     this.remainingAmount,
     this.progressPercent,
+    this.deliverySource,
+    this.appliedRuleId,
     this.appliedRuleType,
     this.appliedRuleName,
+    this.freeDeliveryProductId,
+    this.freeDeliveryProductName,
     this.freeDeliveryThreshold,
     required this.baseDeliveryFee,
   });
@@ -32,8 +36,12 @@ abstract class DeliveryPricingResult
     String? message,
     double? remainingAmount,
     double? progressPercent,
+    String? deliverySource,
+    String? appliedRuleId,
     String? appliedRuleType,
     String? appliedRuleName,
+    String? freeDeliveryProductId,
+    String? freeDeliveryProductName,
     double? freeDeliveryThreshold,
     required double baseDeliveryFee,
   }) = _DeliveryPricingResultImpl;
@@ -49,8 +57,14 @@ abstract class DeliveryPricingResult
           ?.toDouble(),
       progressPercent: (jsonSerialization['progressPercent'] as num?)
           ?.toDouble(),
+      deliverySource: jsonSerialization['deliverySource'] as String?,
+      appliedRuleId: jsonSerialization['appliedRuleId'] as String?,
       appliedRuleType: jsonSerialization['appliedRuleType'] as String?,
       appliedRuleName: jsonSerialization['appliedRuleName'] as String?,
+      freeDeliveryProductId:
+          jsonSerialization['freeDeliveryProductId'] as String?,
+      freeDeliveryProductName:
+          jsonSerialization['freeDeliveryProductName'] as String?,
       freeDeliveryThreshold:
           (jsonSerialization['freeDeliveryThreshold'] as num?)?.toDouble(),
       baseDeliveryFee: (jsonSerialization['baseDeliveryFee'] as num).toDouble(),
@@ -67,9 +81,17 @@ abstract class DeliveryPricingResult
 
   double? progressPercent;
 
+  String? deliverySource;
+
+  String? appliedRuleId;
+
   String? appliedRuleType;
 
   String? appliedRuleName;
+
+  String? freeDeliveryProductId;
+
+  String? freeDeliveryProductName;
 
   double? freeDeliveryThreshold;
 
@@ -84,8 +106,12 @@ abstract class DeliveryPricingResult
     String? message,
     double? remainingAmount,
     double? progressPercent,
+    String? deliverySource,
+    String? appliedRuleId,
     String? appliedRuleType,
     String? appliedRuleName,
+    String? freeDeliveryProductId,
+    String? freeDeliveryProductName,
     double? freeDeliveryThreshold,
     double? baseDeliveryFee,
   });
@@ -98,8 +124,14 @@ abstract class DeliveryPricingResult
       if (message != null) 'message': message,
       if (remainingAmount != null) 'remainingAmount': remainingAmount,
       if (progressPercent != null) 'progressPercent': progressPercent,
+      if (deliverySource != null) 'deliverySource': deliverySource,
+      if (appliedRuleId != null) 'appliedRuleId': appliedRuleId,
       if (appliedRuleType != null) 'appliedRuleType': appliedRuleType,
       if (appliedRuleName != null) 'appliedRuleName': appliedRuleName,
+      if (freeDeliveryProductId != null)
+        'freeDeliveryProductId': freeDeliveryProductId,
+      if (freeDeliveryProductName != null)
+        'freeDeliveryProductName': freeDeliveryProductName,
       if (freeDeliveryThreshold != null)
         'freeDeliveryThreshold': freeDeliveryThreshold,
       'baseDeliveryFee': baseDeliveryFee,
@@ -115,8 +147,14 @@ abstract class DeliveryPricingResult
       if (message != null) 'message': message,
       if (remainingAmount != null) 'remainingAmount': remainingAmount,
       if (progressPercent != null) 'progressPercent': progressPercent,
+      if (deliverySource != null) 'deliverySource': deliverySource,
+      if (appliedRuleId != null) 'appliedRuleId': appliedRuleId,
       if (appliedRuleType != null) 'appliedRuleType': appliedRuleType,
       if (appliedRuleName != null) 'appliedRuleName': appliedRuleName,
+      if (freeDeliveryProductId != null)
+        'freeDeliveryProductId': freeDeliveryProductId,
+      if (freeDeliveryProductName != null)
+        'freeDeliveryProductName': freeDeliveryProductName,
       if (freeDeliveryThreshold != null)
         'freeDeliveryThreshold': freeDeliveryThreshold,
       'baseDeliveryFee': baseDeliveryFee,
@@ -138,8 +176,12 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
     String? message,
     double? remainingAmount,
     double? progressPercent,
+    String? deliverySource,
+    String? appliedRuleId,
     String? appliedRuleType,
     String? appliedRuleName,
+    String? freeDeliveryProductId,
+    String? freeDeliveryProductName,
     double? freeDeliveryThreshold,
     required double baseDeliveryFee,
   }) : super._(
@@ -148,8 +190,12 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
          message: message,
          remainingAmount: remainingAmount,
          progressPercent: progressPercent,
+         deliverySource: deliverySource,
+         appliedRuleId: appliedRuleId,
          appliedRuleType: appliedRuleType,
          appliedRuleName: appliedRuleName,
+         freeDeliveryProductId: freeDeliveryProductId,
+         freeDeliveryProductName: freeDeliveryProductName,
          freeDeliveryThreshold: freeDeliveryThreshold,
          baseDeliveryFee: baseDeliveryFee,
        );
@@ -164,8 +210,12 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
     Object? message = _Undefined,
     Object? remainingAmount = _Undefined,
     Object? progressPercent = _Undefined,
+    Object? deliverySource = _Undefined,
+    Object? appliedRuleId = _Undefined,
     Object? appliedRuleType = _Undefined,
     Object? appliedRuleName = _Undefined,
+    Object? freeDeliveryProductId = _Undefined,
+    Object? freeDeliveryProductName = _Undefined,
     Object? freeDeliveryThreshold = _Undefined,
     double? baseDeliveryFee,
   }) {
@@ -179,12 +229,24 @@ class _DeliveryPricingResultImpl extends DeliveryPricingResult {
       progressPercent: progressPercent is double?
           ? progressPercent
           : this.progressPercent,
+      deliverySource: deliverySource is String?
+          ? deliverySource
+          : this.deliverySource,
+      appliedRuleId: appliedRuleId is String?
+          ? appliedRuleId
+          : this.appliedRuleId,
       appliedRuleType: appliedRuleType is String?
           ? appliedRuleType
           : this.appliedRuleType,
       appliedRuleName: appliedRuleName is String?
           ? appliedRuleName
           : this.appliedRuleName,
+      freeDeliveryProductId: freeDeliveryProductId is String?
+          ? freeDeliveryProductId
+          : this.freeDeliveryProductId,
+      freeDeliveryProductName: freeDeliveryProductName is String?
+          ? freeDeliveryProductName
+          : this.freeDeliveryProductName,
       freeDeliveryThreshold: freeDeliveryThreshold is double?
           ? freeDeliveryThreshold
           : this.freeDeliveryThreshold,

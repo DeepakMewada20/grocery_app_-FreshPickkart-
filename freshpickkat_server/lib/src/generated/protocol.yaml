@@ -137,6 +137,8 @@ freeDelivery:
   - upsertDeliveryRule:
   - deleteDeliveryRule:
   - setDeliveryRuleActive:
+  - moveDeliveryRuleUp:
+  - moveDeliveryRuleDown:
   - calculateDeliveryPricing:
 freshPoints:
   - getSettings:

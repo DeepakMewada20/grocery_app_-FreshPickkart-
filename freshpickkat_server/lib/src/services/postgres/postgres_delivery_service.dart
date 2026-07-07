@@ -121,22 +121,17 @@ class PostgresDeliveryService {
     final rows = await DeliveryRuleRow.db.find(
       session,
       where: (t) => t.status.equals('active'),
-      orderBy: (t) => t.priority,
+      orderBy: (t) => t.sortOrder,
       orderDescending: false,
     );
 
     final now = DateTime.now().toUtc();
     return rows
-        .where(
-          (row) {
-            if (row.ruleType == 'user_rule') return true;
-            final startsAt = row.startsAt;
-            final endsAt = row.endsAt;
-            if (startsAt != null && now.isBefore(startsAt)) return false;
-            if (endsAt != null && now.isAfter(endsAt)) return false;
-            return true;
-          },
-        )
+        .where((row) {
+          if (row.startsAt != null && now.isBefore(row.startsAt!)) return false;
+          if (row.endsAt != null && now.isAfter(row.endsAt!)) return false;
+          return true;
+        })
         .map(_mapRule)
         .toList();
   }
@@ -145,7 +140,7 @@ class PostgresDeliveryService {
     final rows = await DeliveryRuleRow.db.find(
       session,
       where: (t) => t.status.equals('inactive'),
-      orderBy: (t) => t.priority,
+      orderBy: (t) => t.sortOrder,
       orderDescending: false,
     );
     return rows.map(_mapRule).toList();
@@ -155,10 +150,46 @@ class PostgresDeliveryService {
     final rows = await DeliveryRuleRow.db.find(
       session,
       where: (t) => t.status.equals('active'),
-      orderBy: (t) => t.priority,
+      orderBy: (t) => t.sortOrder,
       orderDescending: false,
     );
     return rows.map(_mapRule).toList();
+  }
+
+  Future<List<DeliveryRule>> getAllDeliveryRulesIncludingInactive(Session session) async {
+    final rows = await DeliveryRuleRow.db.find(
+      session,
+      orderBy: (t) => t.sortOrder,
+      orderDescending: false,
+    );
+    return rows.map(_mapRule).toList();
+  }
+
+  Future<int> getNextSortOrder(Session session) async {
+    final rows = await DeliveryRuleRow.db.find(
+      session,
+      orderBy: (t) => t.sortOrder,
+      orderDescending: true,
+      limit: 1,
+    );
+    return rows.isNotEmpty ? rows.first.sortOrder + 1 : 1;
+  }
+
+  Future<bool> swapSortOrder(Session session, String ruleId1, String ruleId2) async {
+    final parsed1 = tryParseUuid(ruleId1);
+    final parsed2 = tryParseUuid(ruleId2);
+    if (parsed1 == null || parsed2 == null) return false;
+
+    return session.db.transaction<bool>((transaction) async {
+      final row1 = await DeliveryRuleRow.db.findById(session, parsed1!, transaction: transaction);
+      final row2 = await DeliveryRuleRow.db.findById(session, parsed2!, transaction: transaction);
+      if (row1 == null || row2 == null) return false;
+
+      final tempOrder = row1.sortOrder;
+      await DeliveryRuleRow.db.updateRow(session, row1.copyWith(sortOrder: row2.sortOrder, updatedAt: DateTime.now().toUtc()), transaction: transaction);
+      await DeliveryRuleRow.db.updateRow(session, row2.copyWith(sortOrder: tempOrder, updatedAt: DateTime.now().toUtc()), transaction: transaction);
+      return true;
+    });
   }
 
   Future<bool> upsertDeliveryRule(
@@ -178,18 +209,18 @@ class PostgresDeliveryService {
 
       final now = DateTime.now().toUtc();
       if (row == null) {
+        final nextSortOrder = await getNextSortOrder(session);
         await DeliveryRuleRow.db.insertRow(
           session,
           DeliveryRuleRow(
             name: rule.name.trim(),
             description: cleanNullableString(rule.description),
-            ruleType: rule.ruleType.trim(),
             deliveryFee: rule.deliveryFee,
-            priority: rule.priority,
+            sortOrder: nextSortOrder,
             targetUserType: cleanNullableString(rule.targetUserType),
             targetOrderCount: rule.targetOrderCount,
-            startsAt: rule.startDate.toUtc(),
-            endsAt: rule.endDate.toUtc(),
+            startsAt: rule.startDate?.toUtc(),
+            endsAt: rule.endDate?.toUtc(),
             status: rule.isActive ? 'active' : 'inactive',
             deactivatedAt: rule.isActive ? null : now,
             createdAt: now,
@@ -203,13 +234,12 @@ class PostgresDeliveryService {
           row.copyWith(
             name: rule.name.trim(),
             description: cleanNullableString(rule.description),
-            ruleType: rule.ruleType.trim(),
             deliveryFee: rule.deliveryFee,
-            priority: rule.priority,
+            sortOrder: row.sortOrder,
             targetUserType: cleanNullableString(rule.targetUserType),
             targetOrderCount: rule.targetOrderCount,
-            startsAt: rule.startDate.toUtc(),
-            endsAt: rule.endDate.toUtc(),
+            startsAt: rule.startDate?.toUtc(),
+            endsAt: rule.endDate?.toUtc(),
             status: rule.isActive ? 'active' : 'inactive',
             deactivatedAt: rule.isActive ? null : now,
             updatedAt: now,
@@ -268,14 +298,43 @@ class PostgresDeliveryService {
     return true;
   }
 
+  Future<bool> moveDeliveryRuleUp(Session session, String ruleId) async {
+    final parsedId = tryParseUuid(ruleId);
+    if (parsedId == null) return false;
+
+    final allRules = await DeliveryRuleRow.db.find(
+      session,
+      orderBy: (t) => t.sortOrder,
+      orderDescending: false,
+    );
+    final idx = allRules.indexWhere((r) => r.id == parsedId);
+    if (idx <= 0) return false;
+
+    return swapSortOrder(session, allRules[idx].id!.toString(), allRules[idx - 1].id!.toString());
+  }
+
+  Future<bool> moveDeliveryRuleDown(Session session, String ruleId) async {
+    final parsedId = tryParseUuid(ruleId);
+    if (parsedId == null) return false;
+
+    final allRules = await DeliveryRuleRow.db.find(
+      session,
+      orderBy: (t) => t.sortOrder,
+      orderDescending: false,
+    );
+    final idx = allRules.indexWhere((r) => r.id == parsedId);
+    if (idx < 0 || idx >= allRules.length - 1) return false;
+
+    return swapSortOrder(session, allRules[idx].id!.toString(), allRules[idx + 1].id!.toString());
+  }
+
   DeliveryRule _mapRule(DeliveryRuleRow row) {
     return DeliveryRule(
       ruleId: row.id?.toString(),
       name: row.name,
       description: row.description,
-      ruleType: row.ruleType,
       deliveryFee: row.deliveryFee,
-      priority: row.priority,
+      sortOrder: row.sortOrder,
       targetUserType: row.targetUserType,
       targetOrderCount: row.targetOrderCount,
       isActive: row.status == 'active',

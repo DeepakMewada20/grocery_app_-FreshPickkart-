@@ -5,7 +5,11 @@ fields:
   message: String?
   remainingAmount: double?
   progressPercent: double?
+  deliverySource: String?
+  appliedRuleId: String?
   appliedRuleType: String?
   appliedRuleName: String?
+  freeDeliveryProductId: String?
+  freeDeliveryProductName: String?
   freeDeliveryThreshold: double?
   baseDeliveryFee: double

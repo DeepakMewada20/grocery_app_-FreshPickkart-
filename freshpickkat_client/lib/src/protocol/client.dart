@@ -2026,6 +2026,34 @@ class EndpointFreeDelivery extends _i1.EndpointRef {
     },
   );
 
+  _i2.Future<bool> moveDeliveryRuleUp(
+    String ruleId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'freeDelivery',
+    'moveDeliveryRuleUp',
+    {
+      'ruleId': ruleId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
+  _i2.Future<bool> moveDeliveryRuleDown(
+    String ruleId,
+    String firebaseUid,
+    String idToken,
+  ) => caller.callServerEndpoint<bool>(
+    'freeDelivery',
+    'moveDeliveryRuleDown',
+    {
+      'ruleId': ruleId,
+      'firebaseUid': firebaseUid,
+      'idToken': idToken,
+    },
+  );
+
   _i2.Future<_i42.DeliveryPricingResult> calculateDeliveryPricing(
     double cartTotal, {
     String? userId,

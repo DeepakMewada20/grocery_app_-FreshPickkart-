@@ -229,6 +229,44 @@ class AdminFreeDeliveryController extends GetxController {
     }
   }
 
+  Future<bool> moveRuleUp(String ruleId) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final result = await client.freeDelivery.moveDeliveryRuleUp(
+        ruleId, uid, idToken,
+      );
+      if (result) {
+        await loadDeliveryData(force: true);
+      }
+      return result;
+    } catch (e) {
+      debugPrint('Error moving rule up: $e');
+      return false;
+    }
+  }
+
+  Future<bool> moveRuleDown(String ruleId) async {
+    try {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      final result = await client.freeDelivery.moveDeliveryRuleDown(
+        ruleId, uid, idToken,
+      );
+      if (result) {
+        await loadDeliveryData(force: true);
+      }
+      return result;
+    } catch (e) {
+      debugPrint('Error moving rule down: $e');
+      return false;
+    }
+  }
+
   Future<bool> toggleDeliveryRule(String ruleId, bool isActive) async {
     try {
       if (isActive) {
