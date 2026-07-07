@@ -934,44 +934,78 @@ class _OrderCardState extends State<_OrderCard> {
         ),
       );
     } else if (order.status == 'out_for_delivery') {
-      buttons.add(
-        _lifecycleButton(
-          context: context,
-          label: 'Photo Delivery',
-          color: primaryColor,
-          icon: Icons.camera_alt_outlined,
-          isLoading: _isLoading,
-          onPressed: _isLoading
-              ? null
-              : () async {
-                  setState(() => _isLoading = true);
-                  try {
-                    await widget.onPhotoDelivery(order);
-                  } finally {
-                    if (mounted) setState(() => _isLoading = false);
-                  }
-                },
-        ),
-      );
-      buttons.add(
-        _lifecycleButton(
-          context: context,
-          label: 'OTP Delivery',
-          color: primaryColor,
-          icon: Icons.pin_outlined,
-          isLoading: _isLoading,
-          onPressed: _isLoading
-              ? null
-              : () async {
-                  setState(() => _isLoading = true);
-                  try {
-                    await widget.onGenerateOtp(order);
-                  } finally {
-                    if (mounted) setState(() => _isLoading = false);
-                  }
-                },
-        ),
-      );
+      if (order.paymentMode == 'cod' && order.paymentStatus != 'paid') {
+        buttons.add(
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: AdminAppTheme.getWarningColor(context).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: AdminAppTheme.getWarningColor(context).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.payments_outlined,
+                  size: 16,
+                  color: AdminAppTheme.getWarningColor(context),
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  'COD Pending — Collect payment first',
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    color: AdminAppTheme.getWarningColor(context),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        buttons.add(
+          _lifecycleButton(
+            context: context,
+            label: 'Photo Delivery',
+            color: primaryColor,
+            icon: Icons.camera_alt_outlined,
+            isLoading: _isLoading,
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    setState(() => _isLoading = true);
+                    try {
+                      await widget.onPhotoDelivery(order);
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
+                    }
+                  },
+          ),
+        );
+        buttons.add(
+          _lifecycleButton(
+            context: context,
+            label: 'OTP Delivery',
+            color: primaryColor,
+            icon: Icons.pin_outlined,
+            isLoading: _isLoading,
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    setState(() => _isLoading = true);
+                    try {
+                      await widget.onGenerateOtp(order);
+                    } finally {
+                      if (mounted) setState(() => _isLoading = false);
+                    }
+                  },
+          ),
+        );
+      }
       buttons.add(
         _lifecycleButton(
           context: context,

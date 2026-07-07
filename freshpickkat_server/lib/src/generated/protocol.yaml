@@ -203,6 +203,7 @@ order:
   - getCodPaymentReceipt:
   - getUserCodPaymentReceipt:
   - markCodDeliveryFailed:
+  - recoverQrPaymentAdmin:
 orderPg:
   - createPendingOrder:
   - getOrdersForUser:
@@ -240,6 +241,10 @@ paymentLink:
   - confirmPayment:
   - getPaymentSessionStatus:
   - getOrCreatePaymentLink:
+paymentSession:
+  - createQrPaymentSession:
+  - getQrPaymentSession:
+  - regenerateQrPaymentSession:
 paymentStream:
   - watchPaymentStatus:
 pricing:

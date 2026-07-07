@@ -9,6 +9,7 @@ import '../services/postgres/postgres_delivery_otp_service.dart';
 import '../services/postgres/postgres_delivery_verification_service.dart';
 import '../services/postgres/postgres_order_service.dart';
 import '../services/postgres/postgres_order_tracking_service.dart';
+import '../services/payments/postgres_payment_session_service.dart';
 import '../services/postgres/postgres_referral_service.dart';
 import '../services/postgres/postgres_refund_service.dart';
 import '../services/postgres/postgres_user_guard_service.dart';
@@ -49,6 +50,8 @@ class OrderEndpoint extends Endpoint {
   final FirebaseNotificationService _notifications =
       FirebaseNotificationService();
   final PostgresReferralService _referral = PostgresReferralService();
+  final PostgresPaymentSessionService _paymentSessions =
+      PostgresPaymentSessionService();
 
   Future<String> createOrder(Session session, protocol.Order order) {
     return _orders.createOrder(session, order);
@@ -1239,6 +1242,13 @@ class OrderEndpoint extends Endpoint {
       throw ArgumentError('Order not found: $orderId');
     }
 
+    if (collectionMode == 'upi_qr') {
+      throw StateError(
+        'UPI QR collection uses PaymentSession endpoint. '
+        'Call createQrPaymentSession instead.',
+      );
+    }
+
     await _orders.collectCodPayment(
       session,
       orderId: orderId,
@@ -1337,6 +1347,47 @@ class OrderEndpoint extends Endpoint {
     }
 
     return result;
+  }
+
+  /// On-demand recovery for COD Online (UPI QR) payments.
+  /// Checks if a pending COD order was actually paid on Razorpay (webhook
+  /// may have been missed). If so, updates session + order and returns the
+  /// recovered Order. Otherwise returns current Order unchanged.
+  Future<protocol.Order?> recoverQrPaymentAdmin(
+    Session session,
+    String orderId, {
+    required String firebaseUid,
+    required String idToken,
+  }) async {
+    final actor = await _adminGuard.ensureAdminSeller(
+      session,
+      firebaseUid: firebaseUid,
+      idToken: idToken,
+    );
+
+    final recoveryResult = await _paymentSessions.recoverQrPaymentForOrder(
+      session,
+      orderNumber: orderId,
+    );
+
+    if (recoveryResult['recovered'] == true) {
+      final updatedOrder = await _orders.getOrderById(session, orderId);
+      await _audit.write(
+        session,
+        actorUserId: actor.id,
+        action: 'recover_qr_payment',
+        entityType: 'order',
+        entityId: orderId,
+        metadata: {
+          'gatewayPaymentId':
+              (recoveryResult['gatewayPaymentId'] as String?) ?? '',
+        },
+      );
+      return updatedOrder;
+    }
+
+    // Return current order (no recovery needed)
+    return _orders.getOrderById(session, orderId);
   }
 
   Future<void> _ensureOrderOwner(

@@ -211,4 +211,100 @@ class PaymentGatewayService {
       'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
     };
   }
+
+  Future<Map<String, dynamic>> createUpiQr({
+    required int amountInPaise,
+    required String description,
+    required Map<String, String> notes,
+    int expiryMinutes = 5,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final closeBy = now.add(Duration(minutes: expiryMinutes));
+    final closeByUnix = (closeBy.millisecondsSinceEpoch / 1000).round();
+
+    final body = <String, dynamic>{
+      'type': 'upi_qr',
+      'usage': 'single_use',
+      'fixed_amount': true,
+      'payment_amount': amountInPaise,
+      'description': description,
+      'close_by': closeByUnix,
+      'notes': notes,
+    };
+
+    final response = await http
+        .post(
+          Uri.parse('$razorpayBaseUrl/payments/qr_codes'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 30));
+
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
+  Future<Map<String, dynamic>> fetchQrCode(String qrId) async {
+    final response = await http
+        .get(
+          Uri.parse('$razorpayBaseUrl/payments/qr_codes/$qrId'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
+
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
+  Future<Map<String, dynamic>> fetchQrPayments(String qrId) async {
+    final response = await http
+        .get(
+          Uri.parse('$razorpayBaseUrl/payments/qr_codes/$qrId/payments'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
+
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
+
+  Future<Map<String, dynamic>> closeQrCode(String qrId) async {
+    final response = await http
+        .post(
+          Uri.parse('$razorpayBaseUrl/payments/qr_codes/$qrId/close'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization':
+                'Basic ${base64Encode(utf8.encode('$razorpayKeyId:$razorpayKeySecret'))}',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
+
+    return {
+      'statusCode': response.statusCode,
+      'body': response.body,
+      'data': response.body.isNotEmpty ? jsonDecode(response.body) : null,
+    };
+  }
 }

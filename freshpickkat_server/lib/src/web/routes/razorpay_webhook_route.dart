@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../../services/config/env_service.dart';
+import '../../services/payments/postgres_payment_session_service.dart';
 import '../../services/postgres/postgres_auto_refund_service.dart';
 import '../../services/postgres/postgres_payment_link_service.dart';
 import '../../services/postgres/postgres_payment_service.dart';
@@ -17,6 +18,8 @@ class RazorpayWebhookRoute extends Route {
   final PostgresPaymentService _payments = PostgresPaymentService();
   final PostgresRefundService _refunds = PostgresRefundService();
   final PostgresPaymentLinkService _paymentLinks = PostgresPaymentLinkService();
+  final PostgresPaymentSessionService _paymentSessions =
+      PostgresPaymentSessionService();
 
   @override
   Future<Result> handleCall(Session session, Request request) async {
@@ -50,6 +53,38 @@ class RazorpayWebhookRoute extends Route {
     final bodyString = utf8.decode(bodyBytes);
     final payload = jsonDecode(bodyString) as Map<String, dynamic>;
     final event = (payload['event'] ?? '').toString();
+
+    // Handle qr_code.paid events before generic extraction
+    if (event == 'qr_code.paid') {
+      final qrEntity =
+          payload['payload']?['qr_code']?['entity'] as Map<String, dynamic>?;
+      final paymentEntity =
+          payload['payload']?['payment']?['entity'] as Map<String, dynamic>?;
+
+      final qrId = qrEntity?['id']?.toString();
+      final paymentId = paymentEntity?['id']?.toString();
+      final amount = paymentEntity?['amount'];
+
+      if (qrId == null || qrId.isEmpty || paymentId == null || paymentId.isEmpty || amount == null) {
+        return Response.badRequest(
+          body: Body.fromString('Missing qr_code.paid data'),
+        );
+      }
+
+      session.log(
+        'QR webhook: qrId=$qrId paymentId=$paymentId amount=$amount',
+        level: LogLevel.info,
+      );
+
+      final result = await _paymentSessions.handleQrWebhookPayment(
+        session,
+        razorpayQrId: qrId,
+        gatewayPaymentId: paymentId,
+        paidAmount: (amount as num).toDouble() / 100,
+      );
+
+      return _jsonOk({'success': result['success'] == true, 'message': 'QR payment processed'});
+    }
 
     final paymentId = _extractPaymentId(payload);
     final razorpayOrderId = _extractRazorpayOrderId(payload);

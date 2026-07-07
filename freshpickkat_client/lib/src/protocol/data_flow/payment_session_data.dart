@@ -14,86 +14,113 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
 abstract class PaymentSessionData implements _i1.SerializableModel {
   PaymentSessionData._({
-    required this.orderNumber,
-    required this.finalAmount,
-    required this.paymentStatus,
-    required this.orderStatus,
-    this.paymentLinkUrl,
-    this.paymentLinkExpiresAt,
-    this.linkStatus,
-    required this.expiresInSeconds,
+    required this.success,
+    this.sessionId,
+    this.orderId,
+    this.amount,
+    this.status,
+    this.razorpayQrId,
+    this.qrImageUrl,
+    this.expiresAt,
+    this.expiresInSeconds,
+    this.gatewayPaymentId,
+    this.paidAt,
+    this.error,
   });
 
   factory PaymentSessionData({
-    required String orderNumber,
-    required double finalAmount,
-    required String paymentStatus,
-    required String orderStatus,
-    String? paymentLinkUrl,
-    DateTime? paymentLinkExpiresAt,
-    String? linkStatus,
-    required int expiresInSeconds,
+    required bool success,
+    String? sessionId,
+    String? orderId,
+    double? amount,
+    String? status,
+    String? razorpayQrId,
+    String? qrImageUrl,
+    DateTime? expiresAt,
+    int? expiresInSeconds,
+    String? gatewayPaymentId,
+    DateTime? paidAt,
+    String? error,
   }) = _PaymentSessionDataImpl;
 
   factory PaymentSessionData.fromJson(Map<String, dynamic> jsonSerialization) {
     return PaymentSessionData(
-      orderNumber: jsonSerialization['orderNumber'] as String,
-      finalAmount: (jsonSerialization['finalAmount'] as num).toDouble(),
-      paymentStatus: jsonSerialization['paymentStatus'] as String,
-      orderStatus: jsonSerialization['orderStatus'] as String,
-      paymentLinkUrl: jsonSerialization['paymentLinkUrl'] as String?,
-      paymentLinkExpiresAt: jsonSerialization['paymentLinkExpiresAt'] == null
+      success: _i1.BoolJsonExtension.fromJson(jsonSerialization['success']),
+      sessionId: jsonSerialization['sessionId'] as String?,
+      orderId: jsonSerialization['orderId'] as String?,
+      amount: (jsonSerialization['amount'] as num?)?.toDouble(),
+      status: jsonSerialization['status'] as String?,
+      razorpayQrId: jsonSerialization['razorpayQrId'] as String?,
+      qrImageUrl: jsonSerialization['qrImageUrl'] as String?,
+      expiresAt: jsonSerialization['expiresAt'] == null
           ? null
-          : _i1.DateTimeJsonExtension.fromJson(
-              jsonSerialization['paymentLinkExpiresAt'],
-            ),
-      linkStatus: jsonSerialization['linkStatus'] as String?,
-      expiresInSeconds: jsonSerialization['expiresInSeconds'] as int,
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['expiresAt']),
+      expiresInSeconds: jsonSerialization['expiresInSeconds'] as int?,
+      gatewayPaymentId: jsonSerialization['gatewayPaymentId'] as String?,
+      paidAt: jsonSerialization['paidAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['paidAt']),
+      error: jsonSerialization['error'] as String?,
     );
   }
 
-  String orderNumber;
+  bool success;
 
-  double finalAmount;
+  String? sessionId;
 
-  String paymentStatus;
+  String? orderId;
 
-  String orderStatus;
+  double? amount;
 
-  String? paymentLinkUrl;
+  String? status;
 
-  DateTime? paymentLinkExpiresAt;
+  String? razorpayQrId;
 
-  String? linkStatus;
+  String? qrImageUrl;
 
-  int expiresInSeconds;
+  DateTime? expiresAt;
+
+  int? expiresInSeconds;
+
+  String? gatewayPaymentId;
+
+  DateTime? paidAt;
+
+  String? error;
 
   /// Returns a shallow copy of this [PaymentSessionData]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   PaymentSessionData copyWith({
-    String? orderNumber,
-    double? finalAmount,
-    String? paymentStatus,
-    String? orderStatus,
-    String? paymentLinkUrl,
-    DateTime? paymentLinkExpiresAt,
-    String? linkStatus,
+    bool? success,
+    String? sessionId,
+    String? orderId,
+    double? amount,
+    String? status,
+    String? razorpayQrId,
+    String? qrImageUrl,
+    DateTime? expiresAt,
     int? expiresInSeconds,
+    String? gatewayPaymentId,
+    DateTime? paidAt,
+    String? error,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'PaymentSessionData',
-      'orderNumber': orderNumber,
-      'finalAmount': finalAmount,
-      'paymentStatus': paymentStatus,
-      'orderStatus': orderStatus,
-      if (paymentLinkUrl != null) 'paymentLinkUrl': paymentLinkUrl,
-      if (paymentLinkExpiresAt != null)
-        'paymentLinkExpiresAt': paymentLinkExpiresAt?.toJson(),
-      if (linkStatus != null) 'linkStatus': linkStatus,
-      'expiresInSeconds': expiresInSeconds,
+      'success': success,
+      if (sessionId != null) 'sessionId': sessionId,
+      if (orderId != null) 'orderId': orderId,
+      if (amount != null) 'amount': amount,
+      if (status != null) 'status': status,
+      if (razorpayQrId != null) 'razorpayQrId': razorpayQrId,
+      if (qrImageUrl != null) 'qrImageUrl': qrImageUrl,
+      if (expiresAt != null) 'expiresAt': expiresAt?.toJson(),
+      if (expiresInSeconds != null) 'expiresInSeconds': expiresInSeconds,
+      if (gatewayPaymentId != null) 'gatewayPaymentId': gatewayPaymentId,
+      if (paidAt != null) 'paidAt': paidAt?.toJson(),
+      if (error != null) 'error': error,
     };
   }
 
@@ -107,23 +134,31 @@ class _Undefined {}
 
 class _PaymentSessionDataImpl extends PaymentSessionData {
   _PaymentSessionDataImpl({
-    required String orderNumber,
-    required double finalAmount,
-    required String paymentStatus,
-    required String orderStatus,
-    String? paymentLinkUrl,
-    DateTime? paymentLinkExpiresAt,
-    String? linkStatus,
-    required int expiresInSeconds,
+    required bool success,
+    String? sessionId,
+    String? orderId,
+    double? amount,
+    String? status,
+    String? razorpayQrId,
+    String? qrImageUrl,
+    DateTime? expiresAt,
+    int? expiresInSeconds,
+    String? gatewayPaymentId,
+    DateTime? paidAt,
+    String? error,
   }) : super._(
-         orderNumber: orderNumber,
-         finalAmount: finalAmount,
-         paymentStatus: paymentStatus,
-         orderStatus: orderStatus,
-         paymentLinkUrl: paymentLinkUrl,
-         paymentLinkExpiresAt: paymentLinkExpiresAt,
-         linkStatus: linkStatus,
+         success: success,
+         sessionId: sessionId,
+         orderId: orderId,
+         amount: amount,
+         status: status,
+         razorpayQrId: razorpayQrId,
+         qrImageUrl: qrImageUrl,
+         expiresAt: expiresAt,
          expiresInSeconds: expiresInSeconds,
+         gatewayPaymentId: gatewayPaymentId,
+         paidAt: paidAt,
+         error: error,
        );
 
   /// Returns a shallow copy of this [PaymentSessionData]
@@ -131,28 +166,36 @@ class _PaymentSessionDataImpl extends PaymentSessionData {
   @_i1.useResult
   @override
   PaymentSessionData copyWith({
-    String? orderNumber,
-    double? finalAmount,
-    String? paymentStatus,
-    String? orderStatus,
-    Object? paymentLinkUrl = _Undefined,
-    Object? paymentLinkExpiresAt = _Undefined,
-    Object? linkStatus = _Undefined,
-    int? expiresInSeconds,
+    bool? success,
+    Object? sessionId = _Undefined,
+    Object? orderId = _Undefined,
+    Object? amount = _Undefined,
+    Object? status = _Undefined,
+    Object? razorpayQrId = _Undefined,
+    Object? qrImageUrl = _Undefined,
+    Object? expiresAt = _Undefined,
+    Object? expiresInSeconds = _Undefined,
+    Object? gatewayPaymentId = _Undefined,
+    Object? paidAt = _Undefined,
+    Object? error = _Undefined,
   }) {
     return PaymentSessionData(
-      orderNumber: orderNumber ?? this.orderNumber,
-      finalAmount: finalAmount ?? this.finalAmount,
-      paymentStatus: paymentStatus ?? this.paymentStatus,
-      orderStatus: orderStatus ?? this.orderStatus,
-      paymentLinkUrl: paymentLinkUrl is String?
-          ? paymentLinkUrl
-          : this.paymentLinkUrl,
-      paymentLinkExpiresAt: paymentLinkExpiresAt is DateTime?
-          ? paymentLinkExpiresAt
-          : this.paymentLinkExpiresAt,
-      linkStatus: linkStatus is String? ? linkStatus : this.linkStatus,
-      expiresInSeconds: expiresInSeconds ?? this.expiresInSeconds,
+      success: success ?? this.success,
+      sessionId: sessionId is String? ? sessionId : this.sessionId,
+      orderId: orderId is String? ? orderId : this.orderId,
+      amount: amount is double? ? amount : this.amount,
+      status: status is String? ? status : this.status,
+      razorpayQrId: razorpayQrId is String? ? razorpayQrId : this.razorpayQrId,
+      qrImageUrl: qrImageUrl is String? ? qrImageUrl : this.qrImageUrl,
+      expiresAt: expiresAt is DateTime? ? expiresAt : this.expiresAt,
+      expiresInSeconds: expiresInSeconds is int?
+          ? expiresInSeconds
+          : this.expiresInSeconds,
+      gatewayPaymentId: gatewayPaymentId is String?
+          ? gatewayPaymentId
+          : this.gatewayPaymentId,
+      paidAt: paidAt is DateTime? ? paidAt : this.paidAt,
+      error: error is String? ? error : this.error,
     );
   }
 }

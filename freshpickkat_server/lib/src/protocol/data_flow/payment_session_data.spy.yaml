@@ -1,10 +1,14 @@
 class: PaymentSessionData
 fields:
-  orderNumber: String
-  finalAmount: double
-  paymentStatus: String
-  orderStatus: String
-  paymentLinkUrl: String?
-  paymentLinkExpiresAt: DateTime?
-  linkStatus: String?
-  expiresInSeconds: int
+  success: bool
+  sessionId: String?
+  orderId: String?
+  amount: double?
+  status: String?
+  razorpayQrId: String?
+  qrImageUrl: String?
+  expiresAt: DateTime?
+  expiresInSeconds: int?
+  gatewayPaymentId: String?
+  paidAt: DateTime?
+  error: String?

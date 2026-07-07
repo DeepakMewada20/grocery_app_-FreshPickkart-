@@ -3,7 +3,7 @@ Module 1 (Shop More, Get More Promotional Offer) complete — full CRUD endpoint
 
 Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I — anti-fraud scoring engine, hybrid reward routing, qualification hardening, coupon protection, reward reversal, admin fraud dashboard, terms & conditions, hardening tests.
 
-## Current Task: (completed) COD Production Hardening — All 6 tasks complete
+## Current Task: (completed) COD Online Payment Recovery — Nightly cron + on-demand refresh recovery
 
 ## Constraints & Preferences
 - Product add/edit page's 4 separate paginated calls for offers must be eliminated via server hydration
@@ -169,8 +169,28 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
   - `COD_HARDENING_REPORT.md` created
   - `AGENTS.md` updated
 
-## Test Status — 47/47 passing (excluding 2 pre-existing payment_recovery_test.dart failures)
+### Module 4 — Nightly QR Session Reconciliation Cron
+- **`PaymentGatewayService.fetchQrPayments(qrId)`**: New method calling `GET /v1/payments/qr_codes/:qr_id/payments` on Razorpay — lists all payments made against a QR code
+- **`PostgresPaymentSessionService._applyQrPaymentToOrder()`**: Shared helper extracted from `handleQrWebhookPayment` — FOR UPDATE lock on order, marks session PAID, updates order paymentStatus to 'paid'
+- **`PostgresPaymentSessionService._closeAndExpireSession()`**: Best-effort close QR on Razorpay + marks session EXPIRED
+- **`PostgresPaymentSessionService.reconcileExpiredQrSessions()`**: Queries all ACTIVE sessions past `expiresAt`, calls Razorpay `fetchQrPayments` for each, recovers missed-webhook payments via `_applyQrPaymentToOrder`, otherwise expires them (limit 50/run)
+- **`PaymentReconciliationCronJob.runQrReconciliation()`**: New nightly timer (lock ID `4200311`, interval `Duration(days: 1)`) — follows same pattern as `runHoldRelease`/`runAutoReversal`/`runReferralExpiry`
+- First-run at startup + audit log summary on any recovered/expired activity
+- **No protocol/migration changes needed** — all columns/indexes already exist (`payment_session.status`, `expiresAt`, `razorpayQrId`)
+
+### Module 4 — On-Demand Payment Recovery for COD Online (UPI QR)
+- **`PostgresPaymentSessionService.recoverQrPaymentForOrder()`**: On-demand recovery for a single order — checks eligibility (pending + COD + active/recently expired session within 15 min), calls Razorpay `fetchQrPayments`, recovers via `_applyQrPaymentToOrder` if captured payment found. Fast path when not eligible (no Razorpay call, just DB guard checks)
+- **`OrderEndpoint.recoverQrPaymentAdmin()`**: Admin-guarded endpoint — calls service, writes `recover_qr_payment` audit log on success, returns updated `Order` (or unchanged)
+- **`AdminOrderController.recoverQrPayment(orderId)`**: Calls generated client endpoint, returns `Order?`
+- **`order_detail_screen.dart._onRefresh()`**: Modified to call `recoverQrPayment()` before existing `loadInitial(force: true)` — if payment recovered to `paid`, updates local state immediately
+- **Eligibility**: `paymentStatus == 'pending'` AND `paymentMode == 'cod'` AND session is ACTIVE or EXPIRED within 15 min; Razorpay called only when ALL conditions met
+- **Priority order**: (1) Razorpay webhook, (2) 3s polling, (3) manual refresh recovery, (4) nightly reconciliation cron
+- No changes to Pay Now, payment link, cash collection, webhook, polling, or delivery verification flows
+- `serverpod generate` ran — `freshpickkat_client` updated with new endpoint
+
+## Test Status — 54/54 passing (excluding 2 pre-existing payment_recovery_test.dart failures)
 - **COD Hardening** — no new tests (behavior-only changes, no new business logic)
+- **COD Online Payment Recovery** — no new tests (behavior-only changes, wraps existing `_applyQrPaymentToOrder` which is tested via cron reconciliation)
 - **Referral tests** (30): 4 unit + 26 integration — all pass
 - **Hardening tests** (17): 3 unit (fraud rules) + 14 integration (scoring, qualification, coupon, reversal, fraud breakdown, terms) — all pass
 - **Existing tests** — all pass
@@ -402,3 +422,9 @@ Module 2 (Referral Growth System) Phases 1–8 complete + Hardening Phases A–I
 - `freshpickkat_server/lib/src/protocol/data_flow/referral_fraud_result.spy.yaml`: fraud result protocol
 - `freshpickkat_server/lib/src/protocol/data_flow/referral_fraud_rule_result.spy.yaml`: per-rule result protocol
 - `freshpickkat_server/lib/src/services/postgres/postgres_referral_service.dart`: `checkOrderForReward` now invokes fraud scoring; `approveReward` handles PENDING_REVIEW; `releaseHeldRewards` cron method; `getMyReferralActivity` handles all new statuses
+- `freshpickkat_server/lib/src/services/payments/payment_gateway_service.dart`: `fetchQrPayments()` — Razorpay `GET /v1/payments/qr_codes/:qr_id/payments`
+- `freshpickkat_server/lib/src/services/payments/postgres_payment_session_service.dart`: `_applyQrPaymentToOrder()`, `_closeAndExpireSession()`, `reconcileExpiredQrSessions()` (cron), `recoverQrPaymentForOrder()` (on-demand)
+- `freshpickkat_server/lib/src/services/background/payment_reconciliation_cron_job.dart`: `runQrReconciliation()` nightly timer (`_qrReconciliationLock=4200311`)
+- `freshpickkat_server/lib/src/endpoints/order_endpoint.dart`: `recoverQrPaymentAdmin()` — admin-guarded on-demand recovery endpoint
+- `freshpickkat_admin/lib/controller/admin_order_controller.dart`: `recoverQrPayment()` method calling generated client
+- `freshpickkat_admin/lib/screens/order_detail_screen.dart`: `_onRefresh()` recovery hook before `loadInitial`

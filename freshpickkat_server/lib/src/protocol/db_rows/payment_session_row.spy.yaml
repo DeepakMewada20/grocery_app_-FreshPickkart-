@@ -1,0 +1,33 @@
+class: PaymentSessionRow
+serverOnly: true
+table: payment_session
+fields:
+  id: UuidValue?, defaultPersist=random
+  orderId: UuidValue, relation(parent=customer_order, onDelete=Restrict)
+  customerId: UuidValue, relation(parent=app_user, onDelete=Restrict)
+  createdByAdminId: String
+  paymentMethod: String, default='cod_online'
+  collectionMode: String, default='upi_qr'
+  amount: double
+  currency: String, default='INR'
+  status: String
+  razorpayQrId: String?
+  qrImageUrl: String?
+  gatewayPaymentId: String?
+  gatewaySignature: String?
+  gatewayTransactionReference: String?
+  notes: String?
+  createdAt: DateTime, defaultModel=now, defaultPersist=now
+  expiresAt: DateTime
+  paidAt: DateTime?
+  expiredAt: DateTime?
+  cancelledAt: DateTime?
+  updatedAt: DateTime, defaultModel=now, defaultPersist=now
+indexes:
+  payment_session_order_idx:
+    fields: orderId
+  payment_session_razorpay_qr_idx:
+    fields: razorpayQrId
+    unique: true
+  payment_session_status_idx:
+    fields: orderId, status

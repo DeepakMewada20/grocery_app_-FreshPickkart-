@@ -364,6 +364,66 @@ class AdminOrderController extends GetxController {
     });
   }
 
+  /// Attempt on-demand recovery for COD Online (UPI QR) payments.
+  /// Returns recovered Order if recovery succeeded, or null if unchanged.
+  Future<Order?> recoverQrPayment(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.order.recoverQrPaymentAdmin(
+        orderId,
+        firebaseUid: uid,
+        idToken: idToken,
+      );
+    });
+  }
+
+  Future<PaymentSessionData?> createQrPaymentSession(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.paymentSession.createQrPaymentSession(
+        orderId,
+        uid,
+        idToken,
+      );
+    });
+  }
+
+  Future<PaymentSessionData?> getQrPaymentSession(String orderId) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.paymentSession.getQrPaymentSession(
+        orderId,
+        uid,
+        idToken,
+      );
+    });
+  }
+
+  Future<PaymentSessionData?> regenerateQrPaymentSession(
+    String orderId,
+  ) async {
+    return await ApiClient().request(() async {
+      final uid = AdminSessionService.requireUid();
+      final idToken = await AdminSessionService.requireIdToken(
+        forceRefresh: false,
+      );
+      return await _client.paymentSession.regenerateQrPaymentSession(
+        orderId,
+        uid,
+        idToken,
+      );
+    });
+  }
+
   Future<void> startDelivery(Order order) async {
     if (!Get.isRegistered<DeliveryTrackingController>()) {
       await updateOrderStatus(order, 'out_for_delivery');

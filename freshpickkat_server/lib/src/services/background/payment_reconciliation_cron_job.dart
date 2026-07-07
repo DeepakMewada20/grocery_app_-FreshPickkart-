@@ -7,6 +7,7 @@ import '../../generated/protocol.dart' as protocol;
 import '../postgres/postgres_audit_log_service.dart';
 import '../postgres/postgres_payment_link_service.dart';
 import '../postgres/postgres_payment_service.dart';
+import '../payments/postgres_payment_session_service.dart';
 import '../postgres/postgres_refund_service.dart';
 import '../postgres/postgres_referral_service.dart';
 
@@ -23,6 +24,7 @@ class PaymentReconciliationCronJob {
   static const int _holdReleaseLock = 4200308;
   static const int _autoReversalLock = 4200309;
   static const int _referralExpiryLock = 4200310;
+  static const int _qrReconciliationLock = 4200311;
 
   final Serverpod _pod;
   final PostgresPaymentService _payments = PostgresPaymentService();
@@ -31,6 +33,8 @@ class PaymentReconciliationCronJob {
   final PostgresRefundService _refunds = PostgresRefundService();
   final PostgresAuditLogService _auditLog = PostgresAuditLogService();
   final PostgresReferralService _referral = PostgresReferralService();
+  final PostgresPaymentSessionService _paymentSessions =
+      PostgresPaymentSessionService();
 
   Timer? _reconciliationTimer;
   Timer? _autoCancelTimer;
@@ -42,6 +46,7 @@ class PaymentReconciliationCronJob {
   Timer? _holdReleaseTimer;
   Timer? _autoReversalTimer;
   Timer? _referralExpiryTimer;
+  Timer? _qrReconciliationTimer;
   bool _reconciliationRunning = false;
   bool _autoCancelRunning = false;
   bool _paymentLinkExpiryRunning = false;
@@ -52,6 +57,7 @@ class PaymentReconciliationCronJob {
   bool _holdReleaseRunning = false;
   bool _autoReversalRunning = false;
   bool _referralExpiryRunning = false;
+  bool _qrReconciliationRunning = false;
   final Set<String> _reportedOrphanIds = {};
 
   void start() {
@@ -102,6 +108,10 @@ class PaymentReconciliationCronJob {
       const Duration(days: 1),
       (_) => unawaited(runReferralExpiry()),
     );
+    _qrReconciliationTimer ??= Timer.periodic(
+      const Duration(days: 1),
+      (_) => unawaited(runQrReconciliation()),
+    );
 
     unawaited(runPaymentReconciliation());
     unawaited(runAutoCancellation());
@@ -113,6 +123,7 @@ class PaymentReconciliationCronJob {
     unawaited(runHoldRelease());
     unawaited(runAutoReversal());
     unawaited(runReferralExpiry());
+    unawaited(runQrReconciliation());
   }
 
   void stop() {
@@ -126,6 +137,7 @@ class PaymentReconciliationCronJob {
     _holdReleaseTimer?.cancel();
     _autoReversalTimer?.cancel();
     _referralExpiryTimer?.cancel();
+    _qrReconciliationTimer?.cancel();
     _reconciliationTimer = null;
     _autoCancelTimer = null;
     _paymentLinkExpiryTimer = null;
@@ -136,6 +148,7 @@ class PaymentReconciliationCronJob {
     _holdReleaseTimer = null;
     _autoReversalTimer = null;
     _referralExpiryTimer = null;
+    _qrReconciliationTimer = null;
   }
 
   Future<void> runPaymentReconciliation() async {
@@ -216,6 +229,38 @@ class PaymentReconciliationCronJob {
       });
     } finally {
       _referralExpiryRunning = false;
+    }
+  }
+
+  /// Reconcile expired ACTIVE QR payment sessions.
+  /// Queries sessions past their expiry, checks Razorpay for missed-webhook
+  /// payments, and recovers them or marks them expired.
+  Future<void> runQrReconciliation() async {
+    if (_qrReconciliationRunning) return;
+    _qrReconciliationRunning = true;
+    try {
+      await _runLocked(_qrReconciliationLock, (session) async {
+        final stats =
+            await _paymentSessions.reconcileExpiredQrSessions(session);
+        final recovered = stats['recovered'] ?? 0;
+        final expired = stats['expired'] ?? 0;
+        final skipped = stats['skipped'] ?? 0;
+        if (recovered > 0 || expired > 0) {
+          await _auditLog.write(
+            session,
+            action: 'reconciliation',
+            entityType: 'payment_session',
+            entityId: 'cron',
+            metadata: {
+              'recovered': recovered.toString(),
+              'expired': expired.toString(),
+              'skipped': skipped.toString(),
+            },
+          );
+        }
+      });
+    } finally {
+      _qrReconciliationRunning = false;
     }
   }
 

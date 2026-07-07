@@ -46,6 +46,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   bool _refundRetrying = false;
   RefundRecord? _refund;
   final AdminOrderController _orderController = AdminOrderController.instance;
+  PaymentSessionData? _qrSession;
+  bool _showQrSection = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
@@ -66,6 +69,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void dispose() {
     _otpController.dispose();
     _otpResendTimer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -133,6 +137,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Future<void> _onRefresh() async {
     try {
+      // Attempt on-demand UPI QR payment recovery for eligible orders
+      final recoveredOrder = await _orderController.recoverQrPayment(
+        _order.orderId,
+      );
+      if (recoveredOrder != null && recoveredOrder.paymentStatus == 'paid') {
+        if (mounted) {
+          setState(() => _order = recoveredOrder);
+        }
+      }
+
       await _orderController.loadInitial(force: true);
       final updated = _orderController.orders
           .where((o) => o.orderId == _order.orderId)
@@ -702,6 +716,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
     } else if (order.status == 'out_for_delivery') {
       if (order.paymentMode == 'cod' && order.paymentStatus != 'paid') {
+        if (_showQrSection) {
+          return _buildQrSection(context, order);
+        }
         return _buildCodPaymentCollectionSection(context, order);
       }
       buttons.add(
@@ -905,7 +922,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 12.w),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _collectCodPayment(context, order, 'upi_qr'),
+                  onPressed: () => _startQrPaymentSession(context, order),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cs.primary,
                     foregroundColor: AdminThemeTokens.white,
@@ -1286,6 +1303,323 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         AdminSnackbarService.show(context, 'Payment collection failed: $e');
       }
     }
+  }
+
+  Future<void> _startQrPaymentSession(
+    BuildContext context,
+    Order order,
+  ) async {
+    setState(() => _isLoading = true);
+    try {
+      final session = await _orderController.createQrPaymentSession(
+        order.orderId,
+      );
+      if (session != null && mounted) {
+        setState(() {
+          _qrSession = session;
+          _showQrSection = true;
+        });
+        _startPolling(context);
+        if (session.status == 'PAID') {
+          _handleQrPaid(context, order, session);
+        }
+      } else {
+        if (mounted) {
+          AdminSnackbarService.show(
+            context,
+            'Failed to create QR session',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        AdminSnackbarService.show(
+          context,
+          'Failed to start QR payment: $e',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _startPolling(BuildContext context) {
+    _pollTimer?.cancel();
+    final orderId = _order.orderId;
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (!mounted) {
+        _pollTimer?.cancel();
+        return;
+      }
+      try {
+        final session = await _orderController.getQrPaymentSession(orderId);
+        if (session == null || !mounted) return;
+
+        setState(() => _qrSession = session);
+
+        if (session.status == 'PAID') {
+          _pollTimer?.cancel();
+          _handleQrPaid(context, _order, session);
+        } else if (session.status == 'EXPIRED' ||
+            session.status == 'CANCELLED' ||
+            session.status == 'FAILED') {
+          _pollTimer?.cancel();
+          // Grace check: wait 3s in case webhook fires just after expiry
+          Future.delayed(const Duration(seconds: 3), () {
+            if (mounted && _qrSession?.status != 'PAID') {
+              setState(() {});
+            }
+          });
+        }
+      } catch (_) {}
+    });
+  }
+
+  void _handleQrPaid(
+    BuildContext context,
+    Order order,
+    PaymentSessionData session,
+  ) {
+    setState(() {
+      _showQrSection = false;
+      _qrSession = null;
+      _order = order.copyWith(
+        paymentStatus: 'paid',
+        paymentCollectedAt: session.paidAt ?? DateTime.now(),
+        paymentCollectedBy: 'You',
+        paymentCollectionMode: 'upi_qr',
+      );
+    });
+    AdminSnackbarService.show(context, 'Payment received via UPI QR!');
+  }
+
+  Future<void> _regenerateQr(BuildContext context, Order order) async {
+    setState(() => _isLoading = true);
+    try {
+      final session = await _orderController.regenerateQrPaymentSession(
+        order.orderId,
+      );
+      if (session != null && mounted) {
+        setState(() {
+          _qrSession = session;
+          _showQrSection = true;
+        });
+        _startPolling(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        AdminSnackbarService.show(
+          context,
+          'Failed to regenerate QR: $e',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _refreshQrSession(BuildContext context) async {
+    try {
+      final session = await _orderController.getQrPaymentSession(
+        _order.orderId,
+      );
+      if (session != null && mounted) {
+        setState(() => _qrSession = session);
+      }
+    } catch (_) {}
+  }
+
+  Widget _buildQrSection(BuildContext context, Order order) {
+    final cs = Theme.of(context).colorScheme;
+    final session = _qrSession;
+    final status = session?.status ?? 'CREATED';
+    final qrImageUrl = session?.qrImageUrl ?? '';
+    final expiresInSeconds = session?.expiresInSeconds ?? 0;
+    final minutes = (expiresInSeconds / 60).floor();
+    final seconds = expiresInSeconds % 60;
+
+    return Container(
+      width: double.infinity,
+      padding: AdminResponsive.cardPadding(context),
+      decoration: BoxDecoration(
+        color: AdminAppTheme.getWarningContainerColor(context),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: AdminAppTheme.getWarningColor(context).withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.qr_code_scanner,
+                color: cs.primary,
+                size: 22.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Online Payment (UPI QR)',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16.sp.clamp(14.0, 18.0),
+                  color: cs.primary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            'Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14.sp.clamp(12.0, 16.0),
+              color: cs.onSurface,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          if (status == 'ACTIVE' || status == 'CREATED') ...[
+            Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  'Status: ACTIVE',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13.sp,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Expires in: ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            if (qrImageUrl.isNotEmpty)
+              Container(
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Image.network(
+                    qrImageUrl,
+                    width: 220.w,
+                    height: 220.h,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 220.w,
+                      height: 220.h,
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Icon(
+                        Icons.qr_code,
+                        size: 80.sp,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: 40.h),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(color: cs.primary),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Generating QR...',
+                      style: TextStyle(color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            SizedBox(height: 16.h),
+            Center(
+              child: TextButton.icon(
+                onPressed: () => _refreshQrSession(context),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh'),
+              ),
+            ),
+          ] else if (status == 'PAID') ...[
+            Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green, size: 22.sp),
+                SizedBox(width: 8.w),
+                Text(
+                  'Payment Received',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15.sp,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ] else if (status == 'EXPIRED' || status == 'CANCELLED' || status == 'FAILED') ...[
+            Row(
+              children: [
+                Icon(Icons.timer_off, color: Colors.orange, size: 22.sp),
+                SizedBox(width: 8.w),
+                Text(
+                  status == 'EXPIRED' ? 'QR Expired' : 'Session $status',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15.sp,
+                    color: Colors.orange.shade700,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16.h),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _isLoading
+                    ? null
+                    : () => _regenerateQr(context, order),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Regenerate QR'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  foregroundColor: AdminThemeTokens.white,
+                ),
+              ),
+            ),
+          ],
+          SizedBox(height: 12.h),
+          Center(
+            child: Text(
+              'Customer scans with GPay / PhonePe / Paytm / BHIM',
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: cs.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static const _codFailureReasons = [
