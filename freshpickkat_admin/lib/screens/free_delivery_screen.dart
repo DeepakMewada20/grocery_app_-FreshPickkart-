@@ -224,21 +224,34 @@ class _FreeDeliveryScreenState extends State<FreeDeliveryScreen>
   }
 
   void _deleteRule(DeliveryRule rule) {
+    final ruleId = rule.ruleId;
+    if (ruleId == null || ruleId.isEmpty) {
+      AdminSnackbarService.show(context, 'Cannot delete rule: missing ID');
+      return;
+    }
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Rule'),
         content: Text('Delete "${rule.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              await _controller.deleteDeliveryRule(rule.ruleId ?? '');
-              if (!context.mounted) return;
-              Navigator.pop(context);
+              final success = await _controller.deleteDeliveryRule(ruleId);
+              if (!dialogContext.mounted) return;
+              Navigator.pop(dialogContext);
+              if (mounted) {
+                AdminSnackbarService.show(
+                  context,
+                  success
+                      ? 'Rule "${rule.name}" deleted'
+                      : 'Failed to delete rule "${rule.name}"',
+                );
+              }
             },
             child: Text(
               'Delete',

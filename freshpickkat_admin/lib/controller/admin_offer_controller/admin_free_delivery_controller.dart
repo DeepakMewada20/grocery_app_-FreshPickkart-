@@ -224,6 +224,7 @@ class AdminFreeDeliveryController extends GetxController {
       }
       return false;
     } catch (e) {
+      debugPrint('Error deleting delivery rule: $e');
       return false;
     }
   }

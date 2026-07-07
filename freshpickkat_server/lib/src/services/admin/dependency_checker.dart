@@ -259,7 +259,32 @@ class DependencyChecker {
     Session session,
     UuidValue ruleId,
   ) async {
-    return <String>[];
+    final refs = <String>[];
+
+    // Check orders that applied this delivery rule (via freeDeliveryReason text match)
+    final ruleRow = await DeliveryRuleRow.db.findById(session, ruleId);
+    final ruleName = ruleRow?.name;
+    if (ruleName != null && ruleName.isNotEmpty) {
+      final orderCount = await CustomerOrderRow.db.count(
+        session,
+        where: (t) =>
+            t.freeDeliveryApplied.equals(true) &
+            t.freeDeliveryReason.equals(ruleName),
+      );
+      if (orderCount > 0) {
+        refs.add('$orderCount order(s)');
+      }
+    }
+
+    // Check banners referencing this delivery rule via offerId
+    final ruleIdStr = ruleId.toString();
+    final bannerCount = await BannerRow.db.count(
+      session,
+      where: (t) => t.offerId.equals(ruleIdStr) & t.status.equals('active'),
+    );
+    if (bannerCount > 0) refs.add('$bannerCount banner(s)');
+
+    return refs;
   }
 
   /// Builds a human-readable error message from a list of references.

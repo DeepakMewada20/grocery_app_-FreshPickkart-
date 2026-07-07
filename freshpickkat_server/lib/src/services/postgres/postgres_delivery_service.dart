@@ -154,6 +154,7 @@ class PostgresDeliveryService {
   Future<List<DeliveryRule>> getAllDeliveryRules(Session session) async {
     final rows = await DeliveryRuleRow.db.find(
       session,
+      where: (t) => t.status.equals('active'),
       orderBy: (t) => t.priority,
       orderDescending: false,
     );
