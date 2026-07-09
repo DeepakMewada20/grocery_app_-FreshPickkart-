@@ -1558,25 +1558,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 Center(
                   child: Container(
                     width: qrSize,
-                    height: qrSize,
+                    height: qrSize + 100,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.r),
-                      child: OverflowBox(
-                        alignment: Alignment.center,
-                        maxWidth: double.infinity,
-                        maxHeight: qrSize,
+                      child: InteractiveViewer(
+                        constrained: true,
+                        minScale: 0.5,
+                        maxScale: 5.0,
                         child: Image.network(
                           qrImageUrl,
-                          width: qrSize + 60,
-                          height: qrSize,
+                          width: qrSize,
+                          height: qrSize + 100,
                           fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => Container(
-                            width: qrSize + 60,
-                            height: qrSize,
+                            width: qrSize,
+                            height: qrSize + 100,
                             decoration: BoxDecoration(
                               color: cs.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8.r),

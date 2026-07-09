@@ -276,13 +276,67 @@ class PostgresPaymentSessionService {
           updatedAt: DateTime.now().toUtc(),
         ),
       );
+      // Check Razorpay one last time before returning expired
+      final recovered = await _checkRazorpayForPayment(session, sessionRow);
+      if (recovered != null) return _buildSessionData(recovered);
       return _buildSessionData(sessionRow.copyWith(
         status: 'EXPIRED',
         expiredAt: DateTime.now().toUtc(),
       ));
     }
 
+    // Check Razorpay for captured payments (handles missing webhooks)
+    final recovered = await _checkRazorpayForPayment(session, sessionRow);
+    if (recovered != null) return _buildSessionData(recovered);
+
     return _buildSessionData(sessionRow);
+  }
+
+  /// Checks Razorpay for captured payments on the session's QR code.
+  /// Returns updated [PaymentSessionRow] if payment recovered, null otherwise.
+  Future<PaymentSessionRow?> _checkRazorpayForPayment(
+    Session session,
+    PaymentSessionRow sessionRow,
+  ) async {
+    if (sessionRow.razorpayQrId == null ||
+        sessionRow.razorpayQrId!.isEmpty) {
+      return null;
+    }
+    try {
+      final qrPaymentsResult =
+          await _gateway.fetchQrPayments(sessionRow.razorpayQrId!);
+      final data = qrPaymentsResult['data'];
+      if (data is! Map<String, dynamic>) return null;
+      final items = data['items'] as List<dynamic>? ?? [];
+      for (final item in items) {
+        if (item is Map<String, dynamic> && item['status'] == 'captured') {
+          final capturedPaymentId = item['id']?.toString();
+          final paidInPaise = (item['amount'] as num?)?.toDouble() ?? 0;
+          final capturedAmount = paidInPaise / 100.0;
+          if (capturedPaymentId != null && capturedPaymentId.isNotEmpty) {
+            if ((sessionRow.amount - capturedAmount).abs() > 1.0) continue;
+            final result = await _applyQrPaymentToOrder(
+              session,
+              sessionRow,
+              gatewayPaymentId: capturedPaymentId,
+            );
+            if (result['success'] == true) {
+              session.log(
+                'QR poll: auto-recovered payment for session ${sessionRow.id} '
+                '(razorpayPaymentId=$capturedPaymentId)',
+                level: LogLevel.info,
+              );
+              final paidSession = await PaymentSessionRow.db.findById(
+                session,
+                sessionRow.id!,
+              );
+              return paidSession;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<PaymentSessionData> regenerateQrPaymentSession(
