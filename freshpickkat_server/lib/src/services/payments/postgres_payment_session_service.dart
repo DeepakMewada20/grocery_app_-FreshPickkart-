@@ -266,6 +266,22 @@ class PostgresPaymentSessionService {
       return _buildSessionData(lastSession);
     }
 
+    // Auto-expire if ACTIVE but past expiry
+    if (sessionRow.expiresAt.isBefore(DateTime.now().toUtc())) {
+      await PaymentSessionRow.db.updateRow(
+        session,
+        sessionRow.copyWith(
+          status: 'EXPIRED',
+          expiredAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      return _buildSessionData(sessionRow.copyWith(
+        status: 'EXPIRED',
+        expiredAt: DateTime.now().toUtc(),
+      ));
+    }
+
     return _buildSessionData(sessionRow);
   }
 
