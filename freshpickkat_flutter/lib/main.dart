@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:freshpickkat_flutter/firebase_options.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -36,7 +35,7 @@ import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/services/share_service.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -60,13 +59,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await FirebaseAppCheck.instance.activate();
-
-  try {
-    const channel = MethodChannel('com.freshpickkart.customer/firebase');
-    await channel.invokeMethod('forceRecaptchaV2');
-  } catch (_) {
-    // Not available on iOS/web, ignore
+  if (kDebugMode) {
+    await FirebaseAppCheck.instance.activate(
+      providerAndroid: const AndroidDebugProvider(),
+    );
+  } else {
+    await FirebaseAppCheck.instance.activate();
   }
 
   FirebaseMessaging.onBackgroundMessage(

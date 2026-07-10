@@ -104,10 +104,32 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     _phoneController.text = localNumber;
     _countryCode = countryCode;
 
-    // Delay to let animations settle, then trigger OTP re-send
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) _sendOTP();
-    });
+    // Check if we have a saved verificationId from a previous session
+    final savedVerificationId = _authController.getPendingVerificationId();
+    if (savedVerificationId != null && savedVerificationId.isNotEmpty) {
+      // Resume directly to OTP input without resending
+      _verificationId = savedVerificationId;
+      _phoneNumber = _countryCode + localNumber;
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          setState(() {
+            _showOtpInput = true;
+            _isLoading = false;
+          });
+          _otpSlideController.forward();
+          _startResendTimer();
+          _listenForSms();
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _otpFocusNode.requestFocus();
+          });
+        }
+      });
+    } else {
+      // Delay to let animations settle, then trigger OTP re-send
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) _sendOTP();
+      });
+    }
   }
 
   void _initAnimations() {

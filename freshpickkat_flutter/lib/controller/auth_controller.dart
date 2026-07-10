@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:flutter/services.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -30,6 +29,7 @@ class AuthController extends GetxController {
 
   static const _pendingPhoneKey = 'pending_verification_phone';
   static const _pendingTimestampKey = 'pending_verification_timestamp';
+  static const _pendingVerificationIdKey = 'pending_verification_id';
   static const _pendingVerificationTimeout = Duration(minutes: 2);
 
   final Rx<fb.User?> _user = Rx<fb.User?>(null);
@@ -98,9 +98,15 @@ class AuthController extends GetxController {
 
   bool get hasPendingVerification => getPendingVerificationPhone() != null;
 
+  String? getPendingVerificationId() {
+    if (!hasPendingVerification) return null;
+    return _storage.read<String?>(_pendingVerificationIdKey);
+  }
+
   void clearPendingVerification() {
     _storage.remove(_pendingPhoneKey);
     _storage.remove(_pendingTimestampKey);
+    _storage.remove(_pendingVerificationIdKey);
   }
 
   @override
@@ -207,10 +213,6 @@ class AuthController extends GetxController {
   }) async {
     try {
       savePendingVerification(phoneNumber);
-      try {
-        const channel = MethodChannel('com.freshpickkart.customer/firebase');
-        await channel.invokeMethod('forceRecaptchaV2');
-      } catch (_) {}
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),
@@ -227,6 +229,7 @@ class AuthController extends GetxController {
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
           _resendToken = resendToken;
+          _storage.write(_pendingVerificationIdKey, verificationId);
           onCodeSent(verificationId);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
