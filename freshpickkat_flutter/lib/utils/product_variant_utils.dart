@@ -122,5 +122,13 @@ Product applyVariantToProduct(Product product, {String? variantId}) {
         selectedVariant.bogoFreeProductIds ?? product.bogoFreeProductIds,
     isFreeDelivery: selectedVariant.isFreeDelivery || product.isFreeDelivery,
     comboOfferIds: selectedVariant.comboOfferIds ?? product.comboOfferIds,
+    shopMoreGetMoreOfferId:
+        selectedVariant.shopMoreGetMoreOfferId?.isNotEmpty == true
+            ? selectedVariant.shopMoreGetMoreOfferId
+            : null,
+    shopMoreGetMoreMinAmount:
+        selectedVariant.shopMoreGetMoreOfferId?.isNotEmpty == true
+            ? selectedVariant.shopMoreGetMoreMinAmount
+            : null,
   );
 }

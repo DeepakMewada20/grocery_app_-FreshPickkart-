@@ -122,12 +122,18 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
       final address = UserController.instance.shippingAddress.value;
       if (address != null && address.street.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_streetController.text.isEmpty) {
+          if (_selectedAddress?.street != address.street) {
             _selectedAddress = address;
             _streetController.text = address.street;
             _cityController.text = address.city;
             _stateController.text = address.state;
             _zipController.text = address.zipCode;
+            widget.onAddressFetched({
+              'address': address,
+              'latitude': address.latitude,
+              'longitude': address.longitude,
+            });
+            if (mounted) setState(() {});
           }
         });
       }
@@ -374,8 +380,6 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                       fontSize: 13.sp,
                       color: _getHintColor(),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

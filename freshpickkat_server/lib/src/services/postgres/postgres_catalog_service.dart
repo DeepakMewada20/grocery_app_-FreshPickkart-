@@ -670,6 +670,7 @@ class PostgresCatalogService {
       smgmByProduct[productId] = {
         'offerId': smgm.id?.toString() ?? '',
         'minAmount': smgm.minimumOrderAmount,
+        'freeVariantId': smgm.freeVariantId?.toString() ?? '',
       };
     }
 
@@ -703,6 +704,11 @@ class PostgresCatalogService {
         if (productRow.isFreeDelivery && defaultForFD != null) defaultForFD,
       ];
 
+      // SMGM variant restriction
+      final smgmData = smgmByProduct[productId];
+      final smgmFreeVariantId = smgmData?['freeVariantId'] as String?;
+      final smgmHasRestriction = smgmFreeVariantId?.isNotEmpty == true;
+
       final mappedVariants = variantRows.map(
         (variant) {
           final variantIdStr = variant.id!.toString();
@@ -724,6 +730,8 @@ class PostgresCatalogService {
               : comboByProduct[productId]?.isNotEmpty == true
               ? comboByProduct[productId]
               : null;
+          final isSmgmVariant = smgmData != null &&
+              (!smgmHasRestriction || variantIdStr == smgmFreeVariantId);
           return ProductVariant(
             variantId: variantIdStr,
             quantityValue: variant.quantityValue,
@@ -744,10 +752,12 @@ class PostgresCatalogService {
               quantityUnit: variant.quantityUnit,
               freeDeliverySources: freeDeliverySources,
             ),
-            shopMoreGetMoreOfferId:
-                smgmByProduct[productId]?['offerId'] as String?,
-            shopMoreGetMoreMinAmount:
-                smgmByProduct[productId]?['minAmount'] as double?,
+            shopMoreGetMoreOfferId: isSmgmVariant
+                ? smgmData!['offerId'] as String?
+                : null,
+            shopMoreGetMoreMinAmount: isSmgmVariant
+                ? smgmData!['minAmount'] as double?
+                : null,
           );
         },
       ).toList();
@@ -844,9 +854,13 @@ class PostgresCatalogService {
             productRow.categoryId.toString(),
           ),
           shopMoreGetMoreOfferId:
-              smgmByProduct[productId]?['offerId'] as String?,
+              smgmData != null && !smgmHasRestriction
+                  ? smgmData['offerId'] as String?
+                  : null,
           shopMoreGetMoreMinAmount:
-              smgmByProduct[productId]?['minAmount'] as double?,
+              smgmData != null && !smgmHasRestriction
+                  ? smgmData['minAmount'] as double?
+                  : null,
           variants: mappedVariants.isEmpty ? null : mappedVariants,
         ),
       );

@@ -422,8 +422,6 @@ class _MoreScreenState extends State<MoreScreen> {
                           color: cs.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '${addr.city}, ${addr.state} ${addr.zipCode}',
@@ -431,8 +429,6 @@ class _MoreScreenState extends State<MoreScreen> {
                           color: cs.onSurface.withValues(alpha: 0.5),
                           fontSize: 13.sp,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   );

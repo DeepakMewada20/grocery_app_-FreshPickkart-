@@ -18,11 +18,6 @@ class OrderController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
-  /// Temporary delivery address for checkout (not saved to DB)
-  /// Used only for current order placement
-  final Rx<Address?> tempDeliveryAddress = Rx<Address?>(null);
-  final RxBool saveAddressForFuture = false.obs;
-
   // Mutex lock to prevent duplicate API calls
   bool _isFetching = false;
 
@@ -92,22 +87,8 @@ class OrderController extends GetxController {
     }
   }
 
-  /// Set temporary delivery address for checkout flow
-  /// This address is NOT saved to database
-  void setTempDeliveryAddress(Address address, {bool saveForFuture = false}) {
-    tempDeliveryAddress.value = address;
-    saveAddressForFuture.value = saveForFuture;
-  }
-
-  /// Clear temporary delivery address after order is placed
-  void clearTempDeliveryAddress() {
-    tempDeliveryAddress.value = null;
-    saveAddressForFuture.value = false;
-  }
-
-  /// Get delivery address for order
-  /// Returns temp address if set (checkout), else saved user address
+  /// Get delivery address for order (always from saved user address)
   Address? getDeliveryAddress(Address? userSavedAddress) {
-    return tempDeliveryAddress.value ?? userSavedAddress;
+    return userSavedAddress;
   }
 }

@@ -1844,9 +1844,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _completeSuccessfulPayment(String orderId) async {
-    // Clear temporary delivery address after order is placed
-    orderController.clearTempDeliveryAddress();
-
     try {
       Get.dialog(
         const Center(
@@ -2207,9 +2204,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildAddressSection(ColorScheme cs) {
     return Obx(() {
-      final address = userController.shippingAddress.value;
-      final tempAddress = orderController.tempDeliveryAddress.value;
-      final displayAddress = tempAddress ?? address;
+      final displayAddress = userController.shippingAddress.value;
 
       return Container(
         padding: EdgeInsets.all(20.w),
@@ -2299,25 +2294,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: Text('Update'),
                       ),
                     ],
-                  ),
-                ),
-              if (tempAddress != null)
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 6.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Text(
-                    'Temporary Address (This Order Only)',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
                   ),
                 ),
               SizedBox(height: 12.h),

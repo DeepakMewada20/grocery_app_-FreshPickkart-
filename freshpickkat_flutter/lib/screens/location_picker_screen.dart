@@ -3,7 +3,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/services/location_service.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
@@ -13,8 +12,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LocationPickerScreen extends StatefulWidget {
-  /// If true, saves to OrderController (temp checkout address)
-  /// If false, saves to UserController (permanent user address)
+  /// If true, opens in checkout flow context
+  /// If false, opens from profile settings
   final bool isCheckoutMode;
 
   /// Initial address to populate fields
@@ -53,7 +52,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Address? _currentAddress;
   final Set<Marker> _markers = {}; // Track if user is dragging map
 
-  final OrderController _orderController = OrderController.instance;
   final UserController _userController = UserController.instance;
 
   @override
@@ -295,20 +293,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
     try {
       setState(() => _isSaving = true);
-      if (widget.isCheckoutMode) {
-        _orderController.setTempDeliveryAddress(address);
-        if (_orderController.saveAddressForFuture.value) {
-          await _userController.updateAddress(address);
-        }
-        _isSaving = false;
-        if (mounted) setState(() {});
-        Get.back(result: address);
-      } else {
-        await _userController.updateAddress(address);
-        _isSaving = false;
-        if (mounted) setState(() {});
-        Get.back(result: address);
-      }
+      await _userController.updateAddress(address);
+      _isSaving = false;
+      if (mounted) setState(() {});
+      Get.back(result: address);
     } catch (e) {
       _isSaving = false;
       if (mounted) setState(() {});
@@ -539,24 +527,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           ),
                         ),
                         SizedBox(height: 16.h),
-
-                        // Save for future checkbox (only in checkout mode)
-                        if (widget.isCheckoutMode)
-                          Obx(() {
-                            return CheckboxListTile(
-                              value:
-                                  _orderController.saveAddressForFuture.value,
-                              onChanged: (value) {
-                                _orderController.saveAddressForFuture.value =
-                                    value ?? false;
-                              },
-                              title: Text(
-                                'Save this address for future orders',
-                                style: TextStyle(color: cs.onSurface),
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            );
-                          }),
 
                         SizedBox(height: 24.h),
 

@@ -56,22 +56,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _landmarkController = TextEditingController();
     _floorController = TextEditingController();
     _instructionsController = TextEditingController();
-
-    // Load existing address if available
-    _loadExistingAddress();
-  }
-
-  void _loadExistingAddress() {
-    final userController = UserController.instance;
-    final address = userController.shippingAddress.value;
-    if (address != null) {
-      _streetController.text = address.street;
-      _cityController.text = address.city;
-      _stateController.text = address.state;
-      _zipController.text = address.zipCode;
-      _latitude = address.latitude;
-      _longitude = address.longitude;
-    }
   }
 
   @override
