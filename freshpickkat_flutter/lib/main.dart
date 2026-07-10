@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:freshpickkat_flutter/firebase_options.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
@@ -57,6 +59,16 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await FirebaseAppCheck.instance.activate();
+
+  try {
+    const channel = MethodChannel('com.freshpickkart.customer/firebase');
+    await channel.invokeMethod('forceRecaptchaV2');
+  } catch (_) {
+    // Not available on iOS/web, ignore
+  }
+
   FirebaseMessaging.onBackgroundMessage(
     freshpickkatFirebaseMessagingBackgroundHandler,
   );

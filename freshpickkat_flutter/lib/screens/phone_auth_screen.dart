@@ -63,8 +63,51 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   @override
   void initState() {
     super.initState();
-    // _autoDetectCountryCode();
     _initAnimations();
+    _resumePendingVerification();
+  }
+
+  void _resumePendingVerification() {
+    final pendingPhone = _authController.getPendingVerificationPhone();
+    if (pendingPhone == null) return;
+
+    // Parse country code and local number
+    String localNumber;
+    String countryCode;
+    if (pendingPhone.startsWith('+')) {
+      // Try common country codes
+      final knownCodes = ['+91', '+1', '+44', '+61', '+81', '+86', '+49', '+33'];
+      String? matchedCode;
+      for (final code in knownCodes) {
+        if (pendingPhone.startsWith(code)) {
+          matchedCode = code;
+          break;
+        }
+      }
+      if (matchedCode != null) {
+        countryCode = matchedCode;
+        localNumber = pendingPhone.substring(matchedCode.length);
+      } else {
+        // Fallback: assume + followed by country code (1-3 digits)
+        final codeMatch = RegExp(r'^\+(\d{1,3})').firstMatch(pendingPhone);
+        if (codeMatch != null) {
+          countryCode = '+${codeMatch.group(1)}';
+          localNumber = pendingPhone.substring(codeMatch.group(0)!.length);
+        } else {
+          return;
+        }
+      }
+    } else {
+      return;
+    }
+
+    _phoneController.text = localNumber;
+    _countryCode = countryCode;
+
+    // Delay to let animations settle, then trigger OTP re-send
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) _sendOTP();
+    });
   }
 
   void _initAnimations() {
@@ -391,6 +434,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   }
 
   void _editPhoneNumber() {
+    _authController.clearPendingVerification();
     _otpSlideController.reverse();
     _timer?.cancel();
     cancel();

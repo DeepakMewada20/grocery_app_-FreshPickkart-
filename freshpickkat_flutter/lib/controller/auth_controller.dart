@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/services.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/bogo_controller.dart';
@@ -15,15 +16,21 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/protected_navigation_helper.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AuthController extends GetxController {
   static AuthController get instance => Get.find<AuthController>();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _cacheService = UserCacheService.instance;
+  final _storage = GetStorage();
   String? _verificationId;
   int? _resendToken;
   bool _isRefreshing = false;
+
+  static const _pendingPhoneKey = 'pending_verification_phone';
+  static const _pendingTimestampKey = 'pending_verification_timestamp';
+  static const _pendingVerificationTimeout = Duration(minutes: 2);
 
   final Rx<fb.User?> _user = Rx<fb.User?>(null);
   final Rx<AppUser?> appUserRx = Rx<AppUser?>(null);
@@ -66,6 +73,34 @@ class AuthController extends GetxController {
       default:
         return "Verification failed (${e.code})$details";
     }
+  }
+
+  void savePendingVerification(String phoneNumber) {
+    _storage.write(_pendingPhoneKey, phoneNumber);
+    _storage.write(
+      _pendingTimestampKey,
+      DateTime.now().toIso8601String(),
+    );
+  }
+
+  String? getPendingVerificationPhone() {
+    final phone = _storage.read<String?>(_pendingPhoneKey);
+    final timestampStr = _storage.read<String?>(_pendingTimestampKey);
+    if (phone == null || timestampStr == null) return null;
+    final timestamp = DateTime.tryParse(timestampStr);
+    if (timestamp == null) return null;
+    if (DateTime.now().difference(timestamp) > _pendingVerificationTimeout) {
+      clearPendingVerification();
+      return null;
+    }
+    return phone;
+  }
+
+  bool get hasPendingVerification => getPendingVerificationPhone() != null;
+
+  void clearPendingVerification() {
+    _storage.remove(_pendingPhoneKey);
+    _storage.remove(_pendingTimestampKey);
   }
 
   @override
@@ -171,12 +206,17 @@ class AuthController extends GetxController {
     required Function() onAutoVerify,
   }) async {
     try {
+      savePendingVerification(phoneNumber);
+      try {
+        const channel = MethodChannel('com.freshpickkart.customer/firebase');
+        await channel.invokeMethod('forceRecaptchaV2');
+      } catch (_) {}
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),
         forceResendingToken: _resendToken,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto verification (Android only)
+          clearPendingVerification();
           await _auth.signInWithCredential(credential);
           await refreshAppUser();
           onAutoVerify();
@@ -219,6 +259,7 @@ class AuthController extends GetxController {
         credential,
       );
 
+      clearPendingVerification();
       await refreshAppUser();
 
       return {

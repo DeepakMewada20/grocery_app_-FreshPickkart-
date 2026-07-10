@@ -45,6 +45,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   auto_size_text: ^3.0.0
   firebase_core: ^4.4.0
+  firebase_app_check: ^0.4.5
   geolocator: ^14.0.2
   google_maps_flutter: ^2.12.1
   flutter_dotenv: ^6.0.1
