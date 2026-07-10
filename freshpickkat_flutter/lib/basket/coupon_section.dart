@@ -774,6 +774,26 @@ class _OfferListCard extends StatelessWidget {
                 ),
               );
             })
+          else if (coupon.status == 'USED')
+            // Used chip
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: cs.onSurface.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: cs.onSurface.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Text(
+                'Used',
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.5),
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            )
           else
             // Locked chip
             Container(

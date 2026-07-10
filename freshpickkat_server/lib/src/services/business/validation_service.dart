@@ -123,10 +123,16 @@ class ValidationService {
     }
 
     final category = coupon.couponCategory.trim();
-    const validCategories = {'General', 'Loyalty', 'Product Based', 'Seasonal'};
+    const validCategories = {
+      'General',
+      'Loyalty',
+      'Product Based',
+      'Seasonal',
+      'New User (First Order)',
+    };
     if (category.isEmpty || !validCategories.contains(category)) {
       throw InvalidParametersException(
-        'Coupon category must be one of: General, Loyalty, Product Based, Seasonal',
+        'Coupon category must be one of: General, Loyalty, Product Based, Seasonal, New User (First Order)',
       );
     }
 

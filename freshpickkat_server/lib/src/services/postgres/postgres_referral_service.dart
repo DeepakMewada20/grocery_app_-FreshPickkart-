@@ -30,9 +30,14 @@ class PostgresReferralService {
 
   Future<String> getOrCreateReferralCodeForUser(
     Session session,
-    UuidValue userId,
-  ) async {
-    final user = await AppUserRow.db.findById(session, userId);
+    UuidValue userId, {
+    Transaction? transaction,
+  }) async {
+    final user = await AppUserRow.db.findById(
+      session,
+      userId,
+      transaction: transaction,
+    );
     if (user == null) throw Exception('User not found');
     if (user.referralCode != null) return user.referralCode!;
 
@@ -43,6 +48,7 @@ class PostgresReferralService {
       final existing = await AppUserRow.db.findFirstRow(
         session,
         where: (t) => t.referralCode.equals(code),
+        transaction: transaction,
       );
       if (existing == null) break;
       attempts++;
@@ -55,6 +61,7 @@ class PostgresReferralService {
     await AppUserRow.db.updateRow(
       session,
       user.copyWith(referralCode: code),
+      transaction: transaction,
     );
     return code;
   }

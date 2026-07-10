@@ -685,6 +685,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     'Loyalty',
     'Product Based',
     'Seasonal',
+    'New User (First Order)',
   ];
 
   static const List<String> _discountTypes = [
@@ -700,6 +701,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
   late final TextEditingController _maxDiscountCtrl;
   late final TextEditingController _maxUsagePerUserCtrl;
 
+  late final TextEditingController _loyaltyRequiredOrdersCtrl;
   late final TextEditingController _productIdsCtrl;
   late final TextEditingController _notificationTitleCtrl;
   late final TextEditingController _notificationBodyCtrl;
@@ -730,7 +732,11 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       text: coupon?.maxDiscount?.toString() ?? '',
     );
     _maxUsagePerUserCtrl = TextEditingController(
-      text: coupon?.maxUsagePerUser?.toString() ?? '',
+      text: coupon?.maxUsagePerUser?.toString() ?? '1',
+    );
+
+    _loyaltyRequiredOrdersCtrl = TextEditingController(
+      text: coupon?.loyaltyRequiredOrders?.toString() ?? '',
     );
 
     _productIdsCtrl = TextEditingController(
@@ -746,7 +752,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _selectedCategory = _deriveCategory(coupon);
     _selectedDiscountType = _deriveDiscountType(coupon);
     _isActive = coupon?.isActive ?? true;
-    _sendNotification = coupon == null;
+    _sendNotification = false;
     if (coupon != null && coupon.startDate != null && (coupon.endDate != null || coupon.expiryDate != null)) {
       _hasExpiry = true;
       _startDate = coupon.startDate;
@@ -763,6 +769,7 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
     _maxDiscountCtrl.dispose();
     _maxUsagePerUserCtrl.dispose();
 
+    _loyaltyRequiredOrdersCtrl.dispose();
     _productIdsCtrl.dispose();
     _notificationTitleCtrl.dispose();
     _notificationBodyCtrl.dispose();
@@ -794,7 +801,10 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
       productIds: _selectedCategory == 'Product Based'
           ? _parseProductIds(_productIdsCtrl.text)
           : null,
-      loyaltyRequiredOrders: null,
+      loyaltyRequiredOrders: (_selectedCategory == 'Loyalty' ||
+              _selectedCategory == 'New User (First Order)')
+          ? int.tryParse(_loyaltyRequiredOrdersCtrl.text.trim())
+          : null,
       startDate: _hasExpiry ? _startDate : null,
       endDate: _hasExpiry ? _endDate : null,
       expiryDate: _hasExpiry ? _endDate : null,
@@ -1083,18 +1093,34 @@ class _CouponFormBottomSheetState extends State<_CouponFormBottomSheet> {
                 ],
               ),
               SizedBox(height: 16.h),
-              // 7. Max Uses Per User
-              TextFormField(
-                controller: _maxUsagePerUserCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Max Uses Per User',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                  hintText: 'Leave empty for unlimited',
+              // Required Completed Orders (only for Loyalty category)
+              if (_selectedCategory == 'Loyalty') ...[
+                TextFormField(
+                  controller: _loyaltyRequiredOrdersCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Applies On Order #',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    hintText: 'e.g. 5',
+                  ),
                 ),
-              ),
-              SizedBox(height: 16.h),
+                SizedBox(height: 16.h),
+              ],
+              // 7. Max Uses Per User (hidden for New User category — always 1)
+              if (_selectedCategory != 'New User (First Order)') ...[
+                TextFormField(
+                  controller: _maxUsagePerUserCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Max Uses Per User',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    hintText: 'Leave empty for unlimited',
+                  ),
+                ),
+                SizedBox(height: 16.h),
+              ],
               // 8. Active toggle
               SwitchListTile(
                 contentPadding: EdgeInsets.only(left: 8.w),

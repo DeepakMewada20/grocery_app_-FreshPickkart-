@@ -106,7 +106,11 @@ class PostgresUserService {
 
       if (isNewUser) {
         final referral = PostgresReferralService();
-        await referral.getOrCreateReferralCodeForUser(session, persistedId);
+        await referral.getOrCreateReferralCodeForUser(
+          session,
+          persistedId,
+          transaction: transaction,
+        );
       }
     });
 

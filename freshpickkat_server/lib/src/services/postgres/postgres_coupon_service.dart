@@ -529,20 +529,36 @@ class PostgresCouponService {
       return _CouponEvaluation.notApplicable(coupon, 'Coupon has expired');
     }
 
+    if (coupon.couponCategory == 'New User (First Order)' && completedOrdersCount > 0) {
+      if (userCouponUsageCount > 0) {
+        return _CouponEvaluation.notApplicable(
+          coupon,
+          'Already used on your first order.',
+          code: 'USED',
+        );
+      }
+      return _CouponEvaluation.notApplicable(
+        coupon,
+        'This coupon was only valid before your first order.',
+        code: 'NOT_ELIGIBLE',
+      );
+    }
+
     if (normalizedSubtotal < coupon.minOrderAmount) {
       return _CouponEvaluation.notApplicable(
         coupon,
         'Minimum order amount is ₹${coupon.minOrderAmount.toStringAsFixed(0)}',
       );
     }
-    if ((couponType == 'FIRST_ORDER' || couponType == 'LOYALTY') &&
+    if ((coupon.couponCategory == 'Loyalty' ||
+            coupon.couponCategory == 'New User (First Order)') &&
         userId.trim().isEmpty) {
       return _CouponEvaluation.notApplicable(coupon, 'Login required');
     }
     if (couponType == 'FIRST_ORDER' && completedOrdersCount > 0) {
       return _CouponEvaluation.notApplicable(coupon, 'Not first order');
     }
-    if (couponType == 'LOYALTY') {
+    if (coupon.couponCategory == 'Loyalty') {
       final requiredOrders = coupon.loyaltyRequiredOrders ?? 0;
       if (completedOrdersCount < requiredOrders) {
         return _CouponEvaluation.notApplicable(
@@ -552,7 +568,10 @@ class PostgresCouponService {
       }
     }
 
-    if (userCouponUsageCount > 0) {
+    final maxPerUser = coupon.couponCategory == 'New User (First Order)'
+        ? 1
+        : (coupon.maxUsagePerUser ?? 1);
+    if (userCouponUsageCount >= maxPerUser) {
       return _CouponEvaluation.notApplicable(
         coupon,
         'Coupon already used',
