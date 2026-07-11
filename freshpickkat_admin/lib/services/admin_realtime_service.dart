@@ -19,6 +19,11 @@ class AdminRealtimeService extends GetxService {
   bool _starting = false;
   Timer? _refreshDebounce;
 
+  final StreamController<OrderRealtimeEvent> _paymentCompletedController =
+      StreamController<OrderRealtimeEvent>.broadcast();
+  Stream<OrderRealtimeEvent> get onPaymentCompleted =>
+      _paymentCompletedController.stream;
+
   Future<void> start() async {
     if (_starting) return;
     _starting = true;
@@ -73,10 +78,19 @@ class AdminRealtimeService extends GetxService {
   }
 
   void _handleEvent(OrderRealtimeEvent event) {
+    if (event.eventType == 'payment_completed') {
+      _paymentCompletedController.add(event);
+    }
     _refreshDebounce?.cancel();
     _refreshDebounce = Timer(const Duration(milliseconds: 250), () {
       unawaited(Get.find<AdminOrderController>().loadInitial(force: true));
       unawaited(Get.find<AdminDashboardController>().loadDashboard());
     });
+  }
+
+  @override
+  void onClose() {
+    _paymentCompletedController.close();
+    super.onClose();
   }
 }

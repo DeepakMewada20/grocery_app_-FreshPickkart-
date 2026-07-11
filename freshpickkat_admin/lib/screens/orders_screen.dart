@@ -821,6 +821,11 @@ class _OrderCardState extends State<_OrderCard> {
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
+                          if (order.paymentMode != null)
+                            Padding(
+                              padding: EdgeInsets.only(left: 8.w),
+                              child: _PaymentModeBadge(mode: order.paymentMode!),
+                            ),
                           if (order.orderType == 'replacement')
                             Padding(
                               padding: EdgeInsets.only(left: 8.w),
@@ -1158,6 +1163,37 @@ class _RefundStatusBadge extends StatelessWidget {
         style: TextStyle(
           color: c,
           fontSize: 10.sp.clamp(8.0, 11.0),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentModeBadge extends StatelessWidget {
+  const _PaymentModeBadge({required this.mode});
+
+  final String mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = switch (mode) {
+      'cod' => ('COD', AdminAppTheme.getWarningColor(context)),
+      'standard' => ('Online', AdminAppTheme.getSuccessColor(context)),
+      'shareable_link' => ('Link', Colors.blue),
+      _ => (mode.toUpperCase(), AdminAppTheme.getTextSecondaryColor(context)),
+    };
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11.sp.clamp(9.0, 12.0),
           fontWeight: FontWeight.w600,
         ),
       ),

@@ -36,11 +36,13 @@ Future<void> freshpickkatFirebaseMessagingBackgroundHandler(
 ) async {
   try {
     await Firebase.initializeApp();
-    final title =
-        message.notification?.title ??
-        message.data['title'] ??
-        'Payment received!';
-    final body = message.notification?.body ?? message.data['body'] ?? '';
+
+    // FCM already auto-displays the notification when 'notification' field present.
+    // Creating a local notification would cause a duplicate.
+    if (message.notification != null) return;
+
+    final title = message.data['title'] ?? 'Payment received!';
+    final body = message.data['body'] ?? '';
     if (title.isEmpty || body.isEmpty) return;
 
     final localNotifications = FlutterLocalNotificationsPlugin();

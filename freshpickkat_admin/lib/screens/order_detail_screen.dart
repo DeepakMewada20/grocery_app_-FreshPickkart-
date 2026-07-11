@@ -13,6 +13,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_admin/tracking/screens/live_delivery_map_preview_screen.dart'
     deferred as live_delivery_map_preview_screen;
+import 'package:freshpickkat_admin/services/admin_realtime_service.dart';
 import 'package:freshpickkat_admin/utils/deferred_navigation.dart';
 import 'package:freshpickkat_admin/widgets/refund_info_card.dart';
 import 'package:freshpickkat_admin/screens/delivery_photo_verification_screen.dart';
@@ -51,12 +52,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Timer? _pollTimer;
   Timer? _countdownTimer;
   int _localExpiresInSeconds = 0;
+  StreamSubscription<OrderRealtimeEvent>? _paymentSubscription;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
     _loadRefund();
+    _paymentSubscription = AdminRealtimeService.instance.onPaymentCompleted.listen((event) {
+      if (!mounted) return;
+      if (event.orderId == _order.orderId && _order.paymentStatus != 'paid') {
+        _pollTimer?.cancel();
+        _countdownTimer?.cancel();
+        setState(() {
+          _order = _order.copyWith(paymentStatus: 'paid');
+          _showQrSection = false;
+          _qrSession = null;
+        });
+        AdminSnackbarService.show(context, 'Payment received via UPI QR!');
+      }
+    });
   }
 
   @override
@@ -73,6 +88,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     _otpResendTimer?.cancel();
     _pollTimer?.cancel();
     _countdownTimer?.cancel();
+    _paymentSubscription?.cancel();
     super.dispose();
   }
 
@@ -286,26 +302,62 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               _DetailSection(
                 title: 'Payment & Timeline',
                 icon: Icons.payment_outlined,
-                trailing: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 6.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: order.paymentStatus == 'paid'
-                        ? AdminAppTheme.getSuccessContainerColor(context)
-                        : AdminAppTheme.getWarningContainerColor(context),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    order.paymentStatus.toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: order.paymentStatus == 'paid'
-                          ? AdminAppTheme.getSuccessColor(context)
-                          : AdminAppTheme.getWarningColor(context),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (order.paymentMode != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 6.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: order.paymentMode == 'cod'
+                              ? AdminAppTheme.getWarningContainerColor(context)
+                              : order.paymentMode == 'standard'
+                                  ? AdminAppTheme.getSuccessContainerColor(context)
+                                  : Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          order.paymentMode == 'cod' ? 'COD' :
+                          order.paymentMode == 'standard' ? 'Online' :
+                          order.paymentMode == 'shareable_link' ? 'Link' :
+                          order.paymentMode!.toUpperCase(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.sp,
+                            color: order.paymentMode == 'cod'
+                                ? AdminAppTheme.getWarningColor(context)
+                                : order.paymentMode == 'standard'
+                                    ? AdminAppTheme.getSuccessColor(context)
+                                    : Colors.blue,
+                          ),
+                        ),
+                      ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: order.paymentStatus == 'paid'
+                            ? AdminAppTheme.getSuccessContainerColor(context)
+                            : AdminAppTheme.getWarningContainerColor(context),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        order.paymentStatus.toUpperCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: order.paymentStatus == 'paid'
+                              ? AdminAppTheme.getSuccessColor(context)
+                              : AdminAppTheme.getWarningColor(context),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 children: [
                   _DetailRow(
