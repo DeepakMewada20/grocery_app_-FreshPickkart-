@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart' hide Order;
 
 import '../../generated/protocol.dart';
 import '../payments/payment_gateway_service.dart';
+import '../realtime/realtime_service.dart';
 
 class PostgresPaymentSessionService {
   static const Duration qrExpiryDuration = Duration(minutes: 5);
@@ -470,6 +471,19 @@ class PostgresPaymentSessionService {
         'COD online payment completed for order ${orderRow.orderNumber} via QR session ${sessionRow.id}',
         level: LogLevel.info,
       );
+
+      try {
+        final event = OrderRealtimeEvent(
+          eventType: 'payment_completed',
+          orderId: orderRow.orderNumber,
+          status: 'paid',
+          userId: orderRow.userId.toString(),
+        );
+        await RealtimeService().sendAdminOrderUpdate(session, event);
+        await RealtimeService().sendDashboardUpdate(session, event);
+      } catch (_) {
+        // Non-fatal — polling fallback will pick up the payment
+      }
 
       return {'success': true};
     });

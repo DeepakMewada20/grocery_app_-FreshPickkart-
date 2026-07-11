@@ -1386,8 +1386,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       }
     });
 
-    // Server poll every 3 seconds for status changes
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+    // Server poll every 5 seconds as fallback (primary: webhook pub/sub)
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (!mounted) {
         _pollTimer?.cancel();
         return;
