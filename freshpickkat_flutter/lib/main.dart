@@ -30,8 +30,10 @@ import 'package:freshpickkat_flutter/screens/offers_screen/offers_screen.dart';
 import 'package:freshpickkat_flutter/screens/phone_auth_screen.dart';
 import 'package:freshpickkat_flutter/screens/deep_link_loading_screen.dart';
 import 'package:freshpickkat_flutter/screens/deep_link_not_found_screen.dart';
+import 'package:freshpickkat_flutter/screens/location_picker_shell.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
 import 'package:freshpickkat_flutter/services/deep_link_service.dart';
+import 'package:freshpickkat_flutter/services/process_recovery/process_recovery_service.dart';
 import 'package:freshpickkat_flutter/services/share_service.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
@@ -91,15 +93,20 @@ void main() async {
   Get.put(ShareService(), permanent: true);
   Get.putAsync(() => DeepLinkService().init(), permanent: true);
 
-  runApp(const MyApp());
+  final initialRoute = ProcessRecoveryService.getSavedRoute() ?? '/splash';
+  Get.put(ProcessRecoveryService(), permanent: true);
+
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     final themeController = ThemeController.instance;
+    final route = initialRoute;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -124,12 +131,8 @@ class MyApp extends StatelessWidget {
                 theme: AppTheme.lightTheme(themeController.lightPreset),
                 darkTheme: AppTheme.darkTheme(),
                 themeMode: themeController.themeMode,
-                home: const ModernSplashScreen(),
+                initialRoute: route,
                 navigatorObservers: [appRouteObserver],
-                unknownRoute: GetPage(
-                  name: '/splash',
-                  page: () => const ModernSplashScreen(),
-                ),
                 builder: (context, child) {
                   if (child == null) return const SizedBox.shrink();
                   final width = constraints.maxWidth;
@@ -181,6 +184,10 @@ class MyApp extends StatelessWidget {
                     page: () => const ComboOffersScreen(),
                   ),
                   GetPage(name: '/coupons', page: () => const CouponsScreen()),
+                  GetPage(
+                    name: '/location-picker',
+                    page: () => const LocationPickerShell(),
+                  ),
                   GetPage(
                     name: RouteManager.productPattern,
                     page: () => const DeepLinkLoadingScreen(

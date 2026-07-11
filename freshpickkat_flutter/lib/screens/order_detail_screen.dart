@@ -1103,6 +1103,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void _showFullProofImage(String imageUrl) {
     Navigator.of(context).push(
       MaterialPageRoute(
+        settings: const RouteSettings(name: '/DeliveryProofImage'),
         builder: (_) => Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(

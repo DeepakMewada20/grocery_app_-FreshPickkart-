@@ -157,6 +157,7 @@ class _CategoriesSelectionListviewState
                     Navigator.push(
                       context,
                       MaterialPageRoute(
+                        settings: const RouteSettings(name: '/ViewAllProductsScreen'),
                         builder: (_) => ViewAllProductsScreen(
                           sortBy: widget.sortBy,
                           title: widget.titalWord,
@@ -188,6 +189,7 @@ class _CategoriesSelectionListviewState
                         Navigator.push(
                           context,
                           MaterialPageRoute(
+                            settings: const RouteSettings(name: '/ViewAllProductsScreen'),
                             builder: (_) => ViewAllProductsScreen(
                               sortBy: widget.sortBy,
                               title: widget.titalWord,

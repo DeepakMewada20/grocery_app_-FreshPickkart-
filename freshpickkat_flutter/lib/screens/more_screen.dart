@@ -16,8 +16,6 @@ import 'package:freshpickkat_flutter/screens/help_support_screen.dart'
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
     deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/invite_earn_screen.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
-    deferred as location_picker_screen;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart'
     deferred as my_complaints_screen;
@@ -101,6 +99,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
+                        settings: const RouteSettings(name: '/InviteEarnScreen'),
                         builder: (_) => const InviteEarnScreen(),
                       ),
                     );
@@ -437,14 +436,13 @@ class _MoreScreenState extends State<MoreScreen> {
               IconButton(
                 onPressed: () async {
                   final addr = userController.shippingAddress.value;
-                  await navigateDeferred(
-                    loadLibrary: location_picker_screen.loadLibrary,
-                    pageBuilder: () =>
-                        location_picker_screen.LocationPickerScreen(
-                          isCheckoutMode: false,
-                          initialAddress: addr,
-                          addressLabel: 'Home',
-                        ),
+                  await Get.toNamed(
+                    '/location-picker',
+                    arguments: {
+                      'isCheckoutMode': false,
+                      'initialAddress': addr,
+                      'addressLabel': 'Home',
+                    },
                   );
                 },
                 icon: const Icon(

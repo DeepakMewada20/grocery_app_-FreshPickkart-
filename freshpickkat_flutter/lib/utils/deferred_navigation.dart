@@ -23,6 +23,7 @@ Future<T?> navigateDeferred<T>({
 
     Get.back();
 
+    routeName ??= '/${pageBuilder().runtimeType.toString()}';
     return Get.to<T>(pageBuilder, routeName: routeName);
   } catch (e) {
     Get.back();

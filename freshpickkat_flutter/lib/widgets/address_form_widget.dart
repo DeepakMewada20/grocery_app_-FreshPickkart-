@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
-    deferred as location_picker_screen;
-import 'package:freshpickkat_flutter/controller/theme_controller.dart';
-import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
+import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:get/get.dart';
 
 class AddressFormWidget extends StatefulWidget {
@@ -318,13 +315,13 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     final hasAddress = address != null;
     return InkWell(
       onTap: () async {
-        final result = await navigateDeferred(
-          loadLibrary: location_picker_screen.loadLibrary,
-          pageBuilder: () => location_picker_screen.LocationPickerScreen(
-            isCheckoutMode: false,
-          ),
+        final result = await Get.toNamed<Address>(
+          '/location-picker',
+          arguments: {
+            'isCheckoutMode': false,
+          },
         );
-        if (result != null && result is Address) {
+        if (result != null) {
           setState(() {
             _selectedAddress = result;
             _streetController.text = result.street;

@@ -346,6 +346,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
+              settings: const RouteSettings(name: '/EditProfileScreen'),
               builder: (_) => const EditProfileScreen(
                 title: 'Setup Your Profile',
                 successAction: 'navigateHome',
@@ -397,6 +398,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
+              settings: const RouteSettings(name: '/EditProfileScreen'),
               builder: (_) => const EditProfileScreen(
                 title: 'Setup Your Profile',
                 successAction: 'navigateHome',

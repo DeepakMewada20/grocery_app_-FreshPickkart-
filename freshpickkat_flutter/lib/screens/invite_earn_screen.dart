@@ -394,7 +394,10 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     return Card(
       child: InkWell(
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const FreshPointsHistoryScreen()),
+          MaterialPageRoute(
+            settings: const RouteSettings(name: '/FreshPointsHistoryScreen'),
+            builder: (_) => const FreshPointsHistoryScreen(),
+          ),
         ),
         borderRadius: BorderRadius.circular(12),
         child: Padding(

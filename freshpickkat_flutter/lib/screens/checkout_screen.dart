@@ -37,9 +37,6 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
-    deferred as location_picker_screen;
-import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -2403,12 +2400,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _openLocationPicker({required Address? initialAddress}) async {
-    await navigateDeferred(
-      loadLibrary: () => location_picker_screen.loadLibrary(),
-      pageBuilder: () => location_picker_screen.LocationPickerScreen(
-        isCheckoutMode: true,
-        initialAddress: initialAddress,
-      ),
+    await Get.toNamed(
+      '/location-picker',
+      arguments: {
+        'isCheckoutMode': true,
+        'initialAddress': initialAddress,
+      },
     );
   }
 

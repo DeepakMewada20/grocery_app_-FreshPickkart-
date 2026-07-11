@@ -610,6 +610,7 @@ class _CategoriesScreenWithStickyHeaderState
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
+                                    settings: const RouteSettings(name: '/CategoryItemsScreen'),
                                     builder: (context) => CategoryItemsScreen(
                                       categoryName: categoryName,
                                       subCategoryGroupName: itemName,
