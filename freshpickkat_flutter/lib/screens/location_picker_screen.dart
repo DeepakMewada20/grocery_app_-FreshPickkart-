@@ -37,7 +37,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   late GoogleMapController _mapController;
 
   // Current selected location (center of map)
-  late LatLng _selectedLocation;
+  LatLng _selectedLocation = const LatLng(0, 0);
+
+  // Camera tracking for center-pin model
+  LatLng? _cameraTarget;
 
   // Form controllers
   late TextEditingController _streetController;
@@ -49,8 +52,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   bool _isLoadingLocation = false;
   bool _isGeocoding = false;
   bool _isSaving = false;
+  bool _locationSetManually = false;
   Address? _currentAddress;
-  final Set<Marker> _markers = {}; // Track if user is dragging map
 
   final UserController _userController = UserController.instance;
 
@@ -58,7 +61,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   void initState() {
     super.initState();
 
-    // Initialize location
+    // Initialize location from saved address if available
     if (widget.initialAddress != null &&
         widget.initialAddress!.latitude != null &&
         widget.initialAddress!.longitude != null) {
@@ -66,8 +69,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         widget.initialAddress!.latitude!,
         widget.initialAddress!.longitude!,
       );
-    } else {
-      _selectedLocation = const LatLng(28.6139, 77.2090); // Default: Delhi
+      _locationSetManually = true;
     }
 
     _currentAddress = widget.initialAddress;
@@ -92,7 +94,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   Future<void> _initializeLocation() async {
-    _updateMarker(_selectedLocation);
     if (widget.initialAddress == null) {
       setState(() => _isLoadingLocation = true);
       try {
@@ -134,8 +135,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     final position = await LocationService.getCurrentLocation();
     setState(() {
       _selectedLocation = LatLng(position.latitude, position.longitude);
+      _locationSetManually = true;
     });
-    _updateMarker(_selectedLocation);
     await _geocodeSelectedLocation();
     _animateMapToLocation();
   }
@@ -170,24 +171,25 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
   }
 
-  void _updateMarker(LatLng position) {
-    setState(() {
-      _markers.clear();
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('selected_location'),
-          position: position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        ),
-      );
-    });
-  }
-
   void _onMapTap(LatLng location) {
     setState(() {
       _selectedLocation = location;
+      _locationSetManually = true;
     });
-    _updateMarker(location);
+    _geocodeSelectedLocation();
+    _animateMapToLocation();
+  }
+
+  void _onCameraIdle() {
+    if (_cameraTarget == null || !mounted) return;
+    if (_cameraTarget!.latitude == _selectedLocation.latitude &&
+        _cameraTarget!.longitude == _selectedLocation.longitude) {
+      return; // camera didn't actually move (programmatic animation)
+    }
+    setState(() {
+      _selectedLocation = _cameraTarget!;
+      _locationSetManually = true;
+    });
     _geocodeSelectedLocation();
   }
 
@@ -203,8 +205,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       final position = await LocationService.getCurrentLocation();
       setState(() {
         _selectedLocation = LatLng(position.latitude, position.longitude);
+        _locationSetManually = true;
       });
-      _updateMarker(_selectedLocation);
       await _geocodeSelectedLocation();
       _animateMapToLocation();
       _showSnackBar(ErrorMessages.locationUpdated);
@@ -280,6 +282,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   Future<void> _confirmLocation() async {
+    if (!_locationSetManually) {
+      _showSnackBar('Please drag the map to select your location', isError: true);
+      return;
+    }
+
     // Build address object from form fields
     final address = Address(
       street: _streetController.text.trim(),
@@ -296,7 +303,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       await _userController.updateAddress(address);
       _isSaving = false;
       if (mounted) setState(() {});
-      Get.back(result: address);
+      if (Navigator.of(context).canPop()) {
+        Get.back(result: address);
+      } else {
+        Get.offAllNamed('/home');
+      }
     } catch (e) {
       _isSaving = false;
       if (mounted) setState(() {});
@@ -344,7 +355,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           // Google Map
           GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: _selectedLocation,
+              target: _selectedLocation == const LatLng(0, 0)
+                  ? const LatLng(28.6139, 77.2090)
+                  : _selectedLocation,
               zoom: 17,
             ),
             myLocationEnabled: true,
@@ -352,8 +365,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             onMapCreated: (controller) {
               _mapController = controller;
             },
-            markers: _markers,
             onTap: _onMapTap,
+            onCameraMoveStarted: () {
+              _cameraTarget = null;
+            },
+            onCameraMove: (CameraPosition pos) {
+              _cameraTarget = pos.target;
+            },
+            onCameraIdle: _onCameraIdle,
+          ),
+
+          // Center-pin overlay (always at map center)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(
+                  Icons.location_on,
+                  color: Colors.red,
+                  size: 48,
+                ),
+              ),
+            ),
           ),
 
           // Instructions text at top
@@ -368,7 +400,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Tap on the map to select your location',
+                'Drag the map to select your location',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13.sp,

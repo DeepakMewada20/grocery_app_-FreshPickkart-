@@ -1768,6 +1768,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return null;
   }
 
+  bool _hasInvalidCoords(Address address) {
+    if (address.latitude == null || address.longitude == null) return true;
+    const defaultLat = 28.6139;
+    const defaultLng = 77.2090;
+    if (address.latitude == defaultLat && address.longitude == defaultLng) {
+      return true;
+    }
+    if (address.latitude == 0 && address.longitude == 0) return true;
+    return false;
+  }
+
   String _formatAddress(Address address) {
     final parts = [
       address.street,
@@ -2254,8 +2265,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 onPressed: () => _openLocationPicker(initialAddress: null),
               ),
             ] else ...[
-              if (displayAddress.latitude == null ||
-                  displayAddress.longitude == null)
+              if (_hasInvalidCoords(displayAddress))
                 Container(
                   margin: EdgeInsets.only(bottom: 12.h),
                   padding: EdgeInsets.symmetric(
@@ -2277,7 +2287,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       SizedBox(width: 10.w),
                       Expanded(
                         child: Text(
-                          'Location coordinates missing for this address. Please update it on the map for accurate delivery.',
+                          'Location coordinates missing or incorrect. Please update on the map for accurate delivery.',
                           style: TextStyle(
                             color: Colors.amber.shade900,
                             fontSize: 12.sp,

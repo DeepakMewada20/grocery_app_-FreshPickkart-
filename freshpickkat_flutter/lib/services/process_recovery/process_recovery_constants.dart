@@ -19,7 +19,6 @@ class ProcessRecoveryConstants {
     '/offers',
     '/combo-offers',
     '/coupons',
-    '/location-picker',
     '/product/',
     '/category/',
     '/offer/',
