@@ -828,38 +828,40 @@ class PostgresOrderService {
     Session session, {
     required String orderId,
   }) async {
-    final order = await getOrderById(session, orderId);
-    if (order == null) throw Exception('Order not found');
-    if (order.paymentMode != 'cod') throw Exception('Not a COD order');
-    if (order.paymentStatus != 'paid') throw Exception('COD payment not yet collected');
+    final row = await CustomerOrderRow.db.findFirstRow(
+      session,
+      where: (t) => t.orderNumber.equals(orderId),
+    );
+    if (row?.id == null) throw Exception('Order not found');
+    if (row!.paymentMode != 'cod') throw Exception('Not a COD order');
+    if (row.paymentStatus != 'paid') throw Exception('COD payment not yet collected');
 
     String? collectedByName;
-    if (order.paymentCollectedBy != null) {
+    if (row.paymentCollectedBy != null) {
       try {
         final adminUser = await AppUserRow.db.findFirstRow(
           session,
-          where: (t) => t.firebaseUid.equals(order.paymentCollectedBy!),
+          where: (t) => t.firebaseUid.equals(row.paymentCollectedBy!),
         );
         collectedByName = adminUser?.name ?? adminUser?.phoneNumber;
       } catch (_) {}
     }
 
     String? gatewayRef;
-    final parsedOrderId = parseUuid(orderId, fieldName: 'orderId');
     final txn = await PaymentTransactionRow.db.findFirstRow(
       session,
-      where: (t) => t.orderId.equals(parsedOrderId),
+      where: (t) => t.orderId.equals(row.id!),
     );
     gatewayRef = txn?.gatewayPaymentId;
 
     return CodPaymentReceipt(
-      orderNumber: order.orderId,
+      orderNumber: row.orderNumber,
       paymentMethod: 'Cash on Delivery',
-      collectionMethod: order.paymentCollectionMode ?? 'cash',
-      amountCollected: order.finalAmount,
-      collectionTime: order.paymentCollectedAt,
-      collectedBy: collectedByName ?? order.paymentCollectedBy,
-      paymentStatus: order.paymentStatus,
+      collectionMethod: row.paymentCollectionMode ?? 'cash',
+      amountCollected: row.finalAmount,
+      collectionTime: row.paymentCollectedAt,
+      collectedBy: collectedByName ?? row.paymentCollectedBy,
+      paymentStatus: row.paymentStatus,
       gatewayTransactionReference: gatewayRef,
     );
   }
@@ -873,7 +875,7 @@ class PostgresOrderService {
     if (order == null) throw Exception('Order not found');
     if (order.paymentMode != 'cod') throw Exception('Not a COD order');
     if (order.paymentStatus != 'paid') throw Exception('COD payment not yet collected');
-    if (userId != null && order.userId != userId) {
+    if (userId != null && order.userId.toString() != userId) {
       throw Exception('Order does not belong to this user');
     }
 

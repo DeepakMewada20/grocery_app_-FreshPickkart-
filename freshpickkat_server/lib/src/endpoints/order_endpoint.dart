@@ -1288,16 +1288,15 @@ class OrderEndpoint extends Endpoint {
     required String firebaseUid,
     required String idToken,
   }) async {
-    final user = await _userGuard.ensureUser(
+    await _userGuard.ensureUser(
       session,
       firebaseUid: firebaseUid,
       idToken: idToken,
     );
-    final userId = user.id?.toString();
     return _orders.getUserCodPaymentReceipt(
       session,
       orderId: orderId,
-      userId: userId,
+      userId: firebaseUid,
     );
   }
 
