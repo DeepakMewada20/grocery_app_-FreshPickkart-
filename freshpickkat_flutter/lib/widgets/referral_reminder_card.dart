@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshpickkat_flutter/widgets/referral_onboarding_sheet.dart';
+import 'package:freshpickkat_flutter/widgets/referral_onboarding_dialog.dart';
 
 class ReferralReminderCard extends StatelessWidget {
   const ReferralReminderCard({super.key});
@@ -14,11 +14,9 @@ class ReferralReminderCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          showModalBottomSheet(
+          showDialog(
             context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const ReferralOnboardingSheet(),
+            builder: (_) => const ReferralOnboardingDialog(),
           );
         },
         child: Padding(

@@ -33,7 +33,7 @@ class ReferralEndpoint extends Endpoint {
     return _referral.getMyReferralActivity(session, parsedId);
   }
 
-  Future<Map<String, dynamic>?> validateReferralCode(
+  Future<protocol.ReferralValidationResult?> validateReferralCode(
     Session session,
     String code,
     String currentUserId,

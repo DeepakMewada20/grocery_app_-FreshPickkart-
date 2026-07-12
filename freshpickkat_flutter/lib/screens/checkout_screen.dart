@@ -2490,13 +2490,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Items',
-            style: TextStyle(
-              color: cs.onSurface,
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-            ),
+          Row(
+            children: [
+              Text(
+                'Items',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  '$totalCount',
+                  style: TextStyle(
+                    color: cs.primary,
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 12.h),
           if (bogoItems.isNotEmpty) ...[

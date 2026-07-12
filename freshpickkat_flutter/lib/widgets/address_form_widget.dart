@@ -315,24 +315,25 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     final hasAddress = address != null;
     return InkWell(
       onTap: () async {
-        final result = await Get.toNamed<Address>(
+        final result = await Get.toNamed(
           '/location-picker',
           arguments: {
             'isCheckoutMode': false,
           },
         );
-        if (result != null) {
+        final address = result is Address ? result : null;
+        if (address != null) {
           setState(() {
-            _selectedAddress = result;
-            _streetController.text = result.street;
-            _cityController.text = result.city;
-            _stateController.text = result.state;
-            _zipController.text = result.zipCode;
+            _selectedAddress = address;
+            _streetController.text = address.street;
+            _cityController.text = address.city;
+            _stateController.text = address.state;
+            _zipController.text = address.zipCode;
           });
           widget.onAddressFetched({
-            'address': result,
-            'latitude': result.latitude,
-            'longitude': result.longitude,
+            'address': address,
+            'latitude': address.latitude,
+            'longitude': address.longitude,
           });
         }
       },

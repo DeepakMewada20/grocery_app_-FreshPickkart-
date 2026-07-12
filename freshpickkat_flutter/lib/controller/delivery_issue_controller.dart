@@ -53,14 +53,14 @@ class DeliveryIssueController extends GetxController {
   }
 
   Future<void> pickAddress() async {
-    final result = await Get.toNamed<Address>(
+    final result = await Get.toNamed(
       '/location-picker',
       arguments: {
         'isCheckoutMode': false,
         'initialAddress': selectedAddress.value ?? currentAddress,
       },
     );
-    if (result != null) {
+    if (result is Address) {
       selectedAddress.value = result;
     }
   }

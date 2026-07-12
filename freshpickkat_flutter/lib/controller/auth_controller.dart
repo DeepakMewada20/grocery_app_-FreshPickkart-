@@ -302,7 +302,9 @@ class AuthController extends GetxController {
   Future<void> signOut() async {
     final firebaseUid = _user.value?.uid;
     if (firebaseUid != null && firebaseUid.isNotEmpty) {
-      await NotificationController.instance.prepareForLogout(firebaseUid);
+      await NotificationController.instance
+          .prepareForLogout(firebaseUid)
+          .timeout(const Duration(seconds: 10), onTimeout: () {});
     }
 
     _user.value = null;

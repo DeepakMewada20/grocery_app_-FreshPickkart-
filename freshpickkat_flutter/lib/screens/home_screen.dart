@@ -16,7 +16,7 @@ import 'package:freshpickkat_flutter/widgets/initial_loading_screen.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
-import 'package:freshpickkat_flutter/widgets/referral_onboarding_sheet.dart';
+import 'package:freshpickkat_flutter/widgets/referral_onboarding_dialog.dart';
 import 'package:freshpickkat_flutter/widgets/referral_reminder_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:get/get.dart';
@@ -162,11 +162,9 @@ class _HomePageState extends State<HomePage>
       final status = await client.referral.getReferralOnboardingStatus(uid);
       if (!mounted || !status.isEligible) return;
 
-      await showModalBottomSheet(
+      await showDialog(
         context: Get.context!,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const ReferralOnboardingSheet(),
+        builder: (_) => const ReferralOnboardingDialog(),
       );
     } catch (e) {
       AppLogger.error('HomeScreen', 'Pending referral: $e');

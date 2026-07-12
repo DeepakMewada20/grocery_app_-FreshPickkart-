@@ -68,7 +68,7 @@ class PostgresReferralService {
 
   // ── Validation ────────────────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>?> validateReferralCode(
+  Future<ReferralValidationResult?> validateReferralCode(
     Session session,
     String code,
     UuidValue currentUserId,
@@ -87,10 +87,10 @@ class PostgresReferralService {
     );
     if (existing != null) return null;
 
-    return {
-      'referrerUserId': referrer.id.toString(),
-      'referrerName': referrer.name ?? 'Someone',
-    };
+    return ReferralValidationResult(
+      referrerUserId: referrer.id.toString(),
+      referrerName: referrer.name ?? 'Someone',
+    );
   }
 
   // ── Apply Referral ────────────────────────────────────────────────────────

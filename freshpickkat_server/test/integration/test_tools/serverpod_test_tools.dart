@@ -167,20 +167,22 @@ import 'package:freshpickkat_server/src/generated/data_flow/referral_code_info.d
     as _i79;
 import 'package:freshpickkat_server/src/generated/data_flow/referral_activity.dart'
     as _i80;
-import 'package:freshpickkat_server/src/generated/data_flow/referral_onboarding_status.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_validation_result.dart'
     as _i81;
-import 'package:freshpickkat_server/src/generated/data_flow/referral_admin_stats.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_onboarding_status.dart'
     as _i82;
-import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/referral_admin_stats.dart'
     as _i83;
-import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer_page.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer.dart'
     as _i84;
-import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/shop_more_get_more_offer_page.dart'
     as _i85;
-import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/sub_category.dart'
     as _i86;
-import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+import 'package:freshpickkat_server/src/generated/data_flow/support_issue.dart'
     as _i87;
+import 'package:freshpickkat_server/src/generated/data_flow/cart_item.dart'
+    as _i88;
 import 'package:freshpickkat_server/src/generated/protocol.dart';
 import 'package:freshpickkat_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -10638,7 +10640,7 @@ class _ReferralEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>?> validateReferralCode(
+  _i3.Future<_i81.ReferralValidationResult?> validateReferralCode(
     _i1.TestSessionBuilder sessionBuilder,
     String code,
     String currentUserId,
@@ -10665,7 +10667,7 @@ class _ReferralEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>?>);
+                as _i3.Future<_i81.ReferralValidationResult?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10772,7 +10774,7 @@ class _ReferralEndpoint {
     });
   }
 
-  _i3.Future<_i81.ReferralOnboardingStatus> getReferralOnboardingStatus(
+  _i3.Future<_i82.ReferralOnboardingStatus> getReferralOnboardingStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String userId,
   ) async {
@@ -10795,7 +10797,7 @@ class _ReferralEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i81.ReferralOnboardingStatus>);
+                as _i3.Future<_i82.ReferralOnboardingStatus>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -10980,7 +10982,7 @@ class _ReferralEndpoint {
     });
   }
 
-  _i3.Future<_i82.ReferralAdminStats> getReferralAnalytics(
+  _i3.Future<_i83.ReferralAdminStats> getReferralAnalytics(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -11007,7 +11009,7 @@ class _ReferralEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i82.ReferralAdminStats>);
+                as _i3.Future<_i83.ReferralAdminStats>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11378,7 +11380,7 @@ class _ShopMoreGetMoreEndpoint {
 
   _i3.Future<_i15.OfferMutationResult> upsertOfferWithConflicts(
     _i1.TestSessionBuilder sessionBuilder,
-    _i83.ShopMoreGetMoreOffer offer,
+    _i84.ShopMoreGetMoreOffer offer,
     String firebaseUid,
     String idToken, {
     _i17.NotificationDraft? notificationDraft,
@@ -11421,7 +11423,7 @@ class _ShopMoreGetMoreEndpoint {
 
   _i3.Future<bool> upsertOffer(
     _i1.TestSessionBuilder sessionBuilder,
-    _i83.ShopMoreGetMoreOffer offer,
+    _i84.ShopMoreGetMoreOffer offer,
     String firebaseUid,
     String idToken, {
     _i17.NotificationDraft? notificationDraft,
@@ -11608,7 +11610,7 @@ class _ShopMoreGetMoreEndpoint {
     });
   }
 
-  _i3.Future<List<_i83.ShopMoreGetMoreOffer>> getInactiveOffers(
+  _i3.Future<List<_i84.ShopMoreGetMoreOffer>> getInactiveOffers(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -11630,7 +11632,7 @@ class _ShopMoreGetMoreEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i83.ShopMoreGetMoreOffer>>);
+                as _i3.Future<List<_i84.ShopMoreGetMoreOffer>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11638,7 +11640,7 @@ class _ShopMoreGetMoreEndpoint {
     });
   }
 
-  _i3.Future<List<_i83.ShopMoreGetMoreOffer>> getAllOffers(
+  _i3.Future<List<_i84.ShopMoreGetMoreOffer>> getAllOffers(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -11665,7 +11667,7 @@ class _ShopMoreGetMoreEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i83.ShopMoreGetMoreOffer>>);
+                as _i3.Future<List<_i84.ShopMoreGetMoreOffer>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11673,7 +11675,7 @@ class _ShopMoreGetMoreEndpoint {
     });
   }
 
-  _i3.Future<_i84.ShopMoreGetMoreOfferPage> getOffersPage(
+  _i3.Future<_i85.ShopMoreGetMoreOfferPage> getOffersPage(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,
     required String idToken,
@@ -11704,7 +11706,7 @@ class _ShopMoreGetMoreEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i84.ShopMoreGetMoreOfferPage>);
+                as _i3.Future<_i85.ShopMoreGetMoreOfferPage>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11712,7 +11714,7 @@ class _ShopMoreGetMoreEndpoint {
     });
   }
 
-  _i3.Future<List<_i83.ShopMoreGetMoreOffer>> getActiveOffers(
+  _i3.Future<List<_i84.ShopMoreGetMoreOffer>> getActiveOffers(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -11734,7 +11736,7 @@ class _ShopMoreGetMoreEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i83.ShopMoreGetMoreOffer>>);
+                as _i3.Future<List<_i84.ShopMoreGetMoreOffer>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11742,7 +11744,7 @@ class _ShopMoreGetMoreEndpoint {
     });
   }
 
-  _i3.Future<_i83.ShopMoreGetMoreOffer?> getApplicableOffer(
+  _i3.Future<_i84.ShopMoreGetMoreOffer?> getApplicableOffer(
     _i1.TestSessionBuilder sessionBuilder,
     double eligibleAmount,
   ) async {
@@ -11765,7 +11767,7 @@ class _ShopMoreGetMoreEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i83.ShopMoreGetMoreOffer?>);
+                as _i3.Future<_i84.ShopMoreGetMoreOffer?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11784,7 +11786,7 @@ class _SubCategoryEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i85.SubCategory>> getSubCategories(
+  _i3.Future<List<_i86.SubCategory>> getSubCategories(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -11806,7 +11808,7 @@ class _SubCategoryEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i85.SubCategory>>);
+                as _i3.Future<List<_i86.SubCategory>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11816,7 +11818,7 @@ class _SubCategoryEndpoint {
 
   _i3.Future<bool> uploadSubCategory(
     _i1.TestSessionBuilder sessionBuilder,
-    _i85.SubCategory subCategory,
+    _i86.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -11855,7 +11857,7 @@ class _SubCategoryEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String categoryName,
     String oldSubName,
-    _i85.SubCategory subCategory,
+    _i86.SubCategory subCategory,
     String firebaseUid,
     String idToken,
   ) async {
@@ -11942,7 +11944,7 @@ class _SupportEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i86.SupportIssue> submitIssue(
+  _i3.Future<_i87.SupportIssue> submitIssue(
     _i1.TestSessionBuilder sessionBuilder, {
     required String firebaseUid,
     required String idToken,
@@ -11983,7 +11985,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i86.SupportIssue>);
+                as _i3.Future<_i87.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -11991,7 +11993,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<List<_i86.SupportIssue>> listSupportIssues(
+  _i3.Future<List<_i87.SupportIssue>> listSupportIssues(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken, {
@@ -12024,7 +12026,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i86.SupportIssue>>);
+                as _i3.Future<List<_i87.SupportIssue>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -12032,7 +12034,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i86.SupportIssue?> getSupportIssueDetail(
+  _i3.Future<_i87.SupportIssue?> getSupportIssueDetail(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -12061,7 +12063,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i86.SupportIssue?>);
+                as _i3.Future<_i87.SupportIssue?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -12069,7 +12071,7 @@ class _SupportEndpoint {
     });
   }
 
-  _i3.Future<_i86.SupportIssue> updateSupportIssueStatus(
+  _i3.Future<_i87.SupportIssue> updateSupportIssueStatus(
     _i1.TestSessionBuilder sessionBuilder,
     String firebaseUid,
     String idToken,
@@ -12100,7 +12102,7 @@ class _SupportEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i86.SupportIssue>);
+                as _i3.Future<_i87.SupportIssue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -12184,7 +12186,7 @@ class _UserEndpoint {
   _i3.Future<bool> updateCart(
     _i1.TestSessionBuilder sessionBuilder,
     String uid,
-    List<_i87.CartItem> cart,
+    List<_i88.CartItem> cart,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =

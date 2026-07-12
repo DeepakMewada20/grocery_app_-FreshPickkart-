@@ -459,12 +459,9 @@ class PostgresCouponService {
     required List<CartItemInput> cartItems,
   }) async {
     // Coupon ownership check
-    if (coupon.assignedUserId != null && coupon.assignedUserId!.isNotEmpty) {
-      if (userId.isEmpty || coupon.assignedUserId != userId) {
-        return _CouponEvaluation.notApplicable(coupon, 'Coupon not assigned to you');
-      }
-    }
-    if (coupon.assignedPhone != null && coupon.assignedPhone!.isNotEmpty) {
+    final hasUserId = coupon.assignedUserId != null && coupon.assignedUserId!.isNotEmpty;
+    final hasPhone = coupon.assignedPhone != null && coupon.assignedPhone!.isNotEmpty;
+    if (hasUserId || hasPhone) {
       final parsedId = tryParseUuid(userId);
       final user = parsedId != null
           ? await AppUserRow.db.findById(session, parsedId)
@@ -472,7 +469,13 @@ class PostgresCouponService {
               session,
               where: (t) => t.firebaseUid.equals(userId),
             );
-      if (user == null || user.phoneNumber != coupon.assignedPhone) {
+      if (user == null) {
+        return _CouponEvaluation.notApplicable(coupon, 'User not found');
+      }
+      if (hasUserId && coupon.assignedUserId != user.id.toString()) {
+        return _CouponEvaluation.notApplicable(coupon, 'Coupon not assigned to you');
+      }
+      if (hasPhone && user.phoneNumber != coupon.assignedPhone) {
         return _CouponEvaluation.notApplicable(coupon, 'Coupon not assigned to your phone');
       }
     }

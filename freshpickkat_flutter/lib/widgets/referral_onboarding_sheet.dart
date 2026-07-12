@@ -69,7 +69,7 @@ class _ReferralOnboardingSheetState extends State<ReferralOnboardingSheet> {
       if (result != null) {
         setState(() {
           _isValid = true;
-          _referrerName = result['referrerName'] as String? ?? 'Someone';
+          _referrerName = result.referrerName;
           _validationMessage = 'Valid code! Referred by $_referrerName';
         });
       } else {

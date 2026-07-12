@@ -1,0 +1,4 @@
+class: ReferralValidationResult
+fields:
+  referrerUserId: String
+  referrerName: String

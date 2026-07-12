@@ -16,6 +16,7 @@ import 'package:freshpickkat_flutter/screens/help_support_screen.dart'
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
     deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/invite_earn_screen.dart';
+import 'package:freshpickkat_flutter/widgets/referral_onboarding_dialog.dart';
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
 import 'package:freshpickkat_flutter/screens/my_complaints_screen.dart'
     deferred as my_complaints_screen;
@@ -102,6 +103,17 @@ class _MoreScreenState extends State<MoreScreen> {
                         settings: const RouteSettings(name: '/InviteEarnScreen'),
                         builder: (_) => const InviteEarnScreen(),
                       ),
+                    );
+                  },
+                  cs: cs,
+                ),
+                _buildMenuItem(
+                  icon: Icons.card_giftcard_outlined,
+                  title: 'Enter Referral Code',
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => const ReferralOnboardingDialog(),
                     );
                   },
                   cs: cs,
