@@ -1173,7 +1173,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Items (${order.itemCount})',
+            'Items (${order.items.length})',
             style: AppTextStyles.sectionTitle(
               context,
             ).copyWith(fontSize: 16.sp),

@@ -223,7 +223,7 @@ class _LiveDeliveryScreenState extends State<LiveDeliveryScreen> {
             ],
           ),
           SizedBox(height: 14.h),
-          _InfoRow(label: 'Items', value: '${order.itemCount}'),
+          _InfoRow(label: 'Items', value: '${order.items.length}'),
           SizedBox(height: 8.h),
           _InfoRow(
             label: 'Delivery person',

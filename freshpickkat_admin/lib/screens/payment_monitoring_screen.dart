@@ -668,7 +668,7 @@ class _OrderCard extends StatelessWidget {
                 Icon(Icons.shopping_bag_outlined, size: 14.r),
                 SizedBox(width: 4.w),
                 Text(
-                  '${order.itemCount} items',
+                  '${order.items.length} items',
                   style: AdminTextStyles.caption(context),
                 ),
               ],
@@ -1026,7 +1026,7 @@ class _OrderInfoPanel extends StatelessWidget {
         _InfoRow('Customer', order.userName ?? order.userPhone),
         _InfoRow('Phone', order.userPhone),
         _InfoRow('Amount', 'INR ${order.finalAmount.toStringAsFixed(2)}'),
-        _InfoRow('Items', '${order.itemCount}'),
+        _InfoRow('Items', '${order.items.length}'),
         _InfoRow('Status', order.status),
         _InfoRow('Payment Status', order.paymentStatus),
         _InfoRow('Refund Status', order.refundStatus),

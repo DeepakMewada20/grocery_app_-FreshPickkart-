@@ -715,7 +715,7 @@ class _OrderCardState extends State<_OrderCard> {
                           ),
                           SizedBox(height: 2.h),
                           Text(
-                            '${order.itemCount} Items',
+                            '${order.items.length} Items',
                             style: TextStyle(
                               color: AdminAppTheme.getTextSecondaryColor(
                                 context,

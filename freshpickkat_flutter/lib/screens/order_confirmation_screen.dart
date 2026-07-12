@@ -364,7 +364,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               SizedBox(width: 8.w),
               Expanded(
                 child: Text(
-                  'Ordered Products (${order.itemCount})',
+                  'Ordered Products (${order.items.length})',
                   style: AppTextStyles.sectionTitle(
                     context,
                   ).copyWith(fontSize: 16.sp),

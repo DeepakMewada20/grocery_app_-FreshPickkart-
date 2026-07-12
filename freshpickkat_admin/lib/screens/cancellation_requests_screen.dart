@@ -713,7 +713,7 @@ class _CancellationOrderCard extends StatelessWidget {
                 Icon(Icons.shopping_bag_outlined, size: 14.r),
                 SizedBox(width: 4.w),
                 Text(
-                  '${order.itemCount} items',
+                  '${order.items.length} items',
                   style: AdminTextStyles.caption(context),
                 ),
               ],

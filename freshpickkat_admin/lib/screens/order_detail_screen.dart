@@ -412,7 +412,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
               SizedBox(height: 22.h),
               _DetailSection(
-                title: 'Items (${order.itemCount})',
+                title: 'Items (${order.items.length})',
                 icon: Icons.shopping_bag_outlined,
                 children: [
                   if (order.items.isEmpty)
