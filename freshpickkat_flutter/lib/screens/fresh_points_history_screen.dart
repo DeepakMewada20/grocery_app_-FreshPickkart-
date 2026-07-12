@@ -192,7 +192,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
   }
 
   bool _isEarnType(String type) {
-    return type == 'EARNED' || type == 'REFERRAL' || type == 'ADMIN_ADD' || type == 'REFUND_RESTORE';
+    return type == 'EARNED' || type == 'REFERRAL_REWARD' || type == 'ADMIN_ADD' || type == 'REFUND_RESTORE';
   }
 
   String _labelForType(String type) {
@@ -203,7 +203,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
         return 'Admin Deduction';
       case 'EARNED':
         return 'Earned via Order';
-      case 'REFERRAL':
+      case 'REFERRAL_REWARD':
         return 'Referral Reward';
       case 'REFUND_RESTORE':
         return 'Refund Restore';

@@ -515,7 +515,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color, size: 20),
         ),
-        title: Text(a.inviteePhone),
+        title: Text(a.inviteeName ?? a.inviteePhone),
         subtitle: Text(a.description, style: Theme.of(context).textTheme.bodySmall),
         trailing: a.pointsEarned != null
             ? Text('+${a.pointsEarned}', style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold))

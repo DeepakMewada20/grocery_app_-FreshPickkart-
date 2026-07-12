@@ -22,11 +22,20 @@ class _ReferralOnboardingDialogState extends State<ReferralOnboardingDialog> {
   String? _validationMessage;
   bool _isValid = false;
   String? _referrerName;
+  ReferralSettings? _settings;
 
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     _autoFillFromDeepLink();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      _settings = await _client.referral.getSettings();
+      if (mounted) setState(() {});
+    } catch (_) {}
   }
 
   void _autoFillFromDeepLink() {
@@ -145,7 +154,7 @@ class _ReferralOnboardingDialogState extends State<ReferralOnboardingDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Enter your friend\'s referral code to get ₹50 OFF on your first order!',
+              'Enter your friend\'s referral code to get ₹${_settings?.inviteeCouponAmount.toInt() ?? 50} OFF on your first order!',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
             ),

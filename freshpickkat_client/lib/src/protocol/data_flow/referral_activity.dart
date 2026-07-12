@@ -16,6 +16,7 @@ abstract class ReferralActivity implements _i1.SerializableModel {
   ReferralActivity._({
     required this.type,
     required this.inviteePhone,
+    this.inviteeName,
     required this.description,
     this.pointsEarned,
     required this.createdAt,
@@ -24,6 +25,7 @@ abstract class ReferralActivity implements _i1.SerializableModel {
   factory ReferralActivity({
     required String type,
     required String inviteePhone,
+    String? inviteeName,
     required String description,
     int? pointsEarned,
     required DateTime createdAt,
@@ -33,6 +35,7 @@ abstract class ReferralActivity implements _i1.SerializableModel {
     return ReferralActivity(
       type: jsonSerialization['type'] as String,
       inviteePhone: jsonSerialization['inviteePhone'] as String,
+      inviteeName: jsonSerialization['inviteeName'] as String?,
       description: jsonSerialization['description'] as String,
       pointsEarned: jsonSerialization['pointsEarned'] as int?,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -44,6 +47,8 @@ abstract class ReferralActivity implements _i1.SerializableModel {
   String type;
 
   String inviteePhone;
+
+  String? inviteeName;
 
   String description;
 
@@ -57,6 +62,7 @@ abstract class ReferralActivity implements _i1.SerializableModel {
   ReferralActivity copyWith({
     String? type,
     String? inviteePhone,
+    String? inviteeName,
     String? description,
     int? pointsEarned,
     DateTime? createdAt,
@@ -67,6 +73,7 @@ abstract class ReferralActivity implements _i1.SerializableModel {
       '__className__': 'ReferralActivity',
       'type': type,
       'inviteePhone': inviteePhone,
+      if (inviteeName != null) 'inviteeName': inviteeName,
       'description': description,
       if (pointsEarned != null) 'pointsEarned': pointsEarned,
       'createdAt': createdAt.toJson(),
@@ -85,12 +92,14 @@ class _ReferralActivityImpl extends ReferralActivity {
   _ReferralActivityImpl({
     required String type,
     required String inviteePhone,
+    String? inviteeName,
     required String description,
     int? pointsEarned,
     required DateTime createdAt,
   }) : super._(
          type: type,
          inviteePhone: inviteePhone,
+         inviteeName: inviteeName,
          description: description,
          pointsEarned: pointsEarned,
          createdAt: createdAt,
@@ -103,6 +112,7 @@ class _ReferralActivityImpl extends ReferralActivity {
   ReferralActivity copyWith({
     String? type,
     String? inviteePhone,
+    Object? inviteeName = _Undefined,
     String? description,
     Object? pointsEarned = _Undefined,
     DateTime? createdAt,
@@ -110,6 +120,7 @@ class _ReferralActivityImpl extends ReferralActivity {
     return ReferralActivity(
       type: type ?? this.type,
       inviteePhone: inviteePhone ?? this.inviteePhone,
+      inviteeName: inviteeName is String? ? inviteeName : this.inviteeName,
       description: description ?? this.description,
       pointsEarned: pointsEarned is int? ? pointsEarned : this.pointsEarned,
       createdAt: createdAt ?? this.createdAt,

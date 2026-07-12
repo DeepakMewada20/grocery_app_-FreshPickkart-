@@ -407,6 +407,21 @@ class PostgresReferralService {
       limit: 50,
     );
 
+    final inviteeIds = referrals
+        .map((r) => r.inviteeUserId)
+        .where((id) => id != null)
+        .cast<UuidValue>()
+        .toSet();
+    final inviteeUsers = inviteeIds.isNotEmpty
+        ? await AppUserRow.db.find(
+            session,
+            where: (t) => t.id.inSet(inviteeIds),
+          )
+        : <AppUserRow>[];
+    final userNameById = {
+      for (final u in inviteeUsers) u.id!: u.name,
+    };
+
     return referrals.map((ref) {
       final phone = ref.inviteePhone;
       final masked = phone.length >= 4
@@ -416,6 +431,9 @@ class PostgresReferralService {
       return ReferralActivity(
         type: ref.status,
         inviteePhone: masked,
+        inviteeName: ref.inviteeUserId != null
+            ? userNameById[ref.inviteeUserId]
+            : null,
         description: switch (ref.status) {
           'SIGNED_UP' => 'Friend signed up using your referral code',
           'PENDING_REVIEW' =>
