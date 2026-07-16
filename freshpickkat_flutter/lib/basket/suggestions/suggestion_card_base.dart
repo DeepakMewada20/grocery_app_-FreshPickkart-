@@ -77,7 +77,11 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
                 (MediaQuery.sizeOf(context).width * 0.82)
                     .clamp(
                       280.0,
-                      AppResponsive.isTablet(context) ? 360.0 : 340.0,
+                      AppResponsive.isWideWeb(context)
+                          ? 320.0
+                          : AppResponsive.isTablet(context)
+                          ? 360.0
+                          : 340.0,
                     )
                     .toDouble(),
             margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),

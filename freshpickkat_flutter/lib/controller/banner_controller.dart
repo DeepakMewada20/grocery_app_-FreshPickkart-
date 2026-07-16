@@ -252,11 +252,22 @@ class BannerController extends GetxController {
     await BannerNavigationHelper.navigate(banner);
   }
 
-  /// Gets or creates an ImageProvider for a banner image URL
+  /// Gets or creates an ImageProvider for a banner image URL.
+  String resolveImageUrl(String imageUrl) {
+    final trimmed = imageUrl.trim();
+    if (trimmed.isEmpty) return trimmed;
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null && uri.hasScheme) return trimmed;
+
+    return Uri.parse(ServerpodClient.baseUrl).resolve(trimmed).toString();
+  }
+
   ImageProvider getImageProvider(String imageUrl) {
-    if (!_imageProviderCache.containsKey(imageUrl)) {
-      _imageProviderCache[imageUrl] = NetworkImage(imageUrl);
+    final resolvedUrl = resolveImageUrl(imageUrl);
+    if (!_imageProviderCache.containsKey(resolvedUrl)) {
+      _imageProviderCache[resolvedUrl] = NetworkImage(resolvedUrl);
     }
-    return _imageProviderCache[imageUrl]!;
+    return _imageProviderCache[resolvedUrl]!;
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
+import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 
@@ -280,6 +281,8 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
   }
 
   Widget _buildBannerCard(client.Banner banner) {
+    final imageUrl = BannerController.instance.resolveImageUrl(banner.imageUrl);
+
     return GestureDetector(
       onTap: () => _handleTap(banner),
       child: Container(
@@ -299,7 +302,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
             fit: StackFit.expand,
             children: [
               Image.network(
-                banner.imageUrl,
+                imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(

@@ -61,7 +61,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  if (kDebugMode) {
+  if (kIsWeb) {
+    // Web doesn't require AppCheck debug provider.
+  } else if (kDebugMode) {
     await FirebaseAppCheck.instance.activate(
       providerAndroid: const AndroidDebugProvider(),
     );
@@ -111,17 +113,24 @@ class MyApp extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final mq = MediaQuery.of(context);
+        final browserWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : mq.size.width;
         final webFrameWidth = AppResponsive.webFrameWidth;
-        final isWideWeb = kIsWeb && constraints.maxWidth > webFrameWidth;
-        final effectiveWidth = isWideWeb ? webFrameWidth : constraints.maxWidth;
+        final frameWidth = kIsWeb && browserWidth > webFrameWidth
+            ? webFrameWidth
+            : browserWidth;
+        final designSize = kIsWeb
+            ? Size(frameWidth, AppResponsive.designSize.height)
+            : AppResponsive.designSize;
 
         return MediaQuery(
           data: mq.copyWith(
-            size: Size(effectiveWidth, mq.size.height),
+            size: Size(frameWidth, mq.size.height),
             textScaler: AppResponsive.clampedTextScaler(context),
           ),
           child: ScreenUtilInit(
-            designSize: AppResponsive.designSize,
+            designSize: designSize,
             minTextAdapt: true,
             splitScreenMode: true,
             builder: (context, _) => Obx(
@@ -135,28 +144,22 @@ class MyApp extends StatelessWidget {
                 navigatorObservers: [appRouteObserver],
                 builder: (context, child) {
                   if (child == null) return const SizedBox.shrink();
-                  final width = constraints.maxWidth;
 
-                  if (!kIsWeb || width <= webFrameWidth) {
-                    return Stack(
-                      children: [
-                        child,
-                        const NetworkStatusBanner(),
-                      ],
-                    );
-                  }
+                  final content = Stack(
+                    children: [
+                      child,
+                      const NetworkStatusBanner(),
+                    ],
+                  );
+
+                  if (!kIsWeb) return content;
 
                   return Container(
                     color: const Color(0xFFEDEDED),
                     alignment: Alignment.topCenter,
                     child: SizedBox(
-                      width: webFrameWidth,
-                      child: Stack(
-                        children: [
-                          child,
-                          const NetworkStatusBanner(),
-                        ],
-                      ),
+                      width: frameWidth,
+                      child: content,
                     ),
                   );
                 },

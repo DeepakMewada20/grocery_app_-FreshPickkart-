@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -9,7 +11,7 @@ class AppResponsive {
   static const double maxReadableWidth = 720;
   static const double maxCheckoutWidth = 680;
   static const double maxDetailWidth = 920;
-  static const double webFrameWidth = 2000; // Allow full browser width
+  static const double webFrameWidth = 780;
 
   static double layoutWidth(BuildContext context) {
     return MediaQuery.sizeOf(context).width;
@@ -26,6 +28,10 @@ class AppResponsive {
   static bool isSmallPhone(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     return size.width < 360 || size.height < 640;
+  }
+
+  static bool isWideWeb(BuildContext context) {
+    return kIsWeb && MediaQuery.sizeOf(context).width >= 600;
   }
 
   static TextScaler clampedTextScaler(BuildContext context) {
@@ -50,6 +56,7 @@ class AppResponsive {
 
   static double railWidth(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    if (kIsWeb && width >= 700) return 150.0;
     if (width < 360) return 76.w;
     if (width >= 900) return 112.w;
     if (isLandscape(context)) return 92.w;
@@ -64,6 +71,7 @@ class AppResponsive {
     double? availableWidth,
   }) {
     final width = availableWidth ?? MediaQuery.sizeOf(context).width;
+    if (kIsWeb && width >= 600) return width * ratio;
     final landscapeMax = isLandscape(context) ? math.min(max, 150) : max;
     final tabletMax = isTablet(context)
         ? math.max(landscapeMax, 170)
@@ -75,6 +83,7 @@ class AppResponsive {
     double width, {
     bool dense = false,
   }) {
+    if (kIsWeb && width >= 700) return dense ? 4 : 3;
     if (width < 520) return 2;
     if (width < 760) return dense ? 4 : 3;
     if (width < 1040) return dense ? 5 : 4;
@@ -87,6 +96,7 @@ class AppResponsive {
     double spacing = 12,
   }) {
     final tileWidth = (width - spacing * (columns - 1)) / columns;
+    if (kIsWeb && width >= 700) return 0.58;
     if (tileWidth < 145) return 0.46;
     if (tileWidth < 170) return 0.50;
     if (tileWidth < 205) return 0.56;
@@ -114,6 +124,7 @@ class AppResponsive {
   }
 
   static int categoryGridColumnsForWidth(double width) {
+    if (kIsWeb && width >= 560) return 3;
     if (width < 300) return 2;
     if (width < 560) return 3;
     if (width < 820) return 4;
@@ -131,19 +142,26 @@ class AppResponsive {
       crossAxisCount: columns,
       crossAxisSpacing: spacing.w,
       mainAxisSpacing: spacing.h,
-      childAspectRatio: isLandscape(context) ? 0.86 : 0.78,
+      childAspectRatio: kIsWeb && width >= 560
+          ? 0.92
+          : isLandscape(context)
+          ? 0.86
+          : 0.78,
     );
   }
 
   static double horizontalCardWidth(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
+    if (kIsWeb && width >= 700) return 232.0;
     if (width >= 900) return 210.w;
     if (width >= 600) return 184.w;
     return 156.w;
   }
 
   static double horizontalProductListHeight(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
     final cardWidth = horizontalCardWidth(context);
+    if (kIsWeb && width >= 700) return 380.0;
     return (cardWidth / 0.52).clamp(250.h, 340.h).toDouble();
   }
 

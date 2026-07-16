@@ -100,7 +100,9 @@ class _MoreScreenState extends State<MoreScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        settings: const RouteSettings(name: '/InviteEarnScreen'),
+                        settings: const RouteSettings(
+                          name: '/InviteEarnScreen',
+                        ),
                         builder: (_) => const InviteEarnScreen(),
                       ),
                     );
@@ -343,7 +345,9 @@ class _MoreScreenState extends State<MoreScreen> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 100.h.clamp(86.0, 116.0),
+        height: AppResponsive.isWideWeb(context)
+            ? 112.0
+            : 100.h.clamp(86.0, 116.0),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16.r),

@@ -287,7 +287,7 @@ class _ProductCardState extends State<ProductCard> {
             left: 8,
             child: ProductOfferBadge(
               product: displayProduct,
-              fontSize: 10.sp.clamp(8.0, 11.0),
+              fontSize: 10,
             ),
           ),
       ],

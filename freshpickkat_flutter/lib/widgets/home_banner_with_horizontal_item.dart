@@ -44,14 +44,14 @@ class _HomeBannerWithHorizontalItemState
   void _handleBannerChange() {
     final banner = BannerController.instance.homeTopImageBanners.firstOrNull;
 
-    if (banner == null || banner.linkedProductIds == null) {
+    if (banner == null) {
       return;
     }
 
     // No need to manually cache image provider, ImageCache handles it
     // Removed precacheImage logic to prevent rebuilding during first frame
 
-    final productIds = banner.linkedProductIds!;
+    final productIds = banner.linkedProductIds ?? const <String>[];
 
     if (productIds.isEmpty) {
       setState(() {
@@ -118,12 +118,14 @@ class _HomeBannerWithHorizontalItemState
         final productStripHeight = AppResponsive.isLandscape(context)
             ? 80.h
             : 100.h;
-        final bannerHeight = (width / 1.2)
-            .clamp(
-              productStripHeight + 34.h,
-              AppResponsive.isLandscape(context) ? 280.h : 450.h,
-            )
-            .toDouble();
+        final bannerHeight = AppResponsive.isWideWeb(context)
+            ? width / 1.2
+            : (width / 1.2)
+                  .clamp(
+                    productStripHeight + 34.h,
+                    AppResponsive.isLandscape(context) ? 280.h : 450.h,
+                  )
+                  .toDouble();
 
         return SizedBox(
           height: bannerHeight,
@@ -140,18 +142,9 @@ class _HomeBannerWithHorizontalItemState
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                         errorBuilder: (context, error, stackTrace) =>
-                            Container(color: Colors.grey[200]),
+                            _buildFallbackBanner(),
                       )
-                    : Container(
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(
-                              'lib/assets/images/grocry_home_banner.png',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+                    : _buildFallbackBanner(),
               ),
 
               Positioned(
@@ -169,6 +162,13 @@ class _HomeBannerWithHorizontalItemState
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildFallbackBanner() {
+    return Image.asset(
+      'lib/assets/images/grocry_home_banner.png',
+      fit: BoxFit.cover,
     );
   }
 
@@ -191,6 +191,10 @@ class _HomeBannerWithHorizontalItemState
 
     return _ProductList(products: _displayProducts);
   }
+}
+
+double _topBannerProductTileSize(BuildContext context) {
+  return AppResponsive.isLandscape(context) ? 80.h : 100.h;
 }
 
 class _ProductList extends StatelessWidget {
@@ -220,7 +224,7 @@ class _ShimmerProductList extends StatelessWidget {
       itemCount: 5,
       itemBuilder: (context, index) {
         return Container(
-          width: AppResponsive.isLandscape(context) ? 86.w : 100.w,
+          width: _topBannerProductTileSize(context),
           margin: EdgeInsets.only(right: 12.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.r),
@@ -249,7 +253,7 @@ class _ProductBannerCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: AppResponsive.isLandscape(context) ? 86.w : 100.w,
+        width: _topBannerProductTileSize(context),
         margin: EdgeInsets.only(right: 12.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
@@ -292,7 +296,7 @@ class _ProductBannerCard extends StatelessWidget {
                       horizontal: 6.w,
                       vertical: 3.h,
                     ),
-                    fontSize: 9.sp,
+                    fontSize: 9,
                     borderRadius: 6.r,
                   ),
                 ),
