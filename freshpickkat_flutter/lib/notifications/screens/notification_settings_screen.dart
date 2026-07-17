@@ -3,6 +3,10 @@ import 'package:freshpickkat_flutter/notifications/controllers/notification_cont
 import 'package:freshpickkat_flutter/notifications/screens/notification_history_screen.dart'
     deferred as notification_history_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
 
 class NotificationSettingsScreen extends StatelessWidget {

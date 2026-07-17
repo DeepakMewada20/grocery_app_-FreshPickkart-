@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -39,7 +40,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.symmetric(vertical: 12.h),
+      padding: AppSpacing.symmetric(vertical: 12),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: effectiveColumns,
         childAspectRatio: effectiveAspectRatio,
@@ -63,7 +64,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
     final productController = ProductProviderController.instance;
 
     return Padding(
-      padding: EdgeInsets.only(left: 12.w, right: 12.w, top: 16.h),
+      padding: AppSpacing.only(left: 12, right: 12, top: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final availableWidth = constraints.maxWidth.isFinite
@@ -89,7 +90,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                       titalWord,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.sectionTitle(context),
+                      style: AppText.sectionTitle(context),
                     ),
                   ),
                 ],
@@ -136,7 +137,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
                     for (final w in insertion.widgets) {
                       segments.add(
                         Padding(
-                          padding: EdgeInsets.only(bottom: 12.h),
+                          padding: AppSpacing.only(bottom: 12),
                           child: w,
                         ),
                       );

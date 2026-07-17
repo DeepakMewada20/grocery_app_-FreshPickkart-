@@ -13,6 +13,9 @@ import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 
 class BogoOfferCard extends StatelessWidget {
   const BogoOfferCard({
@@ -65,7 +68,7 @@ class BogoOfferCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           border: Border.all(
             color: AppTheme.primaryGreen.withValues(alpha: 0.55),
           ),
@@ -90,8 +93,8 @@ class BogoOfferCard extends StatelessWidget {
                       // Trigger Product Image (Smaller)
                       ClipRRect(
                         borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(14.r),
-                          bottomLeft: Radius.circular(14.r),
+                          topLeft: Radius.circular(AppRadius.large),
+                          bottomLeft: Radius.circular(AppRadius.large),
                         ),
                         child: Container(
                           width: 100.w,
@@ -109,9 +112,9 @@ class BogoOfferCard extends StatelessWidget {
                       ),
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 10.h,
+                          padding: AppSpacing.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,13 +176,13 @@ class BogoOfferCard extends StatelessWidget {
                     left: 8.w,
                     top: 8.h,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
+                      padding: AppSpacing.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: offerTheme.badge,
-                        borderRadius: BorderRadius.circular(6.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Text(
                         badgeText,
@@ -198,7 +201,7 @@ class BogoOfferCard extends StatelessWidget {
             Divider(height: 1, color: cs.outlineVariant),
             // Offer Text & Free Products Section
             Padding(
-              padding: EdgeInsets.all(12.w),
+              padding: AppSpacing.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -276,17 +279,17 @@ class BogoOfferCard extends StatelessWidget {
                                         cart.resumePricingRefresh();
                                       }
                                     },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.add_shopping_cart,
-                                size: 18,
+                                size: AppIcons.button,
                               ),
                               label: const Text('Add Offer'),
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppTheme.primaryGreen,
                                 foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w,
-                                  vertical: 8.h,
+                                padding: AppSpacing.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
                                 textStyle: TextStyle(fontSize: 12.sp),
                               ),
@@ -333,12 +336,12 @@ class BogoOfferCard extends StatelessWidget {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(8.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 4.r,
+            color: AppTheme.primaryGreen,
+            borderRadius: BorderRadius.circular(AppRadius.medium),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                blurRadius: 4.r,
             offset: Offset(0, 2.h),
           ),
         ],
@@ -352,10 +355,10 @@ class BogoOfferCard extends StatelessWidget {
               variantId: triggerVariant?.variantId,
               quantityDelta: requiredQty <= 0 ? 1 : requiredQty,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-              child: Icon(Icons.remove, color: Colors.white, size: 16.r),
+              padding: AppSpacing.symmetric(horizontal: 10, vertical: 8),
+              child: Icon(Icons.remove, color: Colors.white, size: AppIcons.small),
             ),
           ),
           Text(
@@ -372,10 +375,10 @@ class BogoOfferCard extends StatelessWidget {
               variantId: triggerVariant?.variantId,
               quantityDelta: requiredQty <= 0 ? 1 : requiredQty,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-              child: Icon(Icons.add, color: Colors.white, size: 16.r),
+              padding: AppSpacing.symmetric(horizontal: 10, vertical: 8),
+              child: Icon(Icons.add, color: Colors.white, size: AppIcons.small),
             ),
           ),
         ],
@@ -401,7 +404,7 @@ class _FreeProductCard extends StatelessWidget {
       width: 170.w,
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(
           color: cs.outlineVariant,
         ),
@@ -410,8 +413,8 @@ class _FreeProductCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10.r),
-              bottomLeft: Radius.circular(10.r),
+              topLeft: Radius.circular(AppRadius.medium),
+              bottomLeft: Radius.circular(AppRadius.medium),
             ),
             child: SizedBox(
               width: 85.w,
@@ -425,16 +428,16 @@ class _FreeProductCard extends StatelessWidget {
                     errorBuilder: (_, _, _) => Icon(
                       Icons.image_not_supported_outlined,
                       color: cs.onSurface.withValues(alpha: 0.35),
-                      size: 20.r,
+                      size: AppIcons.medium,
                     ),
                   ),
                   Positioned(
                     bottom: 2.h,
                     right: 2.h,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 3.w,
-                        vertical: 1.h,
+                      padding: AppSpacing.symmetric(
+                        horizontal: 3,
+                        vertical: 1,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
@@ -456,9 +459,9 @@ class _FreeProductCard extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 8.w,
-                vertical: 6.h,
+              padding: AppSpacing.symmetric(
+                horizontal: 8,
+                vertical: 6,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

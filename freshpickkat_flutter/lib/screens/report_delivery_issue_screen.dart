@@ -8,6 +8,9 @@ import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -240,7 +243,7 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               onPressed: submitting ? null : _submit,
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.r),
+                                  borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                                 ),
                               ),
                               child: submitting
@@ -284,12 +287,12 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        padding: AppSpacing.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
               ? cs.onSurface.withValues(alpha: 0.06)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           border: Border.all(
             color: isSelected
                 ? cs.onSurface.withValues(alpha: 0.5)
@@ -359,25 +362,25 @@ InputDecoration _inputDecoration(
           ),
     filled: true,
     fillColor: Theme.of(context).scaffoldBackgroundColor,
-    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+    contentPadding: AppSpacing.symmetric(horizontal: 14, vertical: 14),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.primary, width: 1.4),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: const BorderSide(color: Colors.redAccent),
     ),
     focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: const BorderSide(color: Colors.redAccent, width: 1.4),
     ),
   );
@@ -397,16 +400,16 @@ class _IntroCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(14.w),
+      padding: AppSpacing.all(14),
       decoration: BoxDecoration(
         color: cs.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: cs.primary.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, color: cs.primary, size: 20.r),
+          Icon(Icons.info_outline_rounded, color: cs.primary, size: AppIcons.medium),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -453,10 +456,10 @@ class _SectionCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -493,10 +496,10 @@ class _AddressPreviewCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(14.w),
+      padding: AppSpacing.all(14),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
@@ -528,10 +531,10 @@ class _AddressPreviewCard extends StatelessWidget {
           OutlinedButton(
             onPressed: onEdit,
             style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              padding: AppSpacing.symmetric(horizontal: 12, vertical: 6),
               side: BorderSide(color: cs.primary),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
             ),
             child: Text(
@@ -554,7 +557,7 @@ class _BlockedState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.w),
+        padding: AppSpacing.all(24),
         child: AppResponsive.constrainContent(
           context: context,
           child: _SectionCard(

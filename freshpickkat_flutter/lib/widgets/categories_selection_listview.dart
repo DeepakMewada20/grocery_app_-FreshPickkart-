@@ -4,12 +4,12 @@ import 'package:flutter/rendering.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/screens/view_all_products_screen.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/widgets/view_all_card.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 class CategoriesSelectionListview extends StatefulWidget {
@@ -121,7 +121,7 @@ class _CategoriesSelectionListviewState
 
       if (isLoading) {
         return Padding(
-          padding: EdgeInsets.symmetric(vertical: 28.h),
+          padding: AppSpacing.symmetric(vertical: 28),
           child: SizedBox(
             height: AppResponsive.horizontalProductListHeight(context),
             child: HorizontalProductListShimmer(
@@ -141,7 +141,7 @@ class _CategoriesSelectionListviewState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 16.h, left: 12.w, right: 12.w),
+            padding: AppSpacing.only(top: 16, left: 12, right: 12),
             child: Row(
               children: [
                 Expanded(
@@ -149,7 +149,7 @@ class _CategoriesSelectionListviewState
                     widget.titalWord,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sectionTitle(context),
+                    style: AppText.sectionTitle(context),
                   ),
                 ),
                 TextButton(
@@ -177,7 +177,7 @@ class _CategoriesSelectionListviewState
             height: AppResponsive.horizontalProductListHeight(context),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              padding: AppSpacing.symmetric(horizontal: 16),
               itemCount: itemCount,
               itemBuilder: (context, index) {
                 // Show ViewAllCard as last item
@@ -215,7 +215,7 @@ class _CategoriesSelectionListviewState
                 );
                 return Container(
                   width: cardWidth,
-                  margin: EdgeInsets.only(right: 12.w),
+                  margin: AppSpacing.only(right: 12),
                   child: KeyedSubtree(
                     key: ValueKey(uniqueKey),
                     child: kIsWeb

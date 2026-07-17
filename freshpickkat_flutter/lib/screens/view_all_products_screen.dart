@@ -4,10 +4,10 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:get/get.dart';
 
 /// Displays a full list of products in a grid. The [sortBy] value is forwarded
@@ -110,7 +110,7 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
           if (isLoading.value) {
             return ProductGridShimmer(
               itemCount: 6,
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              padding: AppSpacing.symmetric(horizontal: 12, vertical: 8),
             );
           }
           if (products.isEmpty) {
@@ -123,7 +123,7 @@ class _ViewAllProductsScreenState extends State<ViewAllProductsScreen> {
           }
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            padding: AppSpacing.symmetric(horizontal: 12, vertical: 8),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return GridView.builder(

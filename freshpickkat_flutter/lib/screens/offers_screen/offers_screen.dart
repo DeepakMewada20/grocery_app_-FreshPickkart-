@@ -3,7 +3,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
@@ -274,7 +274,7 @@ class _OffersScreenState extends State<OffersScreen> {
                                 'Smart Analysis for You',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.sectionTitle(
+                                style: AppText.sectionTitle(
                                   context,
                                 ).copyWith(fontSize: 16.sp),
                               ),
@@ -301,7 +301,7 @@ class _OffersScreenState extends State<OffersScreen> {
                       SizedBox(height: 24.h),
                       Text(
                         'All Offers',
-                        style: AppTextStyles.sectionTitle(
+                        style: AppText.sectionTitle(
                           context,
                         ).copyWith(fontSize: 16.sp),
                       ),

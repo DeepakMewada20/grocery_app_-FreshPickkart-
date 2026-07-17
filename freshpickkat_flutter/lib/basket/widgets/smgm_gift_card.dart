@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
@@ -50,7 +53,7 @@ class SmgmGiftCard extends StatelessWidget {
             padding: EdgeInsets.all(14.r),
             decoration: BoxDecoration(
               color: offerTheme.badgeSoft,
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
               border: Border.all(color: offerTheme.badgeBorder),
             ),
             child: Column(
@@ -59,13 +62,13 @@ class SmgmGiftCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 5.h,
+                      padding: AppSpacing.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: offerTheme.badge,
-                        borderRadius: BorderRadius.circular(6.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Text(
                         'SHOP MORE, GET MORE',
@@ -82,7 +85,7 @@ class SmgmGiftCard extends StatelessWidget {
                 Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                       child: Container(
                         width: 56.r,
                         height: 56.r,

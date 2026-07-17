@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class SuggestionProgressBar extends StatelessWidget {
   final double current;
@@ -65,7 +69,7 @@ class SuggestionProgressBar extends StatelessWidget {
               width: barWidth,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: TweenAnimationBuilder<double>(
                 tween: Tween<double>(begin: 0, end: progress),
@@ -79,7 +83,7 @@ class SuggestionProgressBar extends StatelessWidget {
                       child: Container(
                         height: 4.h,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.r),
+                          borderRadius: BorderRadius.circular(AppRadius.medium),
                           gradient: LinearGradient(
                             colors: [
                               accent.withValues(alpha: 0.5),
@@ -190,10 +194,10 @@ class VariantComparisonView extends StatelessWidget {
       children: [
         // Current variant pill (muted)
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+          padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: dimBg,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +229,7 @@ class VariantComparisonView extends StatelessWidget {
         ),
         // Arrow
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6.w),
+          padding: AppSpacing.symmetric(horizontal: 6),
           child: Icon(
             Icons.arrow_forward_ios_rounded,
             size: 10.r,
@@ -234,10 +238,10 @@ class VariantComparisonView extends StatelessWidget {
         ),
         // Suggested variant pill (highlighted)
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+          padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: accent.withValues(alpha: isDark ? 0.15 : 0.08),
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
             border: Border.all(
               color: accent.withValues(alpha: isDark ? 0.3 : 0.2),
               width: 1,

@@ -8,7 +8,10 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -91,21 +94,18 @@ class _CouponsScreenState extends State<CouponsScreen> {
         elevation: 0,
         title: Text(
           'Available Coupons',
-          style: AppTextStyles.screenTitle(context),
+          style: AppText.screenTitle(context),
         ),
         centerTitle: true,
         actions: [
           if (!_initialLoad && _error == null)
             Padding(
-              padding: EdgeInsets.only(right: 16.w),
+              padding: AppSpacing.only(right: 16),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 4.h,
-                ),
+                padding: AppSpacing.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryGreen.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20.r),
+                  borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                 ),
                 child: Text(
                   '${_coupons.length}',
@@ -167,8 +167,8 @@ class _CouponsScreenState extends State<CouponsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: EdgeInsets.all(28.w),
+                            Container(
+                                padding: AppSpacing.all(28),
                             decoration: BoxDecoration(
                               color: cs.surfaceContainerHighest,
                               shape: BoxShape.circle,
@@ -214,7 +214,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => Padding(
-                          padding: EdgeInsets.only(bottom: 16.h),
+                          padding: AppSpacing.only(bottom: 16),
                           child: AppResponsive.constrainContent(
                             context: context,
                             child: _CouponListCard(
@@ -270,7 +270,7 @@ class _CouponListCard extends StatelessWidget {
           color: isHighlighted
               ? _accentColor.withValues(alpha: 0.06)
               : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           border: Border.all(
             color: isHighlighted ? _accentColor : cs.outlineVariant,
             width: isHighlighted ? 2 : 1,
@@ -289,7 +289,7 @@ class _CouponListCard extends StatelessWidget {
           children: [
             // ─── Top ───
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 14.h),
+              padding: AppSpacing.only(left: 16, top: 16, right: 16, bottom: 14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -306,7 +306,7 @@ class _CouponListCard extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(14.r),
+                      borderRadius: BorderRadius.circular(AppRadius.large),
                     ),
                     child: Builder(
                       builder: (context) {
@@ -316,7 +316,7 @@ class _CouponListCard extends StatelessWidget {
                               ? Icons.local_shipping_rounded
                               : Icons.discount_rounded,
                           color: cs.onPrimary,
-                          size: 24.r,
+                          size: AppIcons.large,
                         );
                       },
                     ),
@@ -356,13 +356,10 @@ class _CouponListCard extends StatelessWidget {
                   SizedBox(width: 8.w),
                   // Category badge
                   Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 4.h,
-                    ),
+                    padding: AppSpacing.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: _accentColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                     child: AutoSizeText(
                       coupon.isDeliveryDiscount ? 'Delivery' : 'Price',
@@ -438,7 +435,7 @@ class _CouponListCard extends StatelessWidget {
 
             // ─── Bottom ───
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 16.h),
+              padding: AppSpacing.only(left: 16, top: 12, right: 16, bottom: 16),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final details = Wrap(
@@ -510,7 +507,7 @@ class _CouponListCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12.r, color: cs.onSurface.withValues(alpha: 0.4)),
+        Icon(icon, size: AppIcons.tiny, color: cs.onSurface.withValues(alpha: 0.4)),
         SizedBox(width: 4.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,15 +559,15 @@ class _CopyCouponButton extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
+            padding: AppSpacing.symmetric(horizontal: 16, vertical: 9),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,

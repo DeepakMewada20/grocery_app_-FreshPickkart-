@@ -8,6 +8,10 @@ import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
 
 class SingleCardBody extends StatelessWidget {
@@ -31,7 +35,7 @@ class SingleCardBody extends StatelessWidget {
     final isSmgm = type == 'smgm_reward';
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(14.w, 12.h, 14.w, 12.h),
+      padding: AppSpacing.only(left: 14, top: 12, right: 14, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,7 +114,7 @@ class SingleCardBody extends StatelessWidget {
               if (isSmgm)
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(left: 8.w),
+                    padding: AppSpacing.only(left: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +166,7 @@ class SingleCardBody extends StatelessWidget {
                     action?.type == 'delivery')
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      padding: AppSpacing.symmetric(horizontal: 4),
                       child: SuggestionProgressBar(
                         current: s.progressCurrent ?? 0,
                         target: s.progressTarget ?? 0,
@@ -219,9 +223,9 @@ class SingleCardBody extends StatelessWidget {
       height: 40.r,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
-      child: Icon(Icons.card_giftcard_rounded, color: accent, size: 20.r),
+      child: Icon(Icons.card_giftcard_rounded, color: accent, size: AppIcons.medium),
     );
   }
 
@@ -304,11 +308,11 @@ class _Thumb extends StatelessWidget {
       height: 40.r,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         child: SafeNetworkImage(
           url: url,
           fit: BoxFit.cover,

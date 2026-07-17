@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 
 class OfferWidget extends StatefulWidget {
   const OfferWidget({super.key});
@@ -65,16 +67,16 @@ class OfferWidgetState extends State<OfferWidget> {
     final offer = _offer!;
     return SliverToBoxAdapter(
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: AppSpacing.cardPadding,
         decoration: const BoxDecoration(color: Color(0xFF0C5A2A)),
         child: Row(
           children: [
             Icon(
               offer.isFree ? Icons.card_giftcard : Icons.local_shipping,
               color: Colors.white,
-              size: 24.r,
+              size: AppIcons.large,
             ),
-            SizedBox(width: 10.w),
+            AppSpacing.width(AppSpacing.sm),
             Expanded(
               child: Row(
                 children: [
@@ -84,20 +86,18 @@ class OfferWidgetState extends State<OfferWidget> {
                       children: [
                         Text(
                           offer.message ?? 'Delivery offer',
-                          style: TextStyle(
+                          style: AppText.titleSmall(context).copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (offer.appliedRuleName != null) ...[
-                          SizedBox(height: 2.h),
+                          AppSpacing.height(AppSpacing.xxs),
                           Text(
                             offer.appliedRuleName!,
-                            style: TextStyle(
+                            style: AppText.caption(context).copyWith(
                               color: Colors.white70,
-                              fontSize: 11.sp,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -106,11 +106,11 @@ class OfferWidgetState extends State<OfferWidget> {
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  AppSpacing.width(AppSpacing.sm),
                   Icon(
                     Icons.arrow_forward_ios,
                     color: Colors.white,
-                    size: 15.r,
+                    size: AppIcons.small,
                   ),
                 ],
               ),

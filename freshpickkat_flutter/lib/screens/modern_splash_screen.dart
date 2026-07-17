@@ -3,6 +3,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:freshpickkat_flutter/screens/main_screen.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'dart:math' as math;
 
@@ -241,7 +243,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               ),
                             ],
                           ),
-                          padding: EdgeInsets.all(12.w),
+                          padding: AppSpacing.all(12),
                           child: Image.asset(
                             'lib/assets/images/name_logo.png',
                             fit: BoxFit.contain,
@@ -295,7 +297,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                   FadeTransition(
                     opacity: _textOpacity,
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: 25.h),
+                      padding: AppSpacing.only(bottom: 25),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -725,7 +727,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
               height: 18,
               decoration: BoxDecoration(
                 color: const Color(0xFFE74C3C),
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(AppRadius.small),
               ),
             ),
           ),

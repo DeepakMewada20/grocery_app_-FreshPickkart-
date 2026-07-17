@@ -9,6 +9,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -116,7 +118,7 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                           ),
                           if (_controller.productError.value != null)
                             Padding(
-                              padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                              padding: AppSpacing.only(top: 4, left: 4),
                               child: Text(
                                 _controller.productError.value!,
                                 style: TextStyle(
@@ -283,7 +285,7 @@ class _BlockedState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.w),
+        padding: AppSpacing.all(24),
         child: AppResponsive.constrainContent(
           context: context,
           child: _FormCard(
@@ -337,10 +339,10 @@ class _ImagePicker extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          padding: EdgeInsets.all(12.w),
+          padding: AppSpacing.all(12),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
             border: Border.all(
               color: error != null ? cs.error : cs.outlineVariant,
             ),
@@ -402,7 +404,7 @@ class _ImagePicker extends StatelessWidget {
         ),
         if (error != null)
           Padding(
-            padding: EdgeInsets.only(top: 4.h, left: 4.w),
+            padding: AppSpacing.only(top: 4, left: 4),
             child: Text(
               error!,
               style: TextStyle(
@@ -432,7 +434,7 @@ class _SuccessState extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.w),
+        padding: AppSpacing.all(24),
         child: AppResponsive.constrainContent(
           context: context,
           child: _FormCard(
@@ -492,10 +494,10 @@ class _FormCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(
           color: hasError ? cs.error : cs.outlineVariant,
         ),
@@ -552,11 +554,11 @@ InputDecoration _inputDecoration(
     filled: true,
     fillColor: Theme.of(context).scaffoldBackgroundColor,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14.r),
+      borderRadius: BorderRadius.circular(AppRadius.large),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14.r),
+      borderRadius: BorderRadius.circular(AppRadius.large),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
   );

@@ -5,6 +5,8 @@ import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 
 class NetworkBannerWidget extends StatefulWidget {
   final List<client.Banner> banners;
@@ -245,7 +247,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                   );
                 },
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w),
+                  padding: AppSpacing.symmetric(horizontal: 6),
                   child: _buildBannerCard(banner),
                 ),
               );
@@ -261,7 +263,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
               final isActive = (_currentPage % widget.banners.length) == index;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                margin: EdgeInsets.symmetric(horizontal: 3.w),
+                margin: AppSpacing.symmetric(horizontal: 3),
                 width: isActive ? 20.w : 6.w,
                 height: 6.h,
                 decoration: BoxDecoration(
@@ -287,7 +289,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
       onTap: () => _handleTap(banner),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
@@ -297,7 +299,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -341,13 +343,13 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                 bottom: 8,
                 right: 8,
                 child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 4.h,
+                  padding: AppSpacing.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -3,6 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class SuggestionCardBase extends StatefulWidget {
   final client.BasketSuggestion suggestion;
@@ -84,10 +88,10 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
                           : 340.0,
                     )
                     .toDouble(),
-            margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
+            margin: AppSpacing.symmetric(horizontal: 6, vertical: 8),
             decoration: BoxDecoration(
               color: cardBg,
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
               border: Border.all(color: borderColor, width: 1),
               boxShadow: [
                 BoxShadow(
@@ -99,7 +103,7 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
               child: Stack(
                 children: [
                   Row(

@@ -4,6 +4,10 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class FreshPointsHistoryScreen extends StatefulWidget {
   const FreshPointsHistoryScreen({super.key});
@@ -67,7 +71,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
           : RefreshIndicator(
               onRefresh: () => _loadTransactions(),
               child: ListView(
-                padding: EdgeInsets.all(16.w),
+                padding: AppSpacing.all(16),
                 children: [
                   _buildSummaryCard(cs),
                   SizedBox(height: 16.h),
@@ -77,7 +81,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                   }),
                   if (_transactions.isEmpty && !_isLoading)
                     Padding(
-                      padding: EdgeInsets.all(32.h),
+                      padding: AppSpacing.all(32),
                       child: Center(
                         child: Text(
                           'No transactions yet',
@@ -93,10 +97,10 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
 
   Widget _buildSummaryCard(ColorScheme cs) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.fromLTRB(20.w, 20.w, 20.w, 16.w),
+        padding: AppSpacing.only(left: 20, top: 20, right: 20, bottom: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
@@ -108,20 +112,20 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
+                  Container(
+                    padding: AppSpacing.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
                   child: Icon(Icons.monetization_on_outlined, color: Colors.white, size: 22.w),
                 ),
                 const Spacer(),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: AppSpacing.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20.r),
+borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                   ),
                   child: Text('BALANCE',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10.sp, letterSpacing: 1.5)),
@@ -148,10 +152,10 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
             ),
             SizedBox(height: 16.h),
             Container(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
+              padding: AppSpacing.symmetric(vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
+borderRadius: BorderRadius.circular(AppRadius.large),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -242,19 +246,19 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
             }
           : null,
       child: Padding(
-        padding: EdgeInsets.only(bottom: 8.h),
+        padding: AppSpacing.only(bottom: 8),
         child: Container(
-          padding: EdgeInsets.all(12.w),
+          padding: AppSpacing.all(12),
           decoration: BoxDecoration(
             color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(AppRadius.large),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 2.h),
-                child: Icon(icon, color: color, size: 24),
+                padding: AppSpacing.only(top: 2),
+                child: Icon(icon, color: color, size: AppIcons.large),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -274,10 +278,10 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                       maxLines: isExpanded ? null : 2,
                       overflow: isExpanded ? null : TextOverflow.ellipsis,
                     ),
-                    if (isAdmin && txn.description != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 2.h),
-                        child: Text(
+                      if (isAdmin && txn.description != null)
+                        Padding(
+                          padding: AppSpacing.only(top: 2),
+                          child: Text(
                           _labelForType(txn.transactionType),
                           style: TextStyle(
                             color: cs.onSurfaceVariant,
@@ -299,16 +303,16 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
               SizedBox(width: 16.w),
               if (hasLongText)
                 Padding(
-                  padding: EdgeInsets.only(top: 2.h),
+                  padding: AppSpacing.only(top: 2),
                   child: Icon(
                     isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    size: 20,
+                    size: AppIcons.medium,
                     color: cs.onSurfaceVariant,
                   ),
                 ),
               SizedBox(width: 8.w),
               Padding(
-                padding: EdgeInsets.only(top: 2.h),
+                padding: AppSpacing.only(top: 2),
                 child: Text(
                   '${isPositive ? '+' : '-'}${txn.points}',
                   style: TextStyle(

@@ -27,6 +27,9 @@ import 'package:freshpickkat_flutter/notifications/screens/notification_settings
     deferred as notification_settings_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -223,7 +226,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _buildProfileHeader(UserController userController, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.all(20.w),
+      padding: AppSpacing.all(20),
       child: Row(
         children: [
           Obx(() {
@@ -301,7 +304,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _buildQuickActions(ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: AppSpacing.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -350,18 +353,18 @@ class _MoreScreenState extends State<MoreScreen> {
             : 100.h.clamp(86.0, 116.0),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(10.w),
+              padding: AppSpacing.all(10),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(AppRadius.large),
               ),
-              child: Icon(icon, color: cs.onSurface, size: 28.r),
+              child: Icon(icon, color: cs.onSurface, size: AppIcons.extraLarge),
             ),
             SizedBox(height: 8.h),
             AutoSizeText(
@@ -382,7 +385,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _buildSectionHeader(String title, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+      padding: AppSpacing.symmetric(horizontal: 20, vertical: 8),
       child: Text(
         title,
         style: TextStyle(
@@ -396,11 +399,11 @@ class _MoreScreenState extends State<MoreScreen> {
 
   Widget _buildAddressSection(UserController userController, ColorScheme cs) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
-      padding: EdgeInsets.all(16.w),
+      margin: AppSpacing.symmetric(horizontal: 16),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,10 +411,10 @@ class _MoreScreenState extends State<MoreScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: AppSpacing.all(8),
                 decoration: BoxDecoration(
                   color: cs.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
                 child: Icon(Icons.location_on, color: cs.onSurface),
               ),
@@ -478,19 +481,19 @@ class _MoreScreenState extends State<MoreScreen> {
   Widget _buildAppearanceSection(ColorScheme cs) {
     final themeController = ThemeController.instance;
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
-      padding: EdgeInsets.all(16.w),
+      margin: AppSpacing.symmetric(horizontal: 16),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: AppSpacing.all(8),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
             child: Icon(Icons.brightness_4, color: cs.onSurface),
           ),
@@ -521,10 +524,10 @@ class _MoreScreenState extends State<MoreScreen> {
                 label = 'SYSTEM DEFAULT';
             }
             return Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              padding: AppSpacing.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 border: Border.all(color: cs.outlineVariant),
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: AutoSizeText(
                 label,
@@ -561,7 +564,7 @@ class _MoreScreenState extends State<MoreScreen> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        padding: AppSpacing.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: cs.outlineVariant),
@@ -570,10 +573,10 @@ class _MoreScreenState extends State<MoreScreen> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: AppSpacing.all(8),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: Icon(icon, color: cs.onSurface, size: 22.r),
             ),

@@ -9,6 +9,10 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LocationPickerScreen extends StatefulWidget {
@@ -394,10 +398,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             left: 16.w,
             right: 16.w,
             child: Container(
-              padding: EdgeInsets.all(12.w),
+              padding: AppSpacing.all(12),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: Text(
                 'Drag the map to select your location',
@@ -469,7 +473,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                             height: 5.h,
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(10),
+borderRadius: BorderRadius.circular(AppRadius.medium),
                             ),
                           ),
                         ),
@@ -489,7 +493,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           decoration: InputDecoration(
                             hintText: 'Enter street address',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.large),
                             ),
                             prefixIcon: const Icon(Icons.location_on_outlined),
                           ),
@@ -510,7 +514,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           decoration: InputDecoration(
                             hintText: 'City name',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.large),
                             ),
                             prefixIcon: const Icon(Icons.location_city),
                           ),
@@ -531,7 +535,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           decoration: InputDecoration(
                             hintText: 'State or region name',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.large),
                             ),
                             prefixIcon: const Icon(Icons.map_outlined),
                           ),
@@ -553,7 +557,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                           decoration: InputDecoration(
                             hintText: 'Enter pincode',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.large),
                             ),
                             prefixIcon: const Icon(Icons.numbers),
                           ),
@@ -570,7 +574,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                                 ? null
                                 : _confirmLocation,
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              padding: AppSpacing.symmetric(vertical: 14),
                               backgroundColor: cs.primary,
                               foregroundColor: cs.onPrimary,
                               disabledBackgroundColor: Colors.grey[300],

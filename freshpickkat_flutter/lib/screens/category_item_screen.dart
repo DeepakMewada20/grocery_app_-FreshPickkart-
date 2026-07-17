@@ -7,7 +7,7 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -172,7 +172,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           widget.categoryName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.screenTitle(context),
+          style: AppText.screenTitle(context),
         ),
         actions: [
           IconButton(

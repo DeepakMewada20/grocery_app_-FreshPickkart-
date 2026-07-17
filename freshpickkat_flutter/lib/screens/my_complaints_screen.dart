@@ -9,6 +9,8 @@ import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 class MyComplaintsScreen extends StatefulWidget {
@@ -83,7 +85,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
           : _error != null
           ? Center(
               child: Padding(
-                padding: EdgeInsets.all(24.w),
+                padding: AppSpacing.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -118,7 +120,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                           AppResponsive.constrainContent(
                             context: context,
                             child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8.h),
+                              padding: AppSpacing.symmetric(vertical: 8),
                               child: Center(
                                 child: OutlinedButton(
                                   onPressed: _isLoadingMore
@@ -160,11 +162,11 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
     return List.generate(_complaints.length, (index) {
       final complaint = _complaints[index];
       return Padding(
-        padding: EdgeInsets.only(bottom: 10.h),
+        padding: AppSpacing.only(bottom: 10),
         child: AppResponsive.constrainContent(
           context: context,
           child: InkWell(
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
             onTap: () async {
               await navigateDeferred(
                 loadLibrary: complaint_detail_screen.loadLibrary,
@@ -175,16 +177,16 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
               );
             },
             child: Container(
-              padding: EdgeInsets.all(14.w),
+              padding: AppSpacing.all(14),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                 border: Border.all(color: cs.outlineVariant),
               ),
               child: Row(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                     child: Image.network(
                       complaint.imageUrls.isNotEmpty
                           ? complaint.imageUrls.first
@@ -236,7 +238,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
 
   Widget _buildHowToComplainSection(ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(top: 24.h, bottom: 12.h),
+      padding: AppSpacing.only(top: 24, bottom: 12),
       child: Column(
         children: [
           Icon(Icons.help_outline, size: 24.sp, color: cs.primary),
@@ -288,10 +290,10 @@ class _StatusBadge extends StatelessWidget {
       _ => Colors.orange,
     };
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+      padding: AppSpacing.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
       child: Text(
         status,
@@ -314,10 +316,10 @@ class _ResolutionBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      padding: AppSpacing.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: cs.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Text(
         label,

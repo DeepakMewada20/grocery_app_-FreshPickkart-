@@ -11,6 +11,10 @@ import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
     deferred as product_detail_screen;
 import 'package:freshpickkat_flutter/services/deep_link_service.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class DeepLinkLoadingScreen extends StatefulWidget {
   const DeepLinkLoadingScreen({

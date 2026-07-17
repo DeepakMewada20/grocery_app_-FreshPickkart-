@@ -19,6 +19,7 @@ import 'package:freshpickkat_flutter/widgets/offer_widget.dart';
 import 'package:freshpickkat_flutter/widgets/referral_onboarding_dialog.dart';
 import 'package:freshpickkat_flutter/widgets/referral_reminder_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -81,7 +82,7 @@ class _LazyMiddleBannerState extends State<_LazyMiddleBanner> {
       if (middleBanners.isEmpty) return const SizedBox.shrink();
 
       return Padding(
-        padding: EdgeInsets.only(top: 12.h),
+        padding: AppSpacing.only(top: 12),
         child: NetworkBannerWidget(
           height: AppResponsive.bannerHeight(
             context,
@@ -300,7 +301,7 @@ class _HomePageState extends State<HomePage>
                       // OFFER BANNER (home_top)
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.only(top: 12.h),
+                          padding: AppSpacing.only(top: 12),
                           child: Obx(() {
                             final bannerController = BannerController.instance;
                             final banners = bannerController.homeTopBanners;
@@ -365,7 +366,7 @@ class _HomePageState extends State<HomePage>
                             height: 400.h,
                             child: ProductGridShimmer(
                               itemCount: 6,
-                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              padding: AppSpacing.symmetric(horizontal: 12),
                             ),
                           ),
                         ),
@@ -374,7 +375,7 @@ class _HomePageState extends State<HomePage>
                       if (!productController.isMoreDataAvailable.value)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: EdgeInsets.all(20.w),
+                            padding: AppSpacing.all(20),
                             child: Center(
                               child: Builder(
                                 builder: (context) => Text(

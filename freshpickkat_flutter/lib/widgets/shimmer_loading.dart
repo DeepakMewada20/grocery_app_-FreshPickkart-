@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 
 /// A utility shimmer box that adapts its colors to the current theme.
 /// In light mode: uses light gray shades. In dark mode: uses dark gray shades.
@@ -131,7 +133,7 @@ class _ProductGridShimmerState extends State<ProductGridShimmer>
         return GridView.builder(
           padding:
               widget.padding ??
-              EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              AppSpacing.symmetric(horizontal: 12, vertical: 8),
           gridDelegate: gridDelegate,
           itemCount: widget.itemCount,
           itemBuilder: (context, index) =>
@@ -160,7 +162,7 @@ class _ProductCardShimmer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Column(
@@ -171,40 +173,40 @@ class _ProductCardShimmer extends StatelessWidget {
             child: _ShimmerBox(
               animation: animation,
               borderRadius: BorderRadius.vertical(
-                top: Radius.circular(16.r),
+                top: Radius.circular(AppRadius.extraLarge),
               ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(8.w),
+              padding: AppSpacing.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _ShimmerBox(
                     animation: animation,
                     height: 12.h,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   SizedBox(height: 4.h),
                   _ShimmerBox(
                     animation: animation,
                     height: 8.h,
                     width: 60.w,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   const Spacer(),
                   _ShimmerBox(
                     animation: animation,
                     height: 14.h,
                     width: 50.w,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   SizedBox(height: 8.h),
                   _ShimmerBox(
                     animation: animation,
                     height: 32.h,
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                 ],
               ),
@@ -266,7 +268,7 @@ class _HorizontalProductListShimmerState
       height: widget.height,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: AppSpacing.symmetric(horizontal: 16),
         itemCount: widget.itemCount,
         itemBuilder: (context, index) => _HorizontalProductCardShimmer(
           animation: _animation,
@@ -302,10 +304,10 @@ class _HorizontalProductCardShimmer extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      margin: EdgeInsets.only(right: 12.w),
+      margin: AppSpacing.only(right: 12),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: borderColor, width: 1),
       ),
       child: Column(
@@ -316,40 +318,40 @@ class _HorizontalProductCardShimmer extends StatelessWidget {
             child: _ShimmerBox(
               animation: animation,
               borderRadius: BorderRadius.vertical(
-                top: Radius.circular(16.r),
+                top: Radius.circular(AppRadius.extraLarge),
               ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(8.w),
+              padding: AppSpacing.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _ShimmerBox(
                     animation: animation,
                     height: 10.h,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   SizedBox(height: 4.h),
                   _ShimmerBox(
                     animation: animation,
                     height: 6.h,
                     width: 50.w,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   const Spacer(),
                   _ShimmerBox(
                     animation: animation,
                     height: 12.h,
                     width: 40.w,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   SizedBox(height: 6.h),
                   _ShimmerBox(
                     animation: animation,
                     height: 28.h,
-                    borderRadius: BorderRadius.circular(6.r),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                 ],
               ),
@@ -452,7 +454,7 @@ class _CategoryItemCardShimmer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
       child: Column(
         children: [
@@ -460,21 +462,21 @@ class _CategoryItemCardShimmer extends StatelessWidget {
             aspectRatio: 1,
             child: _ShimmerBox(
               animation: animation,
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(AppRadius.large),
             ),
           ),
           SizedBox(height: 4.h),
           _ShimmerBox(
             animation: animation,
             height: 10.h,
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
           ),
           SizedBox(height: 2.h),
           _ShimmerBox(
             animation: animation,
             height: 8.h,
             width: 40.w,
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
           ),
         ],
       ),

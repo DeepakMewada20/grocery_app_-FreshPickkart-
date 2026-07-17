@@ -15,7 +15,7 @@ import 'package:freshpickkat_flutter/services/order_service.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/order_item_grouping.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -265,7 +265,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Order Progress',
-            style: AppTextStyles.sectionTitle(context),
+            style: AppText.sectionTitle(context),
           ),
           SizedBox(height: 16.h),
           SizedBox(
@@ -378,7 +378,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           AutoSizeText(
             'Order ID: ${order.orderId}',
-            style: AppTextStyles.body(context).copyWith(
+            style: AppText.bodyMedium(context).copyWith(
               fontWeight: FontWeight.bold,
             ),
             maxLines: 2,
@@ -388,14 +388,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           SizedBox(height: 8.h),
           Text(
             'Placed on ${_formatDate(order.orderedAt)}',
-            style: AppTextStyles.caption(context),
+            style: AppText.caption(context),
           ),
           if (order.status == 'delivered' && order.deliveredAt != null)
             Padding(
               padding: EdgeInsets.only(top: 4.h),
               child: Text(
                 'Delivered on ${_formatDate(order.deliveredAt!)}',
-                style: AppTextStyles.caption(context).copyWith(
+                style: AppText.caption(context).copyWith(
                   color: Colors.green.shade700,
                   fontWeight: FontWeight.w600,
                 ),
@@ -528,14 +528,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Your order is on the way',
-            style: AppTextStyles.sectionTitle(
+            style: AppText.sectionTitle(
               context,
             ).copyWith(fontSize: 16.sp),
           ),
           SizedBox(height: 8.h),
           Text(
             'Open the live map only when you want to follow the rider.',
-            style: AppTextStyles.caption(context),
+            style: AppText.caption(context),
           ),
           SizedBox(height: 12.h),
           SizedBox(
@@ -587,7 +587,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Delivery Verification',
-                style: AppTextStyles.sectionTitle(
+                style: AppText.sectionTitle(
                   context,
                 ).copyWith(fontSize: 16.sp),
               ),
@@ -745,7 +745,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Delivery Verification',
-                style: AppTextStyles.sectionTitle(
+                style: AppText.sectionTitle(
                   context,
                 ).copyWith(fontSize: 16.sp),
               ),
@@ -836,7 +836,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Refund Information',
-                style: AppTextStyles.sectionTitle(
+                style: AppText.sectionTitle(
                   context,
                 ).copyWith(fontSize: 16.sp),
               ),
@@ -948,14 +948,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Delivery Address',
-            style: AppTextStyles.sectionTitle(
+            style: AppText.sectionTitle(
               context,
             ).copyWith(fontSize: 16.sp),
           ),
           SizedBox(height: 8.h),
           Text(
             _formatAddress(address),
-            style: AppTextStyles.caption(context),
+            style: AppText.caption(context),
           ),
         ],
       ),
@@ -977,7 +977,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Delivery Info',
-            style: AppTextStyles.sectionTitle(context)
+            style: AppText.sectionTitle(context)
                 .copyWith(fontSize: 16.sp),
           ),
           SizedBox(height: 12.h),
@@ -1090,7 +1090,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 SizedBox(height: 2.h),
                 Text(
                   value,
-                  style: AppTextStyles.body(context),
+                  style: AppText.bodyMedium(context),
                 ),
               ],
             ),
@@ -1174,7 +1174,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Text(
             'Items (${order.items.length})',
-            style: AppTextStyles.sectionTitle(
+            style: AppText.sectionTitle(
               context,
             ).copyWith(fontSize: 16.sp),
           ),
@@ -1225,7 +1225,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
       child: Text(
         title,
-        style: AppTextStyles.body(context).copyWith(
+        style: AppText.bodyMedium(context).copyWith(
           color: cs.primary,
           fontWeight: FontWeight.w700,
           fontSize: 13.sp,
@@ -1247,7 +1247,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Expanded(
                 child: Text(
                   '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
-                  style: AppTextStyles.body(context),
+                  style: AppText.bodyMedium(context),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1664,7 +1664,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               SizedBox(width: 8.w),
               Text(
                 'Bill Summary',
-                style: AppTextStyles.sectionTitle(
+                style: AppText.sectionTitle(
                   context,
                 ).copyWith(fontSize: 16.sp),
               ),
@@ -1767,7 +1767,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Expanded(
             child: Text(
               label,
-              style: AppTextStyles.receiptLabel(context, total: isTotal),
+              style: AppText.receiptLabel(context, total: isTotal),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1776,7 +1776,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           AutoSizeText(
             value,
             textAlign: TextAlign.right,
-            style: AppTextStyles.receiptValue(
+            style: AppText.receiptValue(
               context,
               total: isTotal,
               color: valueColor,

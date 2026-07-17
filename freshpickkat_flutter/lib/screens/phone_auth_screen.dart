@@ -7,6 +7,8 @@ import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:pinput/pinput.dart';
@@ -504,7 +506,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: Colors.transparent),
       ),
     );
@@ -512,7 +514,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: BoxDecoration(
         color: const Color(0xFF252525),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: Color(0xFF1B8A4C), width: 2),
         boxShadow: [
           BoxShadow(
@@ -527,7 +529,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
     final errorPinTheme = defaultPinTheme.copyWith(
       decoration: BoxDecoration(
         color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: Colors.red.shade300, width: 2),
       ),
     );
@@ -633,7 +635,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                   Container(
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF1A1A1A),
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                                       border: Border.all(
                                         color:
                                             _errorMessage != null &&
@@ -823,10 +825,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                             if (_errorMessage != null) ...[
                               SizedBox(height: 16.h),
                               Container(
-                                padding: EdgeInsets.all(12.w),
+                                 padding: AppSpacing.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.red.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(AppRadius.medium),
                                   border: Border.all(
                                     color: Colors.red.shade300,
                                     width: 1,
@@ -858,11 +860,11 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(
-                        left: 24.w,
-                        right: 24.w,
-                        bottom: 24.h,
-                        top: 8.h,
+                      padding: AppSpacing.only(
+                        left: 24,
+                        right: 24,
+                        bottom: 24,
+                        top: 8,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -880,7 +882,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                                 ),
                                 disabledBackgroundColor: Colors.grey[300],
                               ),
@@ -939,7 +941,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(20),
+                         borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

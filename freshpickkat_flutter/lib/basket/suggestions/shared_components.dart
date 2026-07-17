@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class SuggestionActionChip extends StatelessWidget {
   final String label;
@@ -19,10 +23,10 @@ class SuggestionActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      padding: AppSpacing.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: BorderRadius.circular(6.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -62,10 +66,10 @@ class SaveBadge extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isGold = accent == const Color(0xFFD4952A);
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+      padding: AppSpacing.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(
           color: accent.withValues(alpha: isDark ? 0.6 : 0.5),
           width: 1,
@@ -94,10 +98,10 @@ class BestBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+      padding: AppSpacing.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: const Color(0xFFD4952A).withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -141,10 +145,10 @@ class CTAButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 30.h.clamp(28.0, 36.0).toDouble(),
-        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        padding: AppSpacing.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: isDark ? 0.18 : 0.1),
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

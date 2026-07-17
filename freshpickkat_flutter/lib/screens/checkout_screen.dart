@@ -26,7 +26,7 @@ import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/tracking/models/delivery_location.dart';
 import 'package:freshpickkat_flutter/tracking/repositories/server_order_tracking_repository.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -2232,7 +2232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     'Delivery Address',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sectionTitle(context).copyWith(
+                    style: AppText.sectionTitle(context).copyWith(
                       fontSize: 16.sp,
                     ),
                   ),
@@ -3092,7 +3092,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             label,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.receiptLabel(context, total: isTotal),
+            style: AppText.receiptLabel(context, total: isTotal),
           ),
         ),
         SizedBox(width: 12.w),
@@ -3103,7 +3103,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             maxLines: 1,
             minFontSize: 10,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.receiptValue(
+            style: AppText.receiptValue(
               context,
               total: isTotal,
               color: valueColor ?? cs.onSurface,

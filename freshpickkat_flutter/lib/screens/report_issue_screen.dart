@@ -4,6 +4,9 @@ import 'package:freshpickkat_flutter/controller/support_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
 
@@ -158,7 +161,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                             ),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.r),
+                              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                             ),
                             elevation: 0,
                           ),
@@ -219,7 +222,7 @@ class _IntroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(18.w),
+      padding: AppSpacing.all(18),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(22.r),
@@ -232,7 +235,7 @@ class _IntroCard extends StatelessWidget {
             height: 48.r,
             decoration: BoxDecoration(
               color: cs.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
             ),
             child: Icon(
               Icons.bug_report_outlined,
@@ -282,7 +285,7 @@ class _FormCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(22.r),
@@ -406,21 +409,21 @@ class _ScreenshotPicker extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: screenshot == null
             ? InkWell(
                 onTap: isPicking ? null : controller.pickScreenshot,
-                borderRadius: BorderRadius.circular(16.r),
+                borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                 child: Padding(
-                  padding: EdgeInsets.all(14.w),
+                  padding: AppSpacing.all(14),
                   child: Row(
                     children: [
                       Icon(
                         Icons.add_photo_alternate_outlined,
                         color: cs.primary,
-                        size: 24.r,
+                        size: AppIcons.large,
                       ),
                       SizedBox(width: 12.w),
                       Expanded(
@@ -440,13 +443,13 @@ class _ScreenshotPicker extends StatelessWidget {
                 ),
               )
             : Padding(
-                padding: EdgeInsets.all(14.w),
+                padding: AppSpacing.all(14),
                 child: Row(
                   children: [
                     Icon(
                       Icons.image_outlined,
                       color: cs.primary,
-                      size: 24.r,
+                      size: AppIcons.large,
                     ),
                     SizedBox(width: 12.w),
                     Expanded(
@@ -495,12 +498,12 @@ class _SuccessState extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(24.w),
+        padding: AppSpacing.all(24),
         child: AppResponsive.constrainContent(
           context: context,
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.all(22.w),
+            padding: AppSpacing.all(22),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(24.r),
@@ -563,9 +566,9 @@ class _SuccessState extends StatelessWidget {
                       backgroundColor: cs.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      padding: AppSpacing.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.r),
+                        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                       ),
                     ),
                     child: const Text('Done'),
@@ -605,25 +608,25 @@ InputDecoration _inputDecoration(
           ),
     filled: true,
     fillColor: Theme.of(context).scaffoldBackgroundColor,
-    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+    contentPadding: AppSpacing.symmetric(horizontal: 14, vertical: 14),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.outlineVariant),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: BorderSide(color: cs.primary, width: 1.4),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: const BorderSide(color: Colors.redAccent),
     ),
     focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15.r),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       borderSide: const BorderSide(color: Colors.redAccent, width: 1.4),
     ),
   );

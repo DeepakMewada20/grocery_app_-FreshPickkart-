@@ -9,7 +9,7 @@ import 'package:freshpickkat_flutter/widgets/category_item_card.dart';
 import 'package:freshpickkat_flutter/widgets/item_selection_girdviwe.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -521,7 +521,7 @@ class _CategoriesScreenWithStickyHeaderState
           _currentStickyHeader,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.sectionTitle(context),
+          style: AppText.sectionTitle(context),
         ),
       ),
     );
@@ -572,7 +572,7 @@ class _CategoriesScreenWithStickyHeaderState
                       categoryName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.sectionTitle(context),
+                      style: AppText.sectionTitle(context),
                     ),
                   ),
                   if (subCategoriesList.isEmpty)

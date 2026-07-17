@@ -4,6 +4,9 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 
 /// A self-contained overlay banner that slides down from the top of the screen
@@ -193,7 +196,7 @@ class _RewardBanner extends StatelessWidget {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
               boxShadow: [
                 BoxShadow(
                   color: AppTheme.primaryGreen.withValues(alpha: 0.45),
@@ -203,7 +206,7 @@ class _RewardBanner extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+              padding: AppSpacing.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
                   // Animated icon container
@@ -246,11 +249,11 @@ class _RewardBanner extends StatelessWidget {
                   GestureDetector(
                     onTap: onDismiss,
                     child: Padding(
-                      padding: EdgeInsets.all(4.w),
+                      padding: AppSpacing.all(4),
                       child: Icon(
                         Icons.close_rounded,
                         color: Colors.white.withValues(alpha: 0.7),
-                        size: 18.r,
+                        size: AppIcons.button,
                       ),
                     ),
                   ),
@@ -309,7 +312,7 @@ class _AnimatedIconBadgeState extends State<_AnimatedIconBadge>
         height: 42.r,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.3),
             width: 1.2,

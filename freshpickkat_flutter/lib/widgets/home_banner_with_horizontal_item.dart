@@ -7,6 +7,9 @@ import 'package:freshpickkat_flutter/screens/product_detail_screen.dart'
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -206,7 +209,7 @@ class _ProductList extends StatelessWidget {
     if (products.isEmpty) return const SizedBox.shrink();
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: AppSpacing.symmetric(horizontal: 16),
       itemCount: products.length,
       itemBuilder: (context, index) {
         return _ProductBannerCard(product: products[index]);
@@ -220,14 +223,14 @@ class _ShimmerProductList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: AppSpacing.symmetric(horizontal: 16),
       itemCount: 5,
       itemBuilder: (context, index) {
         return Container(
           width: _topBannerProductTileSize(context),
-          margin: EdgeInsets.only(right: 12.w),
+          margin: AppSpacing.only(right: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(AppRadius.large),
             color: Colors.grey[300],
           ),
           child: const _ShimmerBox(),
@@ -254,19 +257,19 @@ class _ProductBannerCard extends StatelessWidget {
       },
       child: Container(
         width: _topBannerProductTileSize(context),
-        margin: EdgeInsets.only(right: 12.w),
+        margin: AppSpacing.only(right: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 6.r,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6.r,
               offset: Offset(0, 3.h),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -276,11 +279,11 @@ class _ProductBannerCard extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: const Color(0xFF2A2A2A),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.image_not_supported_outlined,
                         color: Colors.white54,
-                        size: 24,
+                        size: AppIcons.large,
                       ),
                     ),
                   );
@@ -292,12 +295,12 @@ class _ProductBannerCard extends StatelessWidget {
                   left: 6,
                   child: ProductOfferBadge(
                     product: product,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 6.w,
-                      vertical: 3.h,
+                    padding: AppSpacing.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
                     ),
                     fontSize: 9,
-                    borderRadius: 6.r,
+                    borderRadius: AppRadius.medium,
                   ),
                 ),
             ],

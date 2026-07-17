@@ -6,6 +6,9 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 
 enum PaymentStatus {
   verified,
@@ -233,10 +236,10 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: _getBorderColor(), width: 1),
       ),
       child: Column(
@@ -361,21 +364,21 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       style: ElevatedButton.styleFrom(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+        padding: AppSpacing.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
       ),
       icon: _isRetrying
           ? SizedBox(
-              width: 18.r,
-              height: 18.r,
+              width: AppIcons.button,
+              height: AppIcons.button,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: Colors.white,
               ),
             )
-          : Icon(Icons.refresh, size: 18.r),
+          : Icon(Icons.refresh, size: AppIcons.button),
       label: AutoSizeText(
         _isRetrying ? 'Retrying...' : 'Retry Payment',
         maxLines: 1,
@@ -390,21 +393,21 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       style: OutlinedButton.styleFrom(
         foregroundColor: AppTheme.primaryGreen,
         side: const BorderSide(color: AppTheme.primaryGreen),
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+        padding: AppSpacing.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
       ),
       icon: _isCheckingStatus
           ? SizedBox(
-              width: 18.r,
-              height: 18.r,
+              width: AppIcons.button,
+              height: AppIcons.button,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: AppTheme.primaryGreen,
               ),
             )
-          : Icon(Icons.search, size: 18.r),
+          : Icon(Icons.search, size: AppIcons.button),
       label: AutoSizeText(
         _isCheckingStatus ? 'Checking...' : 'Check Payment Status',
         maxLines: 1,
@@ -424,12 +427,12 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.red,
         side: const BorderSide(color: Colors.red),
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+        padding: AppSpacing.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
       ),
-      icon: Icon(Icons.support_agent, size: 18.r),
+      icon: Icon(Icons.support_agent, size: AppIcons.button),
       label: const Text('Contact Support'),
     );
   }

@@ -11,6 +11,8 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpSupportScreen extends StatefulWidget {
@@ -153,7 +155,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   Widget _sectionHeader(String title, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+      padding: AppSpacing.symmetric(horizontal: 20, vertical: 8),
       child: Text(
         title,
         style: TextStyle(
@@ -176,7 +178,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        padding: AppSpacing.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           border: showBorder
               ? Border(bottom: BorderSide(color: cs.outlineVariant))
@@ -185,10 +187,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: AppSpacing.all(8),
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: Icon(icon, color: cs.onSurface, size: 22.r),
             ),
@@ -236,14 +238,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     required ColorScheme cs,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      padding: AppSpacing.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
+            padding: AppSpacing.all(8),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
             child: Icon(
               Icons.info_outline_rounded,

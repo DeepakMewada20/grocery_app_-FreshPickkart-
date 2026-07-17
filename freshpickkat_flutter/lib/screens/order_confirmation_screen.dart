@@ -6,7 +6,7 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
     deferred as order_detail_screen;
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/order_item_grouping.dart';
@@ -365,7 +365,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               Expanded(
                 child: Text(
                   'Ordered Products (${order.items.length})',
-                  style: AppTextStyles.sectionTitle(
+                  style: AppText.sectionTitle(
                     context,
                   ).copyWith(fontSize: 16.sp),
                   maxLines: 2,
@@ -404,7 +404,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
       child: Text(
         title,
-        style: AppTextStyles.body(context).copyWith(
+        style: AppText.bodyMedium(context).copyWith(
           color: cs.primary,
           fontWeight: FontWeight.w700,
           fontSize: 13.sp,
@@ -692,7 +692,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               Expanded(
                 child: Text(
                   'Delivery Address',
-                  style: AppTextStyles.sectionTitle(
+                  style: AppText.sectionTitle(
                     context,
                   ).copyWith(fontSize: 16.sp),
                 ),
@@ -823,7 +823,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                       : order.paymentMode == 'cod'
                           ? 'Pay on Delivery'
                           : 'Total Paid',
-                  style: AppTextStyles.receiptLabel(context, total: true),
+                  style: AppText.receiptLabel(context, total: true),
                 ),
               ),
               SizedBox(width: 12.w),
@@ -861,7 +861,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         Expanded(
           child: Text(
             label,
-            style: AppTextStyles.receiptLabel(context),
+            style: AppText.receiptLabel(context),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),

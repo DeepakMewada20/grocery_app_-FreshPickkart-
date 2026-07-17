@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
@@ -167,7 +170,7 @@ class _SavingsCardState extends State<SavingsCard>
         margin: EdgeInsets.fromLTRB(16.r, 0, 16.r, 16.r),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           border: Border.all(
             color: accentColor.withValues(alpha: isDark ? 0.25 : 0.2),
           ),
@@ -177,19 +180,20 @@ class _SavingsCardState extends State<SavingsCard>
           children: [
             // Header
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 12.h),
+                  padding: AppSpacing.only(left: 16, top: 16, right: 16, bottom: 12),
+
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8.w),
+                    padding: AppSpacing.all(8),
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                     child: Icon(
                       Icons.account_balance_wallet_rounded,
                       color: accentColor,
-                      size: 18.r,
+                      size: AppIcons.button,
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -210,7 +214,7 @@ class _SavingsCardState extends State<SavingsCard>
 
             // Itemized rows
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              padding: AppSpacing.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 children: rows,
               ),
@@ -219,7 +223,7 @@ class _SavingsCardState extends State<SavingsCard>
             // Total savings — animated pulse
             Container(
               margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+              padding: AppSpacing.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: isDark
@@ -234,8 +238,8 @@ class _SavingsCardState extends State<SavingsCard>
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
+              borderRadius: BorderRadius.circular(AppRadius.large),
+              border: Border.all(
                   color: accentColor.withValues(alpha: 0.25),
                 ),
               ),
@@ -267,7 +271,7 @@ class _SavingsCardState extends State<SavingsCard>
 
             // Motivational footer
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 14.h),
+              padding: AppSpacing.only(left: 16, top: 0, right: 16, bottom: 14),
               child: Text(
                 '🎉 Great savings! Every rupee counts.',
                 style: TextStyle(
@@ -305,10 +309,10 @@ class _SavingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: AppSpacing.only(bottom: 10),
       child: Row(
         children: [
-          Icon(Icons.check_circle_rounded, color: accentColor, size: 16.r),
+          Icon(Icons.check_circle_rounded, color: accentColor, size: AppIcons.small),
           SizedBox(width: 8.w),
           Icon(icon, color: cs.onSurface.withValues(alpha: 0.5), size: 14.r),
           SizedBox(width: 6.w),

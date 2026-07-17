@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -159,7 +161,7 @@ class _LegalPageError extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.w),
+        padding: AppSpacing.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -186,9 +188,9 @@ class _LegalPageError extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
+                padding: AppSpacing.symmetric(horizontal: 18, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(AppRadius.large),
                 ),
               ),
             ),

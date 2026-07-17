@@ -6,6 +6,9 @@ import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
 
 import 'combo_product_preview_card.dart';
@@ -56,7 +59,7 @@ class ComboOfferCard extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(
           color: isHighlighted ? AppTheme.primaryGreen : cs.outlineVariant,
           width: isHighlighted ? 2 : 1,
@@ -75,9 +78,9 @@ class ComboOfferCard extends StatelessWidget {
         children: [
           InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.extraLarge)),
             child: Padding(
-              padding: EdgeInsets.all(16.w),
+              padding: AppSpacing.all(16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -87,13 +90,13 @@ class ComboOfferCard extends StatelessWidget {
                       children: [
                         if (!isCompactVariant) ...[
                           Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
-                              vertical: 6.h,
+                            padding: AppSpacing.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryGreen,
-                              borderRadius: BorderRadius.circular(10.r),
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
                             ),
                             child: AutoSizeText(
                               discountLabel,
@@ -182,7 +185,7 @@ class ComboOfferCard extends StatelessWidget {
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     color: cs.onSurface.withValues(alpha: 0.5),
-                    size: 24.r,
+                    size: AppIcons.large,
                   ),
                 ],
               ),
@@ -194,12 +197,12 @@ class ComboOfferCard extends StatelessWidget {
               height: productStripHeight,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.all(12.w),
+                padding: AppSpacing.all(12),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   return Padding(
-                    padding: EdgeInsets.only(
-                      right: index == products.length - 1 ? 0 : 12.w,
+                    padding: AppSpacing.only(
+                      right: index == products.length - 1 ? 0 : 12,
                     ),
                     child: SizedBox(
                       width: productCardWidth,
@@ -211,7 +214,7 @@ class ComboOfferCard extends StatelessWidget {
             ),
             if (!isCompactVariant)
               Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                padding: AppSpacing.only(left: 16, top: 0, right: 16, bottom: 16),
                 child: Obx(() {
                   final group = cartController.comboGroups.firstWhereOrNull(
                     (g) => g.comboId == (combo.comboId ?? combo.name),
@@ -229,7 +232,7 @@ class ComboOfferCard extends StatelessWidget {
                               backgroundColor: AppTheme.primaryGreen,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.r),
+                                borderRadius: BorderRadius.circular(AppRadius.large),
                               ),
                             ),
                           )
@@ -241,7 +244,7 @@ class ComboOfferCard extends StatelessWidget {
           if (isExpanded && products.isEmpty) ...[
             Divider(color: cs.outlineVariant, height: 1),
             Padding(
-              padding: EdgeInsets.all(16.w),
+              padding: AppSpacing.all(16),
               child: Text(
                 'Products loading...',
                 style: TextStyle(
@@ -261,7 +264,7 @@ class ComboOfferCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primaryGreen.withValues(alpha: 0.3),
@@ -277,10 +280,10 @@ class ComboOfferCard extends StatelessWidget {
             onTap: () => cart.decrementComboGroup(
               combo.comboId ?? combo.name,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-              child: Icon(Icons.remove, color: Colors.white, size: 18.r),
+              padding: AppSpacing.symmetric(horizontal: 14, vertical: 8),
+              child: Icon(Icons.remove, color: Colors.white, size: AppIcons.button),
             ),
           ),
           Text(
@@ -295,10 +298,10 @@ class ComboOfferCard extends StatelessWidget {
             onTap: () => cart.incrementComboGroup(
               combo.comboId ?? combo.name,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-              child: Icon(Icons.add, color: Colors.white, size: 18.r),
+              padding: AppSpacing.symmetric(horizontal: 14, vertical: 8),
+              child: Icon(Icons.add, color: Colors.white, size: AppIcons.button),
             ),
           ),
         ],

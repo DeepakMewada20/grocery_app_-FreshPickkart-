@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart' show Share;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:freshpickkat_client/freshpickkat_client.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import '../controller/auth_controller.dart';
 import '../utils/serverpod_client.dart';
 import '../routes/route_manager.dart';
@@ -160,7 +161,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   Widget _buildCodeCard(ColorScheme cs) {
     final code = _info?.referralCode ?? '------';
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
@@ -179,7 +180,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: const Icon(Icons.card_giftcard, color: Colors.white, size: 22),
                 ),
@@ -188,7 +189,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                   ),
                   child: Text('REFERRAL',
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10, letterSpacing: 1.5)),
@@ -222,7 +223,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.white.withValues(alpha: 0.15),
                         side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
                       ),
                     ),
                   ),
@@ -238,7 +239,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: cs.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.medium)),
                       ),
                     ),
                   ),
@@ -262,7 +263,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: cs.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 22),
             ),
@@ -352,7 +353,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: cs.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: const Icon(Icons.monetization_on_outlined, size: 20),
                 ),
@@ -399,7 +400,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
             builder: (_) => const FreshPointsHistoryScreen(),
           ),
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -408,7 +409,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: cs.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
                 child: Icon(Icons.monetization_on_outlined, color: cs.primary, size: 24),
               ),

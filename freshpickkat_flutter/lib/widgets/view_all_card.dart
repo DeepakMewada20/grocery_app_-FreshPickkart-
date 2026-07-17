@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ViewAllCard extends StatelessWidget {
@@ -21,12 +23,12 @@ class ViewAllCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: cs.outlineVariant, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8.r,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: cs.outlineVariant, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8.r,
               offset: Offset(0, 2.h),
             ),
           ],
@@ -50,7 +52,7 @@ class ViewAllCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward,
                 color: AppTheme.primaryGreen,
-                size: 22.r,
+                size: AppIcons.medium,
               ),
             ],
           ),

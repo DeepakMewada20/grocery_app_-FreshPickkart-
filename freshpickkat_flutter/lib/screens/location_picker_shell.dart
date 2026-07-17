@@ -4,6 +4,10 @@ import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/location_picker_screen.dart'
     deferred as location_picker_screen;
 import 'package:freshpickkat_flutter/services/process_recovery/process_recovery_service.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class LocationPickerShell extends StatefulWidget {
   const LocationPickerShell({super.key});

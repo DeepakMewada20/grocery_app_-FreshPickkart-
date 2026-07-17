@@ -8,6 +8,9 @@ import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
 class ComplaintDetailScreen extends StatefulWidget {
@@ -190,7 +193,7 @@ class _ProductSummary extends StatelessWidget {
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
             child: Image.network(
               (complaint.productImage ?? ''),
               width: 58.r,
@@ -284,10 +287,10 @@ class _AddressBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(12.w),
+      padding: AppSpacing.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
@@ -348,9 +351,9 @@ class _ImageSection extends StatelessWidget {
         spacing: 8.w,
         runSpacing: 8.h,
         children: urls
-            .map(
-              (url) => ClipRRect(
-                borderRadius: BorderRadius.circular(10.r),
+              .map(
+                (url) => ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 child: Image.network(
                   url,
                   width: 86.r,
@@ -443,10 +446,10 @@ class _RefundInfoCard extends StatelessWidget {
     final statusColor = _statusColor(refund.status);
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -554,10 +557,10 @@ class _Section extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -591,10 +594,10 @@ class _StatusBadge extends StatelessWidget {
       _ => Colors.orange,
     };
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+      padding: AppSpacing.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
       child: Text(
         status,

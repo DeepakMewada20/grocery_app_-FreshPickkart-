@@ -10,6 +10,10 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
 
 class CombinedDetailBottomSheet extends StatelessWidget {
@@ -34,7 +38,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
               color: Theme.of(context).scaffoldBackgroundColor,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
             ),
-            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+            padding: AppSpacing.only(left: 20, top: 12, right: 20, bottom: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -52,7 +56,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(10.w),
+                      padding: AppSpacing.all(10),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
@@ -60,7 +64,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                       child: Icon(
                         Icons.auto_awesome_rounded,
                         color: AppTheme.primaryGreen,
-                        size: 20.r,
+                        size: AppIcons.medium,
                       ),
                     ),
                     SizedBox(width: 14.w),
@@ -151,7 +155,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                   SizedBox(width: 16.w),
                                   Expanded(
                                     child: Padding(
-                                      padding: EdgeInsets.only(bottom: 24.h),
+                                      padding: AppSpacing.only(bottom: 24),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -201,7 +205,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                   ),
                                   Icon(
                                     _getIcon(action),
-                                    size: 18.r,
+                                    size: AppIcons.button,
                                     color: cs.onSurface.withValues(alpha: 0.3),
                                   ),
                                 ],
@@ -211,12 +215,12 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                         }),
                         SizedBox(height: 8.h),
                         Container(
-                          padding: EdgeInsets.all(16.w),
+                          padding: AppSpacing.all(16),
                           decoration: BoxDecoration(
                             color: isDark
                                 ? Colors.white.withValues(alpha: 0.05)
                                 : Colors.black.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(16.r),
+                            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                             border: Border.all(
                               color: cs.outlineVariant.withValues(alpha: 0.5),
                             ),
@@ -263,7 +267,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                       backgroundColor: AppTheme.primaryGreen,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r),
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                       elevation: 0,
                     ),
@@ -407,7 +411,7 @@ class _ComboTimelineStep extends StatelessWidget {
             SizedBox(width: 16.w),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(bottom: 24.h),
+                padding: AppSpacing.only(bottom: 24),
                 child: _ComboOfferBreakdownCard(action: action),
               ),
             ),
@@ -502,14 +506,14 @@ class _FallbackComboCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: InkWell(
         onTap: onToggle,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         child: Padding(
-          padding: EdgeInsets.all(16.w),
+          padding: AppSpacing.all(16),
           child: Row(
             children: [
               Expanded(
@@ -545,7 +549,7 @@ class _FallbackComboCard extends StatelessWidget {
                     ? Icons.keyboard_arrow_up
                     : Icons.keyboard_arrow_down,
                 color: cs.onSurface.withValues(alpha: 0.5),
-                size: 24.r,
+                size: AppIcons.large,
               ),
             ],
           ),
@@ -564,10 +568,10 @@ class _InfoPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999.r),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: AutoSizeText(
         label,

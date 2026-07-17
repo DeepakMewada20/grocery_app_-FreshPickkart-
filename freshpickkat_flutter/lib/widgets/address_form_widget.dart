@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
 
 class AddressFormWidget extends StatefulWidget {
@@ -234,7 +237,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
         Container(
           decoration: BoxDecoration(
             color: _getBgColor(),
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(AppRadius.large),
             border: errorText != null
                 ? Border.all(color: Colors.red.withValues(alpha: 0.5))
                 : null,
@@ -248,9 +251,9 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
               hintStyle: TextStyle(color: _getHintColor(), fontSize: 14.sp),
               prefixIcon: Icon(icon, color: Colors.grey[600], size: 22.r),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 16.h,
+              contentPadding: AppSpacing.symmetric(
+                horizontal: 16,
+                vertical: 16,
               ),
             ),
             onChanged: (value) {
@@ -337,22 +340,22 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           });
         }
       },
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(AppRadius.large),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(16.w),
+        padding: AppSpacing.all(16),
         decoration: BoxDecoration(
           color: widget.isDarkTheme
               ? Colors.white.withValues(alpha: 0.05)
               : Colors.green.shade50,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
         ),
         child: Row(
           children: [
             Icon(
               Icons.location_on,
               color: hasAddress ? Colors.green : Colors.grey,
-              size: 28.r,
+              size: AppIcons.extraLarge,
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -384,13 +387,13 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             ),
             SizedBox(width: 8.w),
             Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 12.w,
-                vertical: 6.h,
+              padding: AppSpacing.symmetric(
+                horizontal: 12,
+                vertical: 6,
               ),
               decoration: BoxDecoration(
                 color: AppTheme.primaryGreen,
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
               child: AutoSizeText(
                 hasAddress ? 'Change' : 'Add',

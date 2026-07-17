@@ -5,6 +5,10 @@ import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.da
 import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
 
 class CombinedCardBody extends StatelessWidget {
@@ -28,7 +32,7 @@ class CombinedCardBody extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.all(14.w),
+      padding: AppSpacing.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,14 +95,14 @@ class CombinedCardBody extends StatelessWidget {
                     children: [
                       Icon(
                         _getIcon(a),
-                        size: 16,
+                        size: AppIcons.small,
                         color: accent.withValues(alpha: 0.8),
                       ),
                       if (!isLast)
                         Container(
                           width: 12.w,
                           height: 1,
-                          margin: EdgeInsets.symmetric(horizontal: 4.w),
+                          margin: AppSpacing.symmetric(horizontal: 4),
                           color: accent.withValues(alpha: 0.3),
                         ),
                     ],
@@ -108,7 +112,7 @@ class CombinedCardBody extends StatelessWidget {
               if (hasCouponOrDelivery)
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    padding: AppSpacing.symmetric(horizontal: 12),
                     child: SuggestionProgressBar(
                       current: s.progressCurrent ?? 0,
                       target: s.progressTarget ?? 0,
@@ -201,11 +205,11 @@ class _Thumb extends StatelessWidget {
       height: 40.r,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         child: SafeNetworkImage(
           url: url,
           fit: BoxFit.cover,

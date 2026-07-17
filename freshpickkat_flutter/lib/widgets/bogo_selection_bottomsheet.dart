@@ -6,6 +6,9 @@ import 'package:freshpickkat_flutter/controller/product_provider_controller.dart
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/bogo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -98,10 +101,10 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
         child: ConstrainedBox(
           constraints: AppResponsive.sheetConstraints(context),
           child: Container(
-            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 24.h),
+            padding: AppSpacing.only(left: 20, top: 20, right: 20, bottom: 24),
             decoration: BoxDecoration(
               color: cs.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.pill)),
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -111,20 +114,20 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 6.h,
+                        padding: AppSpacing.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
                           color: offerTheme.badgeSoft,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.local_offer_rounded,
-                              size: 16.r,
+                              size: AppIcons.small,
                               color: offerTheme.badge,
                             ),
                             SizedBox(width: 6.w),
@@ -165,10 +168,10 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                     SizedBox(height: 16.h),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(14.w),
+                      padding: AppSpacing.all(14),
                       decoration: BoxDecoration(
                         color: cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(18.r),
+                        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                         border: Border.all(color: cs.outlineVariant),
                       ),
                       child: Column(
@@ -253,7 +256,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                   SizedBox(height: 18.h),
                   if (eligibleProducts.isEmpty)
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                        padding: AppSpacing.symmetric(vertical: 12),
                       child: Text(
                         'No eligible products found.',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -279,12 +282,12 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                             );
 
                         return Container(
-                          padding: EdgeInsets.all(12.w),
+                          padding: AppSpacing.all(12),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? offerTheme.badgeSoft
                                 : cs.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(18.r),
+                            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                             border: Border.all(
                               color: isSelected
                                   ? offerTheme.badgeBorder
@@ -295,7 +298,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                           child: Row(
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(14.r),
+                                borderRadius: BorderRadius.circular(AppRadius.large),
                                 child: Container(
                                   width: 64.r,
                                   height: 64.r,
@@ -380,9 +383,9 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                 style: FilledButton.styleFrom(
                                   backgroundColor: offerTheme.badge,
                                   foregroundColor: offerTheme.onBadge,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 14.w,
-                                    vertical: 12.h,
+                                  padding: AppSpacing.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
                                   ),
                                 ),
                                 child: Text(

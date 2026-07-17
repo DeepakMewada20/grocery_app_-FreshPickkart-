@@ -9,7 +9,9 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/model/lat_lng.dart';
-
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import '../controllers/order_tracking_controller.dart';
 import '../models/order_tracking_snapshot.dart';
 
@@ -207,7 +209,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
             Align(
               alignment: Alignment.bottomCenter,
               child: SafeArea(
-                minimum: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                minimum: AppSpacing.only(left: 16, top: 0, right: 16, bottom: 16),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxWidth: AppResponsive.isLandscape(context) ? 560 : 640,
@@ -292,7 +294,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
       borderRadius: BorderRadius.circular(24.r),
       shadowColor: Colors.black.withValues(alpha: 0.18),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: AppSpacing.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -401,10 +403,10 @@ class _BadgeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       ),
       child: AutoSizeText(
         label,
@@ -436,10 +438,10 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: AppSpacing.all(12),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: accent.withValues(alpha: 0.16)),
       ),
       child: Row(
@@ -449,9 +451,9 @@ class _MetricTile extends StatelessWidget {
             height: 34.r,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(12.r),
+              borderRadius: BorderRadius.circular(AppRadius.large),
             ),
-            child: Icon(icon, size: 18.r, color: accent),
+            child: Icon(icon, size: AppIcons.button, color: accent),
           ),
           SizedBox(width: 10.w),
           Expanded(

@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -149,7 +152,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
             ),
             child: Padding(
-              padding: EdgeInsets.all(24.r),
+              padding: AppSpacing.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -170,7 +173,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   // Title
                   Text(
                     'Payment Session',
-                    style: AppTextStyles.sectionTitle(context),
+                    style: AppText.sectionTitle(context),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 8.h),
@@ -178,7 +181,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   // Amount
                   Text(
                     amountText,
-                    style: AppTextStyles.sectionTitle(context).copyWith(
+                    style: AppText.sectionTitle(context).copyWith(
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: cs.primary,
@@ -190,7 +193,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   // Order ID
                   Text(
                     'Order #${widget.orderId}',
-                    style: AppTextStyles.caption(context).copyWith(
+                    style: AppText.caption(context).copyWith(
                       color: cs.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
@@ -200,26 +203,26 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   // Timer
                   if (!isPaid)
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 8.h,
-                        horizontal: 16.w,
+                      padding: AppSpacing.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
                       ),
                       decoration: BoxDecoration(
                         color: cs.errorContainer.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                            Icon(
                             Icons.timer_outlined,
-                            size: 16.r,
+                            size: AppIcons.small,
                             color: cs.error,
                           ),
                           SizedBox(width: 8.w),
                           Text(
                             'Expires in ${minutes}m ${seconds}s',
-                            style: AppTextStyles.caption(context).copyWith(
+                            style: AppText.caption(context).copyWith(
                               color: cs.error,
                             ),
                           ),
@@ -231,24 +234,24 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   if (_paymentLinkUrl != null) ...[
                     SizedBox(height: 12.h),
                     Container(
-                      padding: EdgeInsets.all(12.r),
+                      padding: AppSpacing.all(12),
                       decoration: BoxDecoration(
                         color: cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               _paymentLinkUrl!,
-                              style: AppTextStyles.caption(context).copyWith(
+                              style: AppText.caption(context).copyWith(
                                 color: cs.onSurfaceVariant,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           IconButton(
-                            icon: Icon(Icons.copy, size: 18.r),
+                            icon: Icon(Icons.copy, size: AppIcons.button),
                             onPressed: _copyLink,
                             padding: EdgeInsets.zero,
                             constraints: BoxConstraints(
@@ -265,7 +268,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     SizedBox(height: 8.h),
                     Text(
                       _linkError!,
-                      style: AppTextStyles.caption(context).copyWith(
+                      style: AppText.caption(context).copyWith(
                         color: cs.error,
                       ),
                       textAlign: TextAlign.center,
@@ -350,10 +353,10 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   if (isPaid) ...[
                     SizedBox(height: 12.h),
                     Container(
-                      padding: EdgeInsets.all(12.r),
+                      padding: AppSpacing.all(12),
                       decoration: BoxDecoration(
                         color: cs.primaryContainer.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -361,12 +364,12 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                           Icon(
                             Icons.check_circle,
                             color: cs.primary,
-                            size: 20.r,
+                            size: AppIcons.medium,
                           ),
                           SizedBox(width: 8.w),
                           Text(
                             'Payment received! Redirecting...',
-                            style: AppTextStyles.caption(context).copyWith(
+                            style: AppText.caption(context).copyWith(
                               color: cs.primary,
                             ),
                           ),

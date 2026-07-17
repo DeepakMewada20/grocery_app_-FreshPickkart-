@@ -19,7 +19,10 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -213,10 +216,10 @@ class _BasketScreenState extends State<BasketScreen> {
           );
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      margin: AppSpacing.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Stack(
@@ -224,14 +227,14 @@ class _BasketScreenState extends State<BasketScreen> {
           Column(
             children: [
               Padding(
-                padding: EdgeInsets.all(12.w),
+                padding: AppSpacing.all(12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(AppRadius.large),
                       child: Container(
                         width: 76.r,
                         height: 76.r,
@@ -340,11 +343,11 @@ class _BasketScreenState extends State<BasketScreen> {
             Divider(height: 1, color: cs.outlineVariant),
             if (freeProduct != null)
               Padding(
-                padding: EdgeInsets.all(12.w),
+                padding: AppSpacing.all(12),
                 child: Row(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                       child: Container(
                         width: 40.r,
                         height: 40.r,
@@ -426,7 +429,7 @@ class _BasketScreenState extends State<BasketScreen> {
               )
             else
               Padding(
-                padding: EdgeInsets.all(12.w),
+                padding: AppSpacing.all(12),
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -446,7 +449,7 @@ class _BasketScreenState extends State<BasketScreen> {
                       side: BorderSide(color: cs.outlineVariant),
                       minimumSize: Size(double.infinity, 40.h),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                     ),
                   ),
@@ -460,12 +463,12 @@ class _BasketScreenState extends State<BasketScreen> {
               top: 0,
               left: 0,
               child: Container(
-                padding: EdgeInsets.only(left: 10.w, top: 4.w, right: 6.w, bottom: 4.w),
+                padding: AppSpacing.only(left: 10, top: 4, right: 6, bottom: 4),
                 decoration: BoxDecoration(
                   color: offerTheme.badge,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16.r),
-                    bottomRight: Radius.circular(8.r),
+                    topLeft: Radius.circular(AppRadius.extraLarge),
+                    bottomRight: Radius.circular(AppRadius.medium),
                   ),
                 ),
                 child: Text(
@@ -483,12 +486,12 @@ class _BasketScreenState extends State<BasketScreen> {
               top: bogoOffer != null ? 26.h : 0,
               left: 0,
               child: Container(
-                padding: EdgeInsets.only(left: 10.w, top: 4.w, right: 6.w, bottom: 4.w),
+                padding: AppSpacing.only(left: 10, top: 4, right: 6, bottom: 4),
                 decoration: BoxDecoration(
                   color: offerTheme.badge,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16.r),
-                    bottomRight: Radius.circular(8.r),
+                    topLeft: Radius.circular(AppRadius.extraLarge),
+                    bottomRight: Radius.circular(AppRadius.medium),
                   ),
                 ),
                 child: Text(
@@ -516,7 +519,7 @@ class _BasketScreenState extends State<BasketScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Column(
@@ -531,7 +534,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryGreen,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
                 child: const Text(
                   'COMBO',
@@ -570,7 +573,7 @@ class _BasketScreenState extends State<BasketScreen> {
               child: Row(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                     child: Container(
                       width: 52,
                       height: 52,
@@ -680,7 +683,7 @@ class _BasketScreenState extends State<BasketScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -690,14 +693,14 @@ class _BasketScreenState extends State<BasketScreen> {
               item.product,
               variantId: item.variantId,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.all(9.w),
-              child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
+              padding: AppSpacing.all(9),
+              child: Icon(Icons.remove, color: cs.onPrimary, size: AppIcons.button),
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            padding: AppSpacing.symmetric(horizontal: 4),
             child: Text(
               '${item.quantity}',
               style: TextStyle(
@@ -712,10 +715,10 @@ class _BasketScreenState extends State<BasketScreen> {
               item.product,
               variantId: item.variantId,
             ),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.all(9.w),
-              child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
+              padding: AppSpacing.all(9),
+              child: Icon(Icons.add, color: cs.onPrimary, size: AppIcons.button),
             ),
           ),
         ],
@@ -731,21 +734,21 @@ class _BasketScreenState extends State<BasketScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: () => cartController.decrementComboGroup(group.comboId),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.all(9.w),
-              child: Icon(Icons.remove, color: cs.onPrimary, size: 18.r),
+              padding: AppSpacing.all(9),
+              child: Icon(Icons.remove, color: cs.onPrimary, size: AppIcons.button),
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            padding: AppSpacing.symmetric(horizontal: 4),
             child: Text(
               '${group.bundleQuantity}',
               style: TextStyle(
@@ -757,10 +760,10 @@ class _BasketScreenState extends State<BasketScreen> {
           ),
           InkWell(
             onTap: () => cartController.incrementComboGroup(group.comboId),
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(AppRadius.small),
             child: Padding(
-              padding: EdgeInsets.all(9.w),
-              child: Icon(Icons.add, color: cs.onPrimary, size: 18.r),
+              padding: AppSpacing.all(9),
+              child: Icon(Icons.add, color: cs.onPrimary, size: AppIcons.button),
             ),
           ),
         ],
@@ -770,15 +773,15 @@ class _BasketScreenState extends State<BasketScreen> {
 
   Widget _buildBillDetails(CartController cartController, ColorScheme cs) {
     return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(20.w),
+      margin: AppSpacing.all(16),
+      padding: AppSpacing.all(20),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Bill Details',
@@ -877,7 +880,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   cs: cs,
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  padding: AppSpacing.symmetric(vertical: 16),
                   child: Divider(color: cs.outlineVariant),
                 ),
                 _buildBillRow(
@@ -909,7 +912,7 @@ class _BasketScreenState extends State<BasketScreen> {
         Expanded(
           child: Text(
             label,
-            style: AppTextStyles.receiptLabel(context, total: isTotal),
+            style: AppText.receiptLabel(context, total: isTotal),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -919,7 +922,7 @@ class _BasketScreenState extends State<BasketScreen> {
           child: AutoSizeText(
             value,
             textAlign: TextAlign.end,
-            style: AppTextStyles.receiptValue(
+            style: AppText.receiptValue(
               context,
               total: isTotal,
               color: effectiveValueColor,
@@ -949,15 +952,15 @@ class _BasketScreenState extends State<BasketScreen> {
     if (balance <= 0 && cart.freshPointsToRedeem.value == 0) return const SizedBox.shrink();
 
     return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(16.w),
+      margin: AppSpacing.all(16),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: () => cart.freshPointsExpanded.toggle(),
@@ -1015,7 +1018,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 ),
                 if (redeemed > 0)
                   Padding(
-                    padding: EdgeInsets.only(top: 4.h),
+                    padding: AppSpacing.only(top: 4),
                     child: Text(
                       'Saving ₹${redeemed.toStringAsFixed(0)}',
                       style: TextStyle(color: Colors.green, fontSize: 12.sp),
@@ -1035,7 +1038,7 @@ class _BasketScreenState extends State<BasketScreen> {
     ColorScheme cs,
   ) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: cs.outlineVariant)),
@@ -1056,7 +1059,7 @@ class _BasketScreenState extends State<BasketScreen> {
           foregroundColor: cs.onPrimary,
           minimumSize: Size(double.infinity, 56.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           ),
           elevation: 0,
         ),
@@ -1105,7 +1108,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ),
                 SizedBox(width: 8.w),
-                Icon(Icons.arrow_forward_ios, size: 16.r),
+                Icon(Icons.arrow_forward_ios, size: AppIcons.small),
               ],
             ),
           ],

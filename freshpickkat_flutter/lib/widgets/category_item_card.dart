@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CategoryItemCard extends StatelessWidget {
@@ -25,7 +27,7 @@ class CategoryItemCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(AppRadius.large),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -36,7 +38,7 @@ class CategoryItemCard extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(AppRadius.large),
                   color: isDark
                       ? const Color(0xFF2E2E2E)
                       : const Color(0xFFE8F5E9), // light green tint
@@ -48,7 +50,7 @@ class CategoryItemCard extends StatelessWidget {
                         ),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(6.w),
+                  padding: AppSpacing.all(6),
                   child: _buildImage(imagePath),
                 ),
               ),
@@ -57,7 +59,7 @@ class CategoryItemCard extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.only(top: 4.h),
+                padding: AppSpacing.only(top: 4),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: AutoSizeText(

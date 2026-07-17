@@ -23,6 +23,9 @@ import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -269,7 +272,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           toolbarHeight: 44,
           leadingWidth: 42,
           leading: Padding(
-            padding: EdgeInsets.only(left: 12.w),
+            padding: AppSpacing.only(left: 12),
             child: GestureDetector(
               onTap: () => Get.back(),
               child: CircleAvatar(
@@ -285,7 +288,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(right: 12.w),
+              padding: AppSpacing.only(right: 12),
               child: GestureDetector(
                 onTap: () => ShareService.instance.shareProduct(
                   displayProduct,
@@ -338,7 +341,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
 
                 Padding(
-                  padding: EdgeInsets.all(16.w),
+                  padding: AppSpacing.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -350,7 +353,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10.r),
+                            borderRadius: BorderRadius.circular(AppRadius.medium),
                             border: Border.all(
                               color: Colors.white.withValues(alpha: 0.12),
                             ),
@@ -501,11 +504,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       if (isBogoProduct(displayProduct))
                         Container(
-                          margin: EdgeInsets.only(top: 12.h),
-                          padding: EdgeInsets.all(14.w),
+                          margin: AppSpacing.only(top: 12),
+                          padding: AppSpacing.all(14),
                           decoration: BoxDecoration(
                             color: offerTheme.badgeSoft,
-                            borderRadius: BorderRadius.circular(18.r),
+                            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                             border: Border.all(color: offerTheme.badgeBorder),
                           ),
                           child: Column(
@@ -538,7 +541,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Row(
                                     children: [
                                       ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(AppRadius.large),
                                         child: Container(
                                           width: 54.r,
                                           height: 54.r,
@@ -615,13 +618,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       if (displayProduct.isFreeDelivery)
                         Padding(
-                          padding: EdgeInsets.only(top: 12.h, bottom: 4.h),
+                          padding: AppSpacing.only(top: 12, bottom: 4),
                           child: Row(
                             children: [
                               Icon(
                                 Icons.local_shipping_outlined,
                                 color: productOfferColor(context),
-                                size: 20.r,
+                                size: AppIcons.medium,
                               ),
                               SizedBox(width: 8.w),
                               Text(
@@ -637,11 +640,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                       if (isSmgmProduct(displayProduct))
                         Container(
-                          margin: EdgeInsets.only(top: 12.h),
-                          padding: EdgeInsets.all(14.w),
+                          margin: AppSpacing.only(top: 12),
+                          padding: AppSpacing.all(14),
                           decoration: BoxDecoration(
                             color: offerTheme.badgeSoft,
-                            borderRadius: BorderRadius.circular(18.r),
+                            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                             border: Border.all(color: offerTheme.badgeBorder),
                           ),
                           child: Column(
@@ -652,7 +655,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   Icon(
                                     Icons.card_giftcard_rounded,
                                     color: offerTheme.badge,
-                                    size: 20.r,
+                                    size: AppIcons.medium,
                                   ),
                                   SizedBox(width: 8.w),
                                   Expanded(
@@ -707,7 +710,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             BannerController.instance.productPageBanners;
                         if (banners.isEmpty) return const SizedBox.shrink();
                         return Padding(
-                          padding: EdgeInsets.only(top: 20.h),
+                          padding: AppSpacing.only(top: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -758,7 +761,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 );
               },
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          padding: AppSpacing.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E88E5),
                   borderRadius: BorderRadius.vertical(
@@ -798,10 +801,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         height: 36.h.clamp(34.0, 42.0),
         child: Container(
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(horizontal: 12.w),
+          padding: AppSpacing.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
             border: Border.all(
               color: Theme.of(context).colorScheme.outlineVariant,
             ),
@@ -828,9 +831,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             foregroundColor: const Color(0xFF1B8A4C),
             side: const BorderSide(color: Color(0xFF1B8A4C), width: 1.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            padding: AppSpacing.symmetric(horizontal: 20),
           ),
           child: AutoSizeText(
             '+ Add',
@@ -843,20 +846,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     } else {
       return Container(
         height: 36.h.clamp(34.0, 42.0),
-        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        padding: AppSpacing.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF1B8A4C),
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
               onTap: () => _decrementQuantity(product),
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(AppRadius.small),
               child: Padding(
-                padding: EdgeInsets.all(10.w),
-                child: Icon(Icons.remove, color: Colors.white, size: 18.r),
+                padding: AppSpacing.all(10),
+                child: Icon(Icons.remove, color: Colors.white, size: AppIcons.button),
               ),
             ),
             SizedBox(width: 4.w),
@@ -871,10 +874,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             SizedBox(width: 4.w),
             InkWell(
               onTap: () => _incrementQuantity(product),
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(AppRadius.small),
               child: Padding(
-                padding: EdgeInsets.all(10.w),
-                child: Icon(Icons.add, color: Colors.white, size: 18.r),
+                padding: AppSpacing.all(10),
+                child: Icon(Icons.add, color: Colors.white, size: AppIcons.button),
               ),
             ),
           ],
@@ -893,7 +896,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     if (!hasShort && !hasLong) {
       return Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: AppSpacing.symmetric(horizontal: 16),
         child: Text(
           'There is no short and long description for this product',
           style: TextStyle(
@@ -906,7 +909,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: AppSpacing.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -946,7 +949,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   _isDescriptionExpanded = !_isDescriptionExpanded;
                 });
               },
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1032,7 +1035,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           );
           return Container(
             width: cardWidth,
-            margin: EdgeInsets.only(right: 12.w),
+            margin: AppSpacing.only(right: 12),
             child: kIsWeb
                 ? SizedBox(
                     width: cardWidth,

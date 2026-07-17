@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FreshPickKartHeader extends StatelessWidget {
@@ -47,7 +49,7 @@ class FreshPickKartHeader extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10.r,
+                  blurRadius: AppRadius.medium,
                   offset: Offset(0, 2.h),
                 ),
               ]
@@ -188,7 +190,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(5.h),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(12.w, 2.h, 10.w, 12.h),
+          padding: AppSpacing.only(left: 12, top: 2, right: 10, bottom: 12),
           child: SearchBarWidget(),
         ),
       ),
@@ -199,7 +201,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
             child: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.only(left: 12.w, right: 12.w),
+                  padding: AppSpacing.only(left: 12, right: 12),
                   child: Align(
                     alignment: AlignmentGeometry.topCenter,
                     child: Row(

@@ -5,6 +5,9 @@ import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/category_provider_controller.dart';
 import 'package:freshpickkat_flutter/controller/tab_navigation_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/screens/category_item_screen.dart'
     deferred as category_item_screen;
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
@@ -264,7 +267,7 @@ class _OfferBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
@@ -274,7 +277,7 @@ class _OfferBanner extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: const Color(0xFF0F6B42).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.large),
             ),
             child: Icon(
               _iconForType(suggestion.type),
@@ -434,7 +437,7 @@ class _CategoryTileState extends State<_CategoryTile>
       child: Ink(
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         child: Column(
@@ -446,7 +449,7 @@ class _CategoryTileState extends State<_CategoryTile>
                 return Transform.scale(
                   scale: _scaleAnimation.value,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                     child: SafeNetworkImage(
                       url: widget.category.categoryImageUrl,
                       width: 56,
@@ -503,7 +506,7 @@ class _BuyAgainCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         onTap: () => SuggestionNavigationHelper.handleTap(suggestion),
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -541,10 +544,10 @@ class _BuyAgainCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHighest
                           .withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                       child: imageUrl == null || imageUrl.isEmpty
                           ? Container(
                               color: theme.colorScheme.surfaceContainerHighest,
@@ -705,7 +708,7 @@ class _TrustLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       ),
       child: Row(
         children: [

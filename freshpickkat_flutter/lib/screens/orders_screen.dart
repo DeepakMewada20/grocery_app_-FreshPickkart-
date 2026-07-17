@@ -7,7 +7,7 @@ import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
     deferred as order_detail_screen;
 import 'package:freshpickkat_flutter/services/order_recovery_service.dart';
-import 'package:freshpickkat_flutter/utils/app_text_styles.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -135,7 +135,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         SizedBox(height: 8.h),
                         Text(
                           'Placed on ${_formatDate(order.orderedAt)}',
-                          style: AppTextStyles.caption(context),
+                          style: AppText.caption(context),
                         ),
                         SizedBox(height: 12.h),
                         Wrap(

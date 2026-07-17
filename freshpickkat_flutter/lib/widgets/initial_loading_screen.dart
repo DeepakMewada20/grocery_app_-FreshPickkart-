@@ -6,6 +6,9 @@ import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
@@ -133,8 +136,8 @@ class _NetworkErrorWidgetState extends State<NetworkErrorWidget>
                     horizontal: 32,
                     vertical: 14,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.large),
                   ),
                 ),
               ),
@@ -205,12 +208,12 @@ class NetworkStatusBanner extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.medium),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.wifi_off_rounded,
             color: Colors.white,
-            size: 18,
+            size: AppIcons.button,
           ),
         ),
         const SizedBox(width: 12),
@@ -256,7 +259,7 @@ class NetworkStatusBanner extends StatelessWidget {
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppRadius.extraLarge),
             ),
           ),
           child: const Text(
@@ -315,7 +318,7 @@ class ConnectionQualityIndicator extends StatelessWidget {
           color: _getQualityColor(
             networkController.connectionQuality.value,
           ).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.large),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -504,10 +507,10 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
       width: width,
       decoration: BoxDecoration(
         color: baseColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         child: ShaderMask(
           shaderCallback: (bounds) {
             return LinearGradient(
@@ -533,10 +536,10 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
       width: 150,
       decoration: BoxDecoration(
         color: baseColor,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppRadius.small),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppRadius.small),
         child: ShaderMask(
           shaderCallback: (bounds) {
             return LinearGradient(
@@ -569,7 +572,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
             margin: EdgeInsets.only(right: index < 4 ? 12 : 0),
             decoration: BoxDecoration(
               color: cardColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.large),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,13 +582,13 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                   child: Container(
                     decoration: BoxDecoration(
                       color: baseColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.large),
                       ),
                     ),
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(AppRadius.large),
                       ),
                       child: ShaderMask(
                         shaderCallback: (bounds) {
@@ -612,10 +615,10 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                         width: 60,
                         decoration: BoxDecoration(
                           color: baseColor,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
                           child: ShaderMask(
                             shaderCallback: (bounds) {
                               return LinearGradient(
@@ -636,10 +639,10 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                         width: 40,
                         decoration: BoxDecoration(
                           color: baseColor,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppRadius.small),
                           child: ShaderMask(
                             shaderCallback: (bounds) {
                               return LinearGradient(
@@ -675,7 +678,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
       double? width,
       BorderRadius? borderRadius,
     }) {
-      final radius = borderRadius ?? BorderRadius.circular(4.r);
+      final radius = borderRadius ?? BorderRadius.circular(AppRadius.small);
       return Container(
         height: height,
         width: width,
@@ -714,7 +717,7 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
             return Container(
               decoration: BoxDecoration(
                 color: cardColor,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(AppRadius.large),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,13 +726,13 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                     aspectRatio: 1,
                     child: shimmerBox(
                       borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(12.r),
+                        top: Radius.circular(AppRadius.large),
                       ),
                     ),
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(6.w),
+                      padding: AppSpacing.all(6),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

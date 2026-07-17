@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
@@ -40,7 +43,7 @@ class BasketSuggestionsSection extends StatelessWidget {
             : 180.h.clamp(166.0, 210.0).toDouble(),
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 10.w),
+          padding: AppSpacing.symmetric(horizontal: 10),
           itemCount: displaySuggestions.length,
           itemBuilder: (context, i) => SuggestionCard(
             suggestion: displaySuggestions[i],

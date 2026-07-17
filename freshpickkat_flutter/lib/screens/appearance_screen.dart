@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 
@@ -217,15 +220,15 @@ class _ThemeModeChip extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(vertical: 12.h),
+          padding: AppSpacing.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: selected
                 ? AppTheme.primaryGreen
                 : cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(AppRadius.large),
             border: Border.all(
               color: selected ? AppTheme.primaryGreen : cs.outlineVariant,
             ),
@@ -289,13 +292,13 @@ class _PresetCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.extraLarge),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        padding: EdgeInsets.all(14.w),
+        padding: AppSpacing.all(14),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           border: Border.all(
             color: selected ? AppTheme.primaryGreen : cs.outlineVariant,
             width: selected ? 2.0 : 1.0,
@@ -309,7 +312,7 @@ class _PresetCard extends StatelessWidget {
               height: 52.h.clamp(42.0, 58.0).toDouble(),
               decoration: BoxDecoration(
                 color: scaffold,
-                borderRadius: BorderRadius.circular(10.r),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
                 border: Border.all(color: Colors.black12),
               ),
               child: Column(
@@ -317,30 +320,30 @@ class _PresetCard extends StatelessWidget {
                 children: [
                   // Simulated card strip
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 6.w),
+                    margin: AppSpacing.symmetric(horizontal: 6),
                     height: 10.h,
                     decoration: BoxDecoration(
                       color: card,
-                      borderRadius: BorderRadius.circular(4.r),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
                   SizedBox(height: 4.h),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10.w),
+                    margin: AppSpacing.symmetric(horizontal: 10),
                     height: 7.h,
                     decoration: BoxDecoration(
                       color: card,
-                      borderRadius: BorderRadius.circular(4.r),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
                   SizedBox(height: 6.h),
                   // Simulated green button
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: 14.w),
+                    margin: AppSpacing.symmetric(horizontal: 14),
                     height: 7.h,
                     decoration: BoxDecoration(
                       color: AppTheme.primaryGreen,
-                      borderRadius: BorderRadius.circular(4.r),
+                      borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
                 ],
@@ -397,7 +400,7 @@ class _PresetCard extends StatelessWidget {
               child: Icon(
                 Icons.check_circle,
                 color: AppTheme.primaryGreen,
-                size: 24.r,
+                size: AppIcons.large,
               ),
             ),
           ],

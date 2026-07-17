@@ -5,6 +5,10 @@ import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_base.dar
 import 'package:freshpickkat_flutter/basket/suggestions/single_card.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/combined_card.dart';
 import 'package:freshpickkat_flutter/utils/suggestion_navigation_helper.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 
 class SuggestionCard extends StatelessWidget {
   final client.BasketSuggestion suggestion;

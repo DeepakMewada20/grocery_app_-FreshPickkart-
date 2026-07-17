@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/routes/route_manager.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
 
 class DeepLinkNotFoundScreen extends StatelessWidget {

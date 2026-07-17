@@ -5,6 +5,8 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 
 class ComboProductPreviewCard extends StatelessWidget {
   final ResolvedComboProduct item;
@@ -21,7 +23,7 @@ class ComboProductPreviewCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -30,7 +32,7 @@ class ComboProductPreviewCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.vertical(
-                top: Radius.circular(16.r),
+                top: Radius.circular(AppRadius.extraLarge),
               ),
               child: Container(
                 width: double.infinity,
@@ -43,7 +45,7 @@ class ComboProductPreviewCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(10.w),
+            padding: AppSpacing.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -99,13 +101,13 @@ class ComboProductPreviewCard extends StatelessWidget {
                     ),
                     SizedBox(width: 8.w),
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 3.h,
+                      padding: AppSpacing.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
                         color: cs.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999.r),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
                       child: Text(
                         'x${item.bundleQuantity}',

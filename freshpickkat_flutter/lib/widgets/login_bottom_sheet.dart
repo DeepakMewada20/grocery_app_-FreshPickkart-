@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 
 class LoginBottomSheet extends StatelessWidget {
   final VoidCallback onLoginPressed;
@@ -24,10 +26,10 @@ class LoginBottomSheet extends StatelessWidget {
         child: ConstrainedBox(
           constraints: AppResponsive.sheetConstraints(context),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+            padding: AppSpacing.symmetric(horizontal: 24, vertical: 32),
             decoration: BoxDecoration(
               color: cs.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.extraLarge)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -79,7 +81,7 @@ class LoginBottomSheet extends StatelessWidget {
                       backgroundColor: AppTheme.primaryGreen,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.large),
                       ),
                     ),
                     child: AutoSizeText(

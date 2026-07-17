@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/product_search_delegate.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchBarWidget extends StatefulWidget {
@@ -132,10 +134,10 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
       child: Container(
         height: 45.h.clamp(40.0, 50.0),
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        padding: AppSpacing.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: isDark ? Colors.black : Colors.grey[200],
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(AppRadius.medium),
         ),
         child: Row(
           children: [

@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/coupon_extensions.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
@@ -44,11 +47,11 @@ class _CouponSectionState extends State<CouponSection> {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      padding: EdgeInsets.all(16.w),
+      margin: AppSpacing.symmetric(horizontal: 16, vertical: 8),
+      padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -61,15 +64,15 @@ class _CouponSectionState extends State<CouponSection> {
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(6.w),
+                      padding: AppSpacing.all(6),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
                       child: Icon(
                         Icons.auto_awesome_rounded,
                         color: AppTheme.primaryGreen,
-                        size: 16.r,
+                        size: AppIcons.small,
                       ),
                     ),
                     SizedBox(width: 10.w),
@@ -119,7 +122,7 @@ class _CouponSectionState extends State<CouponSection> {
             if (_cartController.isLoadingCoupons.value &&
                 _cartController.availableCoupons.isEmpty) {
               return Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
+                padding: AppSpacing.symmetric(vertical: 8),
                 child: LinearProgressIndicator(
                   backgroundColor: cs.surfaceContainerHighest,
                   color: AppTheme.primaryGreen,
@@ -173,7 +176,7 @@ class _CouponSectionState extends State<CouponSection> {
               if (_cartController.isLoadingCoupons.value) {
                 return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20.w),
+                    padding: AppSpacing.all(20),
                     child: const CircularProgressIndicator(),
                   ),
                 );
@@ -181,7 +184,7 @@ class _CouponSectionState extends State<CouponSection> {
 
               if (_cartController.availableCoupons.isEmpty) {
                 return Padding(
-                  padding: EdgeInsets.all(20.w),
+                  padding: AppSpacing.all(20),
                   child: Center(
                     child: Text(
                       'No offers available for your order',
@@ -214,7 +217,7 @@ class _CouponSectionState extends State<CouponSection> {
                     SizedBox(height: 8.h),
                     ...applicable.map(
                       (c) => Padding(
-                        padding: EdgeInsets.only(bottom: 8.h),
+                        padding: AppSpacing.only(bottom: 8),
                         child: _OfferListCard(
                           coupon: c,
                           cs: cs,
@@ -235,7 +238,7 @@ class _CouponSectionState extends State<CouponSection> {
                     SizedBox(height: 8.h),
                     ...notApplicable.map(
                       (c) => Padding(
-                        padding: EdgeInsets.only(bottom: 8.h),
+                        padding: AppSpacing.only(bottom: 8),
                         child: _OfferListCard(
                           coupon: c,
                           cs: cs,
@@ -274,10 +277,10 @@ class _AppliedCouponCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDelivery = coupon.isDeliveryDiscount;
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: AppSpacing.all(12),
       decoration: BoxDecoration(
         color: Colors.green.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
       ),
       child: Column(
@@ -289,7 +292,7 @@ class _AppliedCouponCard extends StatelessWidget {
               Icon(
                 Icons.check_circle_rounded,
                 color: Colors.green.shade600,
-                size: 16.r,
+                size: AppIcons.small,
               ),
               SizedBox(width: 6.w),
               Expanded(
@@ -308,10 +311,10 @@ class _AppliedCouponCard extends StatelessWidget {
               GestureDetector(
                 onTap: onRemove,
                 child: Container(
-                  padding: EdgeInsets.all(4.w),
+                    padding: AppSpacing.all(4),
                   decoration: BoxDecoration(
                     color: cs.outlineVariant.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(6.r),
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                   child: Icon(
                     Icons.close_rounded,
@@ -327,10 +330,10 @@ class _AppliedCouponCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    padding: AppSpacing.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6.r),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
                   border: Border.all(
                     color: Colors.green.withValues(alpha: 0.35),
                   ),
@@ -341,7 +344,7 @@ class _AppliedCouponCard extends StatelessWidget {
                     Icon(
                       Icons.local_offer_rounded,
                       color: Colors.green.shade600,
-                      size: 12.r,
+                      size: AppIcons.tiny,
                     ),
                     SizedBox(width: 4.w),
                     Text(
@@ -402,24 +405,24 @@ class _BestOfferAvailableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: AppSpacing.all(12),
       decoration: BoxDecoration(
         color: AppTheme.primaryGreen.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryGreen.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
+                    padding: AppSpacing.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.medium),
+              ),
             child: Icon(
               Icons.auto_awesome_rounded,
               color: AppTheme.primaryGreen,
-              size: 18.r,
+              size: AppIcons.button,
             ),
           ),
           SizedBox(width: 12.w),
@@ -430,13 +433,13 @@ class _BestOfferAvailableCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
+                      padding: AppSpacing.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryGreen,
-                        borderRadius: BorderRadius.circular(4.r),
+                        borderRadius: BorderRadius.circular(AppRadius.small),
                       ),
                       child: Text(
                         'Best',
@@ -500,10 +503,10 @@ class _NoApplicableOfferHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      padding: AppSpacing.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
@@ -511,7 +514,7 @@ class _NoApplicableOfferHint extends StatelessWidget {
           Icon(
             Icons.info_outline_rounded,
             color: cs.onSurface.withValues(alpha: 0.4),
-            size: 16.r,
+            size: AppIcons.small,
           ),
           SizedBox(width: 8.w),
           Expanded(
@@ -595,10 +598,10 @@ class _OfferListCard extends StatelessWidget {
     final normalizedCode = coupon.code.trim().toUpperCase();
 
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: AppSpacing.all(12),
       decoration: BoxDecoration(
         color: isApplied ? Colors.green.withValues(alpha: 0.06) : cs.surface,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(AppRadius.large),
         border: Border.all(
           color: isApplied
               ? Colors.green.withValues(alpha: 0.35)
@@ -609,7 +612,7 @@ class _OfferListCard extends StatelessWidget {
         children: [
           // Icon
           Container(
-            padding: EdgeInsets.all(8.w),
+                    padding: AppSpacing.all(8),
             decoration: BoxDecoration(
               color:
                   (isApplied
@@ -618,7 +621,7 @@ class _OfferListCard extends StatelessWidget {
                           ? AppTheme.primaryGreen
                           : cs.onSurface)
                       .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(AppRadius.medium),
             ),
             child: Icon(
               isApplied
@@ -631,7 +634,7 @@ class _OfferListCard extends StatelessWidget {
                   : isApplicable
                   ? AppTheme.primaryGreen
                   : cs.onSurface.withValues(alpha: 0.35),
-              size: 18.r,
+              size: AppIcons.button,
             ),
           ),
           SizedBox(width: 12.w),
@@ -661,9 +664,9 @@ class _OfferListCard extends StatelessWidget {
                     if (coupon.isBest) ...[
                       SizedBox(width: 6.w),
                       Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 5.w,
-                          vertical: 1.h,
+                        padding: AppSpacing.symmetric(
+                          horizontal: 5,
+                          vertical: 1,
                         ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryGreen,
@@ -716,11 +719,11 @@ class _OfferListCard extends StatelessWidget {
           if (isApplied)
             // Applied chip
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
+                padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.35)),
               ),
               child: Text(
                 '✓ Applied',
@@ -749,9 +752,9 @@ class _OfferListCard extends StatelessWidget {
                     backgroundColor: AppTheme.primaryGreen,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: EdgeInsets.symmetric(horizontal: 14.w),
+                    padding: AppSpacing.symmetric(horizontal: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9.r),
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -777,11 +780,11 @@ class _OfferListCard extends StatelessWidget {
           else if (coupon.status == 'USED')
             // Used chip
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: cs.onSurface.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(
+                padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cs.onSurface.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(
                   color: cs.onSurface.withValues(alpha: 0.15),
                 ),
               ),
@@ -797,11 +800,11 @@ class _OfferListCard extends StatelessWidget {
           else
             // Locked chip
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: cs.outlineVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: cs.outlineVariant),
+                padding: AppSpacing.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(color: cs.outlineVariant),
               ),
               child: Text(
                 'Locked',
