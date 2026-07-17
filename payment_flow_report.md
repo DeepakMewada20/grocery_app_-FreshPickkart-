@@ -1626,3 +1626,203 @@ graph TB
     RP_WEB --> WH
     RP_API --> CRON
 ```
+
+---
+
+## 18. Flutter Web Payment Support
+
+### 18.1 Overview
+
+The existing payment system was built for Android/iOS using the `razorpay_flutter_customui` (native Razorpay SDK). A **platform abstraction layer** was added to support Flutter Web without modifying existing mobile payment behavior.
+
+### 18.2 Architecture Principle
+
+```
+                    User
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+   Android / iOS           Flutter Web
+        │                         │
+  MobilePaymentPlatform    WebPaymentPlatform
+  (razorpay_flutter_       (Razorpay Checkout.js
+   customui SDK)            via JS interop)
+        │                         │
+        └────────────┬────────────┘
+                     │
+          Existing Payment APIs
+          (unchanged — all server-side)
+                     │
+              Razorpay Server
+              Webhook + API
+```
+
+### 18.3 Platform Abstraction
+
+**Interface** (`lib/payment/platform/payment_platform.dart`):
+```dart
+abstract class PaymentPlatform {
+  Future<PaymentResult> startPayment(PaymentRequest request);
+  void dispose();
+}
+```
+
+**Platform Implementations:**
+
+| Platform | Class | Technology | File |
+|----------|-------|------------|------|
+| Android / iOS | `MobilePaymentPlatform` | `razorpay_flutter_customui` SDK | `mobile_payment_platform.dart` |
+| Flutter Web | `WebPaymentPlatform` | Razorpay Checkout.js via JS interop | `web_payment_platform.dart` |
+
+**Factory** (`lib/payment/payment_factory.dart`):
+Uses conditional exports to pick the correct platform at compile time:
+```dart
+export 'payment_factory_stub.dart'
+    if (dart.library.html) 'payment_factory_web.dart'
+    if (dart.library.io) 'payment_factory_mobile.dart';
+```
+
+### 18.4 Data Models
+
+| Model | Fields | File |
+|-------|--------|------|
+| `PaymentRequest` | `keyId`, `amountPaise`, `currency`, `razorpayOrderId`, `customerPhone`, `customerEmail`, `orderId`, `upiAppPackageName?`, `vpa?` | `payment_request.dart` |
+| `PaymentResult` | `status` (enum: `success/failed/cancelled/pending`), `razorpayPaymentId?`, `razorpayOrderId?`, `razorpaySignature?`, `errorMessage?`, `errorCode?` | `payment_result.dart` |
+
+### 18.5 Flutter Web Payment Flow
+
+```
+User (Web) taps "PLACE ORDER"
+  │
+  ├─ _placeOrderCore()  ← EXISTING, unchanged
+  │   ├─ checkoutService.createOrderAndPayment()
+  │   │   → Server creates order + Razorpay order
+  │   │   → Returns razorpayOrderId, keyId, amount
+  │   │
+  │   └─ WebPaymentPlatform.startPayment(request)
+  │       │
+  │       ├─ 1. Build Checkout.js options:
+  │       │     {key, amount, order_id, name, prefill, theme}
+  │       │
+  │       ├─ 2. Call JS bridge:
+  │       │     openRazorpayCheckoutBridge(options)
+  │       │     → Loads Checkout.js from CDN (if not loaded)
+  │       │     → Creates Razorpay instance
+  │       │     → Opens checkout modal
+  │       │
+  │       ├─ 3. Modal callback:
+  │       │     ├─ success → bridge resolves:
+  │       │     │   {status:'success', razorpay_payment_id, ...}
+  │       │     │   → PaymentResult.success()
+  │       │     │
+  │       │     ├─ failed → bridge resolves:
+  │       │     │   {status:'failed', error:{...}}
+  │       │     │   → PaymentResult.failed()
+  │       │     │
+  │       │     └─ dismissed → bridge resolves:
+  │       │       {status:'cancelled'}
+  │       │       → PaymentResult.cancelled()
+  │       │
+  │       └─ 4. Return PaymentResult to checkout screen
+  │
+  └─ _handlePaymentResult(result)
+      ├─ success → paymentService.completeOrder()
+      │   → Server: HMAC verification + FOR UPDATE transaction
+      │   → Order confirmed
+      │
+      ├─ failed/cancelled → _handlePaymentFailureResult()
+      │   → Try resolve (1 attempt for cancelled, 20 for error)
+      │   → Mark payment failed if unresolved
+      │
+      └─ pending → _startPollingForWebPayment()
+          → Poll order status every 5s for 150s
+          → If paymentStatus == 'paid', complete
+          → Else show timeout message (webhook/reconciliation handles it)
+```
+
+### 18.6 Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **JS interop over redirect** | User stays in Flutter Web app; no navigation to external page |
+| **Conditional imports** | `dart:js_util` is web-only; mobile must never compile it |
+| **Trust webhook, not callback** | Browser callback can be forged; real check is server-side |
+| **Polling for web** | SSE may have CORS issues on web; polling is simpler and battle-tested |
+| **Single handler** | `_handlePaymentResult(PaymentResult)` replaces separate success/error handlers |
+| **UPI app selection skipped on web** | Checkout.js handles all payment methods natively |
+| **No backend changes** | All server endpoints are already platform-agnostic |
+| **Conditional export in factory** | `createPaymentPlatform()` returns correct impl based on `dart.library.html` vs `dart.library.io` |
+
+### 18.7 JS Bridge
+
+**File:** `web/js/razorpay_checkout.js`
+
+The bridge provides a Promise-based API:
+- Loads `https://checkout.razorpay.com/v1/checkout.js` on first call
+- Creates `new Razorpay(options)` with `handler`, `modal.ondismiss`, and `payment.failed` callbacks
+- Resolves the Promise with `{status, razorpay_payment_id, razorpay_order_id, razorpay_signature}` or `{status: 'cancelled'}` or `{status: 'failed', error}`
+
+**Loading:** The bridge script is loaded in `web/index.html` before `flutter_bootstrap.js`:
+```html
+<script src="js/razorpay_checkout.js"></script>
+```
+
+**Dart interop** (`web_razorpay_bridge.dart`):
+```dart
+import 'dart:js_util';
+
+Future<Map<String, dynamic>> openRazorpayCheckoutBridge(
+    Map<String, dynamic> options) async {
+  final jsOptions = jsify(options);
+  final promise = callMethod(globalThis, 'razorpayCheckout', [jsOptions]);
+  final result = await promiseToFuture(promise);
+  // ... convert JS Map to Dart Map
+}
+```
+
+The bridge file is conditionally compiled — only included for web via `if (dart.library.html)`. On native, a stub throws `UnsupportedError`.
+
+### 18.8 Changed Files
+
+| File | Change Type | Lines Changed |
+|------|------------|---------------|
+| `lib/payment/models/payment_request.dart` | **New** | 22 |
+| `lib/payment/models/payment_result.dart` | **New** | 70 |
+| `lib/payment/platform/payment_platform.dart` | **New** | 13 |
+| `lib/payment/platform/mobile_payment_platform.dart` | **New** | 114 |
+| `lib/payment/platform/web_payment_platform.dart` | **New** | 65 |
+| `lib/payment/platform/web_razorpay_bridge.dart` | **New** | 24 |
+| `lib/payment/platform/web_razorpay_bridge_stub.dart` | **New** | 8 |
+| `lib/payment/payment_factory.dart` | **New** | 3 |
+| `lib/payment/payment_factory_mobile.dart` | **New** | 7 |
+| `lib/payment/payment_factory_web.dart` | **New** | 7 |
+| `lib/payment/payment_factory_stub.dart` | **New** | 8 |
+| `web/js/razorpay_checkout.js` | **New** | 44 |
+| `web/index.html` | **Modified** | +1 line (script tag) |
+| `lib/screens/checkout_screen.dart` | **Modified** | ~50 lines refactored |
+
+### 18.9 Not Changed
+
+All server-side files, all other Flutter files, `pubspec.yaml`, webhook routes, cron jobs, protocol models, database schema.
+
+### 18.10 Security Considerations
+
+| Concern | Mitigation |
+|---------|------------|
+| Browser callback forgery | Never trust callback — server validates via HMAC |
+| Amount tampering | Amount is server-calculated in `createPaymentOrder()` |
+| Double payment | FOR UPDATE transaction + `gatewayPaymentId` dedup |
+| Session replay | HMAC required; `ENFORCE_PAYMENT_HMAC=true` |
+| XSS via Checkout.js | Load from Razorpay CDN only (`checkout.razorpay.com`) |
+| HTTPS | Already enforced in production |
+| `dart:js_util` on native | Conditional import (`if (dart.library.html)`) prevents compilation on mobile |
+
+### 18.11 Test Coverage
+
+| Test File | Tests | What It Covers |
+|-----------|-------|----------------|
+| `test/payment/payment_result_test.dart` | 11 | `PaymentResult` all 4 constructors, equality |
+| `test/payment/payment_request_test.dart` | 5 | `PaymentRequest` construction, edge cases |
+| `test/payment/payment_platform_test.dart` | 8 | Factory creation, result/request round-trip |
+
+Total: **24 new tests** across 3 test files. All pass alongside 30 existing tests (53 total passing).

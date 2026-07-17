@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
@@ -34,7 +34,10 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
+import 'package:freshpickkat_flutter/payment/payment_factory.dart';
+import 'package:freshpickkat_flutter/payment/models/payment_request.dart';
+import 'package:freshpickkat_flutter/payment/models/payment_result.dart';
+import 'package:freshpickkat_flutter/payment/platform/payment_platform.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -60,7 +63,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final client = ServerpodClient().client;
   final _trackingRepository = ServerOrderTrackingRepository();
 
-  Razorpay? _razorpay;
+  late final PaymentPlatform _paymentPlatform;
   bool _isProcessing = false;
   bool _isShareablePayment = false;
   bool _isCodPayment = false;
@@ -84,9 +87,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _paymentPlatform = createPaymentPlatform();
     _refreshFuture = Future.microtask(() async {
       await _refreshCheckoutHydrated();
     });
@@ -668,7 +669,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   void dispose() {
-    _razorpay?.clear();
+    _paymentPlatform.dispose();
     _linkCardTimer?.cancel();
     _stopPaymentStream();
     super.dispose();
@@ -1224,6 +1225,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String customerEmail,
     required String orderId,
   }) {
+    // Web: Checkout.js handles all payment methods, skip UPI app selection
+    if (kIsWeb) {
+      unawaited(_submitPayment(
+        keyId: keyId,
+        amountPaise: amountPaise,
+        currency: currency,
+        razorpayOrderId: razorpayOrderId,
+        customerPhone: customerPhone,
+        customerEmail: customerEmail,
+        orderId: orderId,
+      ));
+      return Future.value(true);
+    }
+
     if (isTestMode) {
       return _showTestUpiDialog(
         keyId: keyId,
@@ -1311,7 +1326,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context, true);
-                    _submitUpiPayment(
+                    _submitPayment(
                       keyId: keyId,
                       amountPaise: amountPaise,
                       currency: currency,
@@ -1449,7 +1464,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                           onTap: () {
                             Navigator.pop(context, true);
-                            _submitUpiPayment(
+                            _submitPayment(
                               keyId: keyId,
                               amountPaise: amountPaise,
                               currency: currency,
@@ -1500,7 +1515,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                         onTap: () {
                           Navigator.pop(context, true);
-                          _submitUpiPayment(
+                          _submitPayment(
                             keyId: keyId,
                             amountPaise: amountPaise,
                             currency: currency,
@@ -1525,7 +1540,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return didSelect ?? false;
   }
 
-  void _submitUpiPayment({
+  Future<void> _submitPayment({
     required String keyId,
     required int amountPaise,
     required String currency,
@@ -1535,24 +1550,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String orderId,
     String? upiAppPackageName,
     String? vpa,
-  }) {
-    final options = {
-      'key': keyId,
-      'amount': amountPaise,
-      'currency': currency,
-      'order_id': razorpayOrderId,
-      'contact': customerPhone,
-      'email': customerEmail,
-      'method': 'upi',
-      if (vpa != null && vpa.isNotEmpty) 'vpa': vpa,
-      if (vpa == null || vpa.isEmpty) '_[flow]': 'intent',
-      'upi_app_package_name': ?upiAppPackageName,
-      'notes': {
-        'order_id': orderId,
-      },
-    };
-
-    _razorpay?.submit(options);
+  }) async {
+    final request = PaymentRequest(
+      keyId: keyId,
+      amountPaise: amountPaise,
+      currency: currency,
+      razorpayOrderId: razorpayOrderId,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
+      orderId: orderId,
+      upiAppPackageName: upiAppPackageName,
+      vpa: vpa,
+    );
+    final result = await _paymentPlatform.startPayment(request);
+    await _handlePaymentResult(result);
   }
 
   Order _buildOrderFromCart(Address deliveryAddress) {
@@ -1790,16 +1801,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return parts.join(', ');
   }
 
-  void _handlePaymentSuccess(Map<dynamic, dynamic> response) {
+  Future<void> _handlePaymentResult(PaymentResult result) async {
     final orderId = _currentOrderId;
-    final payload = response['data'] is Map
-        ? response['data'] as Map
-        : response;
-    final razorpayOrderId = payload['razorpay_order_id'] as String?;
-    final paymentId = payload['razorpay_payment_id'] as String?;
-    final signature = payload['razorpay_signature'] as String? ?? '';
+    if (orderId == null) return;
 
-    if (orderId == null || razorpayOrderId == null || paymentId == null) {
+    switch (result.status) {
+      case PaymentResultStatus.success:
+        await _handlePaymentSuccessResult(
+          orderId: orderId,
+          razorpayOrderId: result.razorpayOrderId ?? '',
+          paymentId: result.razorpayPaymentId ?? '',
+          signature: result.razorpaySignature ?? '',
+        );
+
+      case PaymentResultStatus.failed:
+      case PaymentResultStatus.cancelled:
+        await _handlePaymentFailureResult(
+          orderId: orderId,
+          paymentId: result.razorpayPaymentId,
+          errorMessage: result.errorMessage,
+          isCancelled: result.status == PaymentResultStatus.cancelled,
+        );
+
+      case PaymentResultStatus.pending:
+        await _startPollingForWebPayment(orderId);
+    }
+  }
+
+  Future<void> _handlePaymentSuccessResult({
+    required String orderId,
+    required String razorpayOrderId,
+    required String paymentId,
+    required String signature,
+  }) async {
+    if (razorpayOrderId.isEmpty || paymentId.isEmpty) {
       _showError(ErrorMessages.paymentResponseIncomplete);
       return;
     }
@@ -1808,47 +1843,131 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _loadingStatus = 'Verifying payment...';
     });
 
-    Future(() async {
-      try {
-        final result = await paymentService
-            .completeOrder(
-              userId: authController.currentUser?.uid ?? '',
-              orderId: orderId,
-              paymentId: paymentId,
-              razorpayOrderId: razorpayOrderId,
-              signature: signature,
-              amount:
-                  _currentOrderSnapshot?.finalAmount ??
-                  cartController.totalAmount,
-            )
-            .timeout(const Duration(seconds: 20));
+    try {
+      final result = await paymentService
+          .completeOrder(
+            userId: authController.currentUser?.uid ?? '',
+            orderId: orderId,
+            paymentId: paymentId,
+            razorpayOrderId: razorpayOrderId,
+            signature: signature,
+            amount: _currentOrderSnapshot?.finalAmount ??
+                cartController.totalAmount,
+          )
+          .timeout(const Duration(seconds: 20));
 
-        if (result) {
-          setState(() {
-            _loadingStatus = 'Confirming order...';
-          });
-          await _completeSuccessfulPayment(orderId);
-        } else {
-          Future(() async {
-            await orderRecoveryService.recoverPendingPayments(
-              trigger: 'payment_success',
-            );
-          });
-          if (mounted) {
-            _showInfo(
-              'Payment received. We are finalizing your order automatically.',
-            );
-          }
-        }
-      } catch (e) {
-        AppLogger.error('Checkout', e);
+      if (result) {
+        setState(() {
+          _loadingStatus = 'Confirming order...';
+        });
+        await _completeSuccessfulPayment(orderId);
+      } else {
+        unawaited(orderRecoveryService.recoverPendingPayments(
+          trigger: 'payment_success',
+        ));
         if (mounted) {
           _showInfo(
-            'Payment received. Recovery will retry automatically.',
+            'Payment received. We are finalizing your order automatically.',
           );
         }
       }
+    } catch (e) {
+      AppLogger.error('Checkout', e);
+      if (mounted) {
+        _showInfo(
+          'Payment received. Recovery will retry automatically.',
+        );
+      }
+    }
+  }
+
+  Future<void> _handlePaymentFailureResult({
+    required String orderId,
+    String? paymentId,
+    String? errorMessage,
+    bool isCancelled = false,
+  }) async {
+    if (paymentId != null && paymentId.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _loadingStatus = 'Finalizing payment status...';
+        });
+      }
+      final resolved = await _tryResolvePendingPayment(
+        orderId: orderId,
+        paymentId: paymentId,
+        attempts: isCancelled ? 1 : 20,
+      );
+      if (resolved) return;
+    }
+
+    await _markPaymentFailedBestEffort(orderId);
+    if (mounted && _pendingOrderInfo?.orderNumber == orderId) {
+      final existing = _pendingOrderInfo!;
+      setState(() {
+        _pendingOrderInfo = PendingOrderInfo(
+          orderNumber: existing.orderNumber,
+          finalAmount: existing.finalAmount,
+          orderedAt: existing.orderedAt,
+          expiresInMinutes: existing.expiresInMinutes,
+          paymentStatus: 'failed',
+          orderStatus: existing.orderStatus,
+          linkStatus: existing.linkStatus,
+          cartData: existing.cartData,
+        );
+        _activePaymentLink = null;
+        _linkCardTimer?.cancel();
+      });
+    }
+
+    if (isCancelled) {
+      _showError('Payment cancelled. Please try again.');
+      AppLogger.warning('Checkout', 'Payment cancelled by user');
+      return;
+    }
+
+    _showError(
+      errorMessage?.isNotEmpty == true
+          ? ErrorMessages.paymentError(errorMessage!)
+          : ErrorMessages.paymentFailed,
+    );
+  }
+
+  Future<void> _startPollingForWebPayment(String orderId) async {
+    setState(() {
+      _loadingStatus = 'Verifying payment status...';
+      _isProcessing = true;
     });
+
+    final user = authController.currentUser;
+    if (user == null) return;
+
+    const maxAttempts = 30;
+    const delay = Duration(seconds: 5);
+
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        final idToken = await authController.requireIdToken();
+        final order = await client.order
+            .getOrderById(orderId, user.uid, idToken)
+            .timeout(const Duration(seconds: 15));
+        if (order?.paymentStatus == 'paid') {
+          await _completeSuccessfulPayment(orderId);
+          return;
+        }
+      } catch (_) {}
+
+      await Future.delayed(delay);
+    }
+
+    setState(() {
+      _isProcessing = false;
+      _loadingStatus = null;
+    });
+    _showInfo(
+      'Payment confirmation taking longer than expected. '
+      'Your order will be updated automatically.',
+    );
   }
 
   Future<void> _completeSuccessfulPayment(String orderId) async {
@@ -1883,7 +2002,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     cartController.clearCart();
   }
 
-  Future<bool> _tryResolvePendingUpiPayment({
+  Future<bool> _tryResolvePendingPayment({
     required String orderId,
     required String paymentId,
     int attempts = 6,
@@ -1937,115 +2056,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     return false;
-  }
-
-  Map<String, dynamic>? _extractRazorpayError(Map<dynamic, dynamic> response) {
-    final data = response['data'];
-    if (data is Map) {
-      final message = data['message'];
-      if (message is Map) {
-        final error = message['error'];
-        if (error is Map<String, dynamic>) return error;
-        if (error is Map) return Map<String, dynamic>.from(error);
-      }
-      if (message is String && message.trim().isNotEmpty) {
-        try {
-          final decoded = jsonDecode(message);
-          if (decoded is Map && decoded['error'] is Map) {
-            return Map<String, dynamic>.from(decoded['error'] as Map);
-          }
-        } catch (e) {
-          AppLogger.warning('Checkout', 'Error decode: $e');
-        }
-      }
-    }
-    return null;
-  }
-
-  void _handlePaymentError(Map<dynamic, dynamic> response) async {
-    try {
-      final orderId = _currentOrderId;
-      final errorData = _extractRazorpayError(response);
-      final metadata = errorData?['metadata'];
-      final paymentId = metadata is Map
-          ? metadata['payment_id']?.toString()
-          : null;
-      final code =
-          errorData?['reason']?.toString() ??
-          errorData?['code']?.toString() ??
-          response['code']?.toString() ??
-          response['error_code']?.toString() ??
-          'unknown';
-      final message =
-          errorData?['description']?.toString().trim() ??
-          response['message']?.toString().trim() ??
-          response['description']?.toString().trim() ??
-          '';
-      final normalizedCode = code.toLowerCase().trim();
-      final normalizedMessage = message.toLowerCase();
-      final isPaymentCancelled =
-          normalizedCode == 'payment_cancelled' ||
-          normalizedCode == '2' ||
-          normalizedMessage.contains('payment cancelled') ||
-          normalizedMessage.contains('payment canceled') ||
-          normalizedMessage.contains('cancelled by user');
-
-      if (orderId != null && paymentId != null && paymentId.isNotEmpty) {
-        if (mounted) {
-          setState(() {
-            _loadingStatus = 'Finalizing payment status...';
-          });
-        }
-        final resolved = await _tryResolvePendingUpiPayment(
-          orderId: orderId,
-          paymentId: paymentId,
-          attempts: isPaymentCancelled ? 1 : 20,
-        );
-        if (resolved) {
-          return;
-        }
-      }
-
-      if (orderId != null) {
-        await _markPaymentFailedBestEffort(orderId);
-        if (mounted && _pendingOrderInfo?.orderNumber == orderId) {
-          final existing = _pendingOrderInfo!;
-          setState(() {
-            _pendingOrderInfo = PendingOrderInfo(
-              orderNumber: existing.orderNumber,
-              finalAmount: existing.finalAmount,
-              orderedAt: existing.orderedAt,
-              expiresInMinutes: existing.expiresInMinutes,
-              paymentStatus: 'failed',
-              orderStatus: existing.orderStatus,
-              linkStatus: existing.linkStatus,
-              cartData: existing.cartData,
-            );
-            _activePaymentLink = null;
-            _linkCardTimer?.cancel();
-          });
-        }
-      }
-
-      if (isPaymentCancelled) {
-        _showError('Payment cancelled. Please try again.');
-        AppLogger.warning('Checkout', 'Payment cancelled by user');
-        return;
-      }
-
-      _showError(
-        message.isEmpty
-            ? ErrorMessages.paymentFailed
-            : ErrorMessages.paymentError(message),
-      );
-      AppLogger.error(
-        "Checkout",
-        "Payment error code=$code msg=$message",
-      );
-    } catch (e) {
-      AppLogger.error('Checkout', e);
-      _showError(ErrorMessages.paymentFailed);
-    }
   }
 
   void _showError(String message) {
