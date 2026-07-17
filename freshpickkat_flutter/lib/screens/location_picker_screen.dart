@@ -13,7 +13,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   /// If true, opens in checkout flow context
@@ -394,9 +394,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Instructions text at top
           Positioned(
-            top: 16.h,
-            left: 16.w,
-            right: 16.w,
+            top: ScreenScale.h(16),
+            left: ScreenScale.w(16),
+            right: ScreenScale.w(16),
             child: Container(
               padding: AppSpacing.all(12),
               decoration: BoxDecoration(
@@ -407,7 +407,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 'Drag the map to select your location',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 13.sp,
+                  fontSize: ScreenScale.sp(13),
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -426,8 +426,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Current location FAB
           Positioned(
-            bottom: 320.h,
-            right: 16.w,
+            bottom: ScreenScale.h(320),
+            right: ScreenScale.w(16),
             child: FloatingActionButton(
               mini: true,
               onPressed: _isLoadingLocation ? null : _useCurrentLocation,
@@ -456,10 +456,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   controller: scrollController,
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
-                      20.w,
-                      20.h,
-                      20.w,
-                      20.h +
+                      ScreenScale.w(20),
+                      ScreenScale.h(20),
+                      ScreenScale.w(20),
+                      ScreenScale.h(20) +
                           viewInsets.bottom +
                           MediaQuery.paddingOf(context).bottom,
                     ),
@@ -469,15 +469,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         // Handle bar
                         Center(
                           child: Container(
-                            width: 40.w,
-                            height: 5.h,
+                            width: ScreenScale.w(40),
+                            height: ScreenScale.h(5),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
 borderRadius: BorderRadius.circular(AppRadius.medium),
                             ),
                           ),
                         ),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: ScreenScale.h(20)),
 
                         // Street Address
                         Text(
@@ -487,7 +487,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             color: cs.onSurface,
                           ),
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         TextField(
                           controller: _streetController,
                           decoration: InputDecoration(
@@ -498,7 +498,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             prefixIcon: const Icon(Icons.location_on_outlined),
                           ),
                         ),
-                        SizedBox(height: 16.h),
+                        SizedBox(height: ScreenScale.h(16)),
 
                         // Building/Apartment
                         Text(
@@ -508,7 +508,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             color: cs.onSurface,
                           ),
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         TextField(
                           controller: _buildingController,
                           decoration: InputDecoration(
@@ -519,7 +519,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             prefixIcon: const Icon(Icons.location_city),
                           ),
                         ),
-                        SizedBox(height: 16.h),
+                        SizedBox(height: ScreenScale.h(16)),
 
                         // Landmark
                         Text(
@@ -529,7 +529,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             color: cs.onSurface,
                           ),
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         TextField(
                           controller: _landmarkController,
                           decoration: InputDecoration(
@@ -540,7 +540,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             prefixIcon: const Icon(Icons.map_outlined),
                           ),
                         ),
-                        SizedBox(height: 16.h),
+                        SizedBox(height: ScreenScale.h(16)),
 
                         // Pincode
                         Text(
@@ -550,7 +550,7 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             color: cs.onSurface,
                           ),
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         TextField(
                           controller: _pincodeController,
                           keyboardType: TextInputType.number,
@@ -562,9 +562,9 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             prefixIcon: const Icon(Icons.numbers),
                           ),
                         ),
-                        SizedBox(height: 16.h),
+                        SizedBox(height: ScreenScale.h(16)),
 
-                        SizedBox(height: 24.h),
+                        SizedBox(height: ScreenScale.h(24)),
 
                         // Confirm Location button
                         SizedBox(
@@ -581,8 +581,8 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                             ),
                             child: _isSaving
                                 ? SizedBox(
-                                    height: 20.sp,
-                                    width: 20.sp,
+                                    height: ScreenScale.sp(20),
+                                    width: ScreenScale.sp(20),
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       color: cs.onPrimary,
@@ -593,14 +593,14 @@ borderRadius: BorderRadius.circular(AppRadius.medium),
                                         ? 'Loading...'
                                         : 'Confirm Location',
                                     style: TextStyle(
-                                      fontSize: 16.sp,
+                                      fontSize: ScreenScale.sp(16),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                           ),
                         ),
 
-                        SizedBox(height: 16.h),
+                        SizedBox(height: ScreenScale.h(16)),
                       ],
                     ),
                   ),

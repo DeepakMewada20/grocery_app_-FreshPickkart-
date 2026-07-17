@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/support_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
@@ -9,6 +8,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ReportIssueScreen extends StatefulWidget {
   const ReportIssueScreen({super.key});
@@ -53,7 +53,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           'Report App Issue',
           style: TextStyle(
             color: cs.onSurface,
-            fontSize: 18.sp,
+            fontSize: ScreenScale.sp(18),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -78,10 +78,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
           return SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.fromLTRB(
-              16.w,
-              8.h,
-              16.w,
-              28.h + MediaQuery.paddingOf(context).bottom,
+              ScreenScale.w(16),
+              ScreenScale.h(8),
+              ScreenScale.w(16),
+              ScreenScale.h(28) + MediaQuery.paddingOf(context).bottom,
             ),
             child: AppResponsive.constrainContent(
               context: context,
@@ -91,17 +91,17 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _IntroCard(cs: cs),
-                    SizedBox(height: 18.h),
+                    SizedBox(height: ScreenScale.h(18)),
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _FieldLabel('Issue Type'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           _IssueTypeDropdown(controller: _controller),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           _FieldLabel('Title'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           _SupportTextField(
                             controller: _titleController,
                             hintText: 'Short summary of the issue',
@@ -117,9 +117,9 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               return null;
                             },
                           ),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           _FieldLabel('Description'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           _SupportTextField(
                             controller: _descriptionController,
                             hintText:
@@ -138,18 +138,18 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               return null;
                             },
                           ),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           _FieldLabel('Attach Screenshot (optional)'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           _ScreenshotPicker(controller: _controller),
                         ],
                       ),
                     ),
-                    SizedBox(height: 18.h),
+                    SizedBox(height: ScreenScale.h(18)),
                     Obx(
                       () => SizedBox(
                         width: double.infinity,
-                        height: 52.h,
+                        height: ScreenScale.h(52),
                         child: ElevatedButton(
                           onPressed: _controller.isSubmitting.value
                               ? null
@@ -167,8 +167,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                           ),
                           child: _controller.isSubmitting.value
                               ? SizedBox(
-                                  width: 22.r,
-                                  height: 22.r,
+                                  width: ScreenScale.r(22),
+                                  height: ScreenScale.r(22),
                                   child: const CircularProgressIndicator(
                                     strokeWidth: 2.4,
                                     color: Colors.white,
@@ -177,7 +177,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               : Text(
                                   'Submit Issue',
                                   style: TextStyle(
-                                    fontSize: 15.sp,
+                                    fontSize: ScreenScale.sp(15),
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
@@ -225,14 +225,14 @@ class _IntroCard extends StatelessWidget {
       padding: AppSpacing.all(18),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(22.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(22)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
         children: [
           Container(
-            width: 48.r,
-            height: 48.r,
+            width: ScreenScale.r(48),
+            height: ScreenScale.r(48),
             decoration: BoxDecoration(
               color: cs.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppRadius.extraLarge),
@@ -240,10 +240,10 @@ class _IntroCard extends StatelessWidget {
             child: Icon(
               Icons.bug_report_outlined,
               color: cs.primary,
-              size: 26.r,
+              size: ScreenScale.r(26),
             ),
           ),
-          SizedBox(width: 14.w),
+          SizedBox(width: ScreenScale.w(14)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,16 +252,16 @@ class _IntroCard extends StatelessWidget {
                   'Send a support ticket',
                   style: TextStyle(
                     color: cs.onSurface,
-                    fontSize: 17.sp,
+                    fontSize: ScreenScale.sp(17),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   'We auto-attach app and device details to help debug faster.',
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.62),
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     height: 1.35,
                   ),
                 ),
@@ -288,7 +288,7 @@ class _FormCard extends StatelessWidget {
       padding: AppSpacing.all(16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(22.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(22)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: child,
@@ -308,7 +308,7 @@ class _FieldLabel extends StatelessWidget {
       text,
       style: TextStyle(
         color: cs.onSurface,
-        fontSize: 13.sp,
+        fontSize: ScreenScale.sp(13),
         fontWeight: FontWeight.w800,
       ),
     );
@@ -381,7 +381,7 @@ class _SupportTextField extends StatelessWidget {
       validator: validator,
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 14.sp,
+        fontSize: ScreenScale.sp(14),
       ),
       decoration: _inputDecoration(
         context,
@@ -425,7 +425,7 @@ class _ScreenshotPicker extends StatelessWidget {
                         color: cs.primary,
                         size: AppIcons.large,
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: ScreenScale.w(12)),
                       Expanded(
                         child: Text(
                           isPicking
@@ -433,7 +433,7 @@ class _ScreenshotPicker extends StatelessWidget {
                               : 'Choose screenshot from gallery',
                           style: TextStyle(
                             color: cs.onSurface,
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -451,7 +451,7 @@ class _ScreenshotPicker extends StatelessWidget {
                       color: cs.primary,
                       size: AppIcons.large,
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: ScreenScale.w(12)),
                     Expanded(
                       child: Text(
                         screenshot.name,
@@ -459,7 +459,7 @@ class _ScreenshotPicker extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -506,15 +506,15 @@ class _SuccessState extends StatelessWidget {
             padding: AppSpacing.all(22),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(24.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(24)),
               border: Border.all(color: cs.outlineVariant),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 64.r,
-                  height: 64.r,
+                  width: ScreenScale.r(64),
+                  height: ScreenScale.r(64),
                   decoration: BoxDecoration(
                     color: cs.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -522,42 +522,42 @@ class _SuccessState extends StatelessWidget {
                   child: Icon(
                     Icons.check_circle_rounded,
                     color: cs.primary,
-                    size: 38.r,
+                    size: ScreenScale.r(38),
                   ),
                 ),
-                SizedBox(height: 18.h),
+                SizedBox(height: ScreenScale.h(18)),
                 Text(
                   'Issue Submitted Successfully',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: cs.onSurface,
-                    fontSize: 20.sp,
+                    fontSize: ScreenScale.sp(20),
                     fontWeight: FontWeight.w900,
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: ScreenScale.h(8)),
                 Text(
                   'Ticket Status: $status',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: cs.primary,
-                    fontSize: 15.sp,
+                    fontSize: ScreenScale.sp(15),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 if (ticketId.isNotEmpty) ...[
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
                   Text(
                     'Ticket ID: $ticketId',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.52),
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                     ),
                   ),
                 ],
-                SizedBox(height: 22.h),
+                SizedBox(height: ScreenScale.h(22)),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -598,7 +598,7 @@ InputDecoration _inputDecoration(
     hintText: hintText,
     hintStyle: TextStyle(
       color: cs.onSurface.withValues(alpha: 0.38),
-      fontSize: 14.sp,
+      fontSize: ScreenScale.sp(14),
     ),
     prefixIcon: prefixIcon == null
         ? null

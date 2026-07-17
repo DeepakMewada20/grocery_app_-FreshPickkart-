@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/utils/banner_navigation_helper.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class NetworkBannerWidget extends StatefulWidget {
   final List<client.Banner> banners;
@@ -256,7 +256,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
         ),
         // Dot indicators
         if (widget.banners.length > 1) ...[
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(widget.banners.length, (index) {
@@ -264,15 +264,15 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 margin: AppSpacing.symmetric(horizontal: 3),
-                width: isActive ? 20.w : 6.w,
-                height: 6.h,
+                width: isActive ? ScreenScale.w(20) : ScreenScale.w(6),
+                height: ScreenScale.h(6),
                 decoration: BoxDecoration(
                   color: isActive
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(
                           context,
                         ).colorScheme.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(3.r),
+                  borderRadius: BorderRadius.circular(ScreenScale.r(3)),
                 ),
               );
             }),
@@ -294,7 +294,7 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
-              offset: Offset(0, 4.h),
+              offset: Offset(0, ScreenScale.h(4)),
             ),
           ],
         ),
@@ -321,11 +321,11 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                         children: [
                           Icon(
                             Icons.image,
-                            size: 40.r,
+                            size: ScreenScale.r(40),
                             color: Colors.white30,
                           ),
                           if (banner.title.isNotEmpty) ...[
-                            SizedBox(height: 8.h),
+                            SizedBox(height: ScreenScale.h(8)),
                             Text(
                               banner.title,
                               style: const TextStyle(color: Colors.white70),
@@ -358,15 +358,15 @@ class _NetworkBannerWidgetState extends State<NetworkBannerWidget>
                         'Tap to explore',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10.sp,
+                          fontSize: ScreenScale.sp(10),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(width: 4.w),
+                      SizedBox(width: ScreenScale.w(4)),
                       Icon(
                         Icons.arrow_forward_ios,
                         color: Colors.white,
-                        size: 10.r,
+                        size: ScreenScale.r(10),
                       ),
                     ],
                   ),

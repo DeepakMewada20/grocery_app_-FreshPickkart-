@@ -7,11 +7,11 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/services/payment_link_service.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class PaymentSessionSheet extends StatefulWidget {
   final String orderId;
@@ -149,7 +149,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
           child: Container(
             decoration: BoxDecoration(
               color: theme.scaffoldBackgroundColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(ScreenScale.r(28))),
             ),
             child: Padding(
               padding: AppSpacing.all(24),
@@ -160,15 +160,15 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   // Handle bar
                   Center(
                     child: Container(
-                      width: 40.w,
-                      height: 4.h,
+                      width: ScreenScale.w(40),
+                      height: ScreenScale.h(4),
                       decoration: BoxDecoration(
                         color: cs.outlineVariant,
-                        borderRadius: BorderRadius.circular(2.r),
+                        borderRadius: BorderRadius.circular(ScreenScale.r(2)),
                       ),
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: ScreenScale.h(20)),
 
                   // Title
                   Text(
@@ -176,19 +176,19 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     style: AppText.sectionTitle(context),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
 
                   // Amount
                   Text(
                     amountText,
                     style: AppText.sectionTitle(context).copyWith(
-                      fontSize: 24.sp,
+                      fontSize: ScreenScale.sp(24),
                       fontWeight: FontWeight.bold,
                       color: cs.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
 
                   // Order ID
                   Text(
@@ -198,7 +198,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: ScreenScale.h(16)),
 
                   // Timer
                   if (!isPaid)
@@ -219,7 +219,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                             size: AppIcons.small,
                             color: cs.error,
                           ),
-                          SizedBox(width: 8.w),
+                          SizedBox(width: ScreenScale.w(8)),
                           Text(
                             'Expires in ${minutes}m ${seconds}s',
                             style: AppText.caption(context).copyWith(
@@ -232,7 +232,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
 
                   // Link section
                   if (_paymentLinkUrl != null) ...[
-                    SizedBox(height: 12.h),
+                    SizedBox(height: ScreenScale.h(12)),
                     Container(
                       padding: AppSpacing.all(12),
                       decoration: BoxDecoration(
@@ -255,8 +255,8 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                             onPressed: _copyLink,
                             padding: EdgeInsets.zero,
                             constraints: BoxConstraints(
-                              minWidth: 32.r,
-                              minHeight: 32.r,
+                              minWidth: ScreenScale.r(32),
+                              minHeight: ScreenScale.r(32),
                             ),
                           ),
                         ],
@@ -265,7 +265,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                   ],
 
                   if (_linkError != null) ...[
-                    SizedBox(height: 8.h),
+                    SizedBox(height: ScreenScale.h(8)),
                     Text(
                       _linkError!,
                       style: AppText.caption(context).copyWith(
@@ -275,7 +275,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     ),
                   ],
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: ScreenScale.h(24)),
 
                   // Pay Now button
                   FilledButton.icon(
@@ -287,10 +287,10 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     icon: const Icon(Icons.payment),
                     label: const Text('Pay Now'),
                     style: FilledButton.styleFrom(
-                      minimumSize: Size(double.infinity, 48.h),
+                      minimumSize: Size(double.infinity, ScreenScale.h(48)),
                     ),
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
 
                   // Link buttons row
                   Row(
@@ -300,41 +300,41 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                           onPressed: _isGeneratingLink ? null : _shareLink,
                           icon: _isGeneratingLink
                               ? SizedBox(
-                                  width: 16.r,
-                                  height: 16.r,
+                                  width: ScreenScale.r(16),
+                                  height: ScreenScale.r(16),
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 2.r,
+                                    strokeWidth: ScreenScale.r(2),
                                   ),
                                 )
                               : const Icon(Icons.share),
                           label: const Text('Share Link'),
                           style: OutlinedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 44.h),
+                            minimumSize: Size(double.infinity, ScreenScale.h(44)),
                           ),
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: ScreenScale.w(12)),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _isGeneratingLink ? null : _copyLink,
                           icon: _isGeneratingLink
                               ? SizedBox(
-                                  width: 16.r,
-                                  height: 16.r,
+                                  width: ScreenScale.r(16),
+                                  height: ScreenScale.r(16),
                                   child: CircularProgressIndicator(
-                                    strokeWidth: 2.r,
+                                    strokeWidth: ScreenScale.r(2),
                                   ),
                                 )
                               : const Icon(Icons.copy),
                           label: const Text('Copy Link'),
                           style: OutlinedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 44.h),
+                            minimumSize: Size(double.infinity, ScreenScale.h(44)),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
 
                   // Refresh status
                   OutlinedButton.icon(
@@ -345,13 +345,13 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     icon: const Icon(Icons.refresh),
                     label: const Text('Check Payment Status'),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 44.h),
+                      minimumSize: Size(double.infinity, ScreenScale.h(44)),
                     ),
                   ),
 
                   // Paid status
                   if (isPaid) ...[
-                    SizedBox(height: 12.h),
+                    SizedBox(height: ScreenScale.h(12)),
                     Container(
                       padding: AppSpacing.all(12),
                       decoration: BoxDecoration(
@@ -366,7 +366,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                             color: cs.primary,
                             size: AppIcons.medium,
                           ),
-                          SizedBox(width: 8.w),
+                          SizedBox(width: ScreenScale.w(8)),
                           Text(
                             'Payment received! Redirecting...',
                             style: AppText.caption(context).copyWith(
@@ -378,7 +378,7 @@ class _PaymentSessionSheetState extends State<PaymentSessionSheet> {
                     ),
                   ],
 
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
 
                   // Close
                   TextButton(

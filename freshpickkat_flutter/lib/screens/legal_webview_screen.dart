@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class LegalWebViewScreen extends StatefulWidget {
   const LegalWebViewScreen({
@@ -37,13 +37,14 @@ class LegalWebViewScreen extends StatefulWidget {
 }
 
 class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
-  late final WebViewController _controller;
+  WebViewController? _controller;
   int _loadingProgress = 0;
   String? _loadError;
 
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) return;
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.transparent)
@@ -114,16 +115,16 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: cs.onSurface,
-            fontSize: 18.sp,
+            fontSize: ScreenScale.sp(18),
             fontWeight: FontWeight.w700,
           ),
         ),
         bottom: isLoading
             ? PreferredSize(
-                preferredSize: Size.fromHeight(3.h),
+                preferredSize: Size.fromHeight(ScreenScale.h(3)),
                 child: LinearProgressIndicator(
                   value: _loadingProgress <= 0 ? null : _loadingProgress / 100,
-                  minHeight: 3.h,
+                  minHeight: ScreenScale.h(3),
                   color: AppTheme.primaryGreen,
                   backgroundColor: cs.surfaceContainerHighest,
                 ),
@@ -133,12 +134,12 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
       body: SafeArea(
         top: false,
         child: _loadError == null
-            ? WebViewWidget(controller: _controller)
+            ? WebViewWidget(controller: _controller!)
             : _LegalPageError(
                 message: _loadError!,
                 onRetry: () {
                   setState(() => _loadError = null);
-                  _controller.loadRequest(Uri.parse(widget.url));
+                  _controller!.loadRequest(Uri.parse(widget.url));
                 },
               ),
       ),
@@ -167,20 +168,20 @@ class _LegalPageError extends StatelessWidget {
           children: [
             Icon(
               Icons.wifi_off_rounded,
-              size: 46.r,
+              size: ScreenScale.r(46),
               color: cs.onSurface.withValues(alpha: 0.55),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: ScreenScale.h(14)),
             Text(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.75),
-                fontSize: 15.sp,
+                fontSize: ScreenScale.sp(15),
                 height: 1.4,
               ),
             ),
-            SizedBox(height: 18.h),
+            SizedBox(height: ScreenScale.h(18)),
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/services/payment_service.dart';
@@ -9,6 +8,7 @@ import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 enum PaymentStatus {
   verified,
@@ -246,12 +246,12 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildStatusIcon(),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           AutoSizeText(
             _statusMessage,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: ScreenScale.sp(14),
               fontWeight: FontWeight.w600,
               color: _getTextColor(),
             ),
@@ -259,12 +259,12 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
             maxLines: 3,
           ),
           if (_detailMessage.isNotEmpty) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             AutoSizeText(
               _detailMessage,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
                 color: Colors.grey.shade600,
               ),
               minFontSize: 10,
@@ -273,26 +273,26 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
           ],
           if (_status == PaymentStatus.pending ||
               _status == PaymentStatus.verifying) ...[
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             _buildRetryButton(),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             Text(
               _status == PaymentStatus.verifying
                   ? 'Auto-checking every 10 seconds'
                   : 'Auto-checking every 10 seconds',
               style: TextStyle(
-                fontSize: 11.sp,
+                fontSize: ScreenScale.sp(11),
                 color: Colors.grey.shade600,
               ),
             ),
           ],
           if (_status == PaymentStatus.failed ||
               _status == PaymentStatus.cancelled) ...[
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             _buildRetryButton(),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildCheckStatusButton(),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildSupportButton(),
           ],
         ],
@@ -336,25 +336,25 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       return ScaleTransition(
         scale: _pulseAnimation,
         child: Container(
-          width: 60.r,
-          height: 60.r,
+          width: ScreenScale.r(60),
+          height: ScreenScale.r(60),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 32.r, color: color),
+          child: Icon(icon, size: ScreenScale.r(32), color: color),
         ),
       );
     }
 
     return Container(
-      width: 60.r,
-      height: 60.r,
+      width: ScreenScale.r(60),
+      height: ScreenScale.r(60),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 32.r, color: color),
+      child: Icon(icon, size: ScreenScale.r(32), color: color),
     );
   }
 
@@ -421,7 +421,7 @@ class _PaymentStatusWidgetState extends State<PaymentStatusWidget>
       onPressed: () {
         AppSnackbar.show(
           'Contact Support',
-          'Please contact us at support@freshpickkart.com',
+          'Please contact us at freshpickkart@gmail.com',
         );
       },
       style: OutlinedButton.styleFrom(

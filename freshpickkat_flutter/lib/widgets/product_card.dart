@@ -25,6 +25,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
@@ -199,7 +200,7 @@ class _ProductCardState extends State<ProductCard> {
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
                   blurRadius: AppSpacing.sm,
-                  offset: Offset(0, 4.h),
+                  offset: Offset(0, ScreenScale.h(4)),
                 ),
               ],
             ),
@@ -288,7 +289,6 @@ class _ProductCardState extends State<ProductCard> {
             left: AppSpacing.sm,
             child: ProductOfferBadge(
               product: displayProduct,
-              fontSize: AppSpacing.xs.toDouble(),
             ),
           ),
       ],
@@ -304,7 +304,6 @@ class _ProductCardState extends State<ProductCard> {
       padding: AppSpacing.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AutoSizeText(
             widget.product.productName,
@@ -318,14 +317,12 @@ class _ProductCardState extends State<ProductCard> {
             stepGranularity: 0.5,
             overflow: TextOverflow.ellipsis,
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: 26.h.clamp(22.0, 30.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
                   child: AutoSizeText(
                     productFullQuantityLabel(displayProduct),
                     style: AppText.productQuantity(context).copyWith(
@@ -338,52 +335,56 @@ class _ProductCardState extends State<ProductCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              AppSpacing.height(3),
-              Row(
-                children: [
-                  Flexible(
-                    flex: 3,
-                    child: AutoSizeText(
-                      '₹${displayProduct.price.formatPrice}',
-                      style: AppText.productPrice(context).copyWith(
-                        fontSize:
-                            widget.priceFontSize?.sp ??
-                            AppText.productPrice(context).fontSize,
-                      ),
-                      maxLines: 1,
-                      minFontSize: 10,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (displayProduct.realPrice > displayProduct.price) ...[
-                    AppSpacing.width(AppSpacing.xs),
-                    Flexible(
-                      flex: 2,
-                      child: AutoSizeText(
-                        '₹${displayProduct.realPrice.formatPrice}',
-                        style: AppText.productMrp(context).copyWith(
-                          fontSize:
-                              widget.realPriceFontSize?.sp ??
-                              AppText.productMrp(context).fontSize,
+                AppSpacing.height(3),
+                Flexible(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        flex: 3,
+                        child: AutoSizeText(
+                          '₹${displayProduct.price.formatPrice}',
+                          style: AppText.productPrice(context).copyWith(
+                            fontSize:
+                                widget.priceFontSize?.sp ??
+                                AppText.productPrice(context).fontSize,
+                          ),
+                          maxLines: 1,
+                          minFontSize: 10,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        minFontSize: 8,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              AppSpacing.height(AppSpacing.xs),
-              SizedBox(
-                width: double.infinity,
-                height: 32.h.clamp(30.0, 36.0),
-                child: !displayProduct.isAvailable
-                    ? _buildNotAvailableButton(cs)
-                    : _buildAddOrQuantity(cs),
-              ),
-            ],
+                      if (displayProduct.realPrice > displayProduct.price) ...[
+                        AppSpacing.width(AppSpacing.xs),
+                        Flexible(
+                          flex: 2,
+                          child: AutoSizeText(
+                            '₹${displayProduct.realPrice.formatPrice}',
+                            style: AppText.productMrp(context).copyWith(
+                              fontSize:
+                                  widget.realPriceFontSize?.sp ??
+                                  AppText.productMrp(context).fontSize,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 8,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                AppSpacing.height(AppSpacing.xs),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 32),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: !displayProduct.isAvailable
+                        ? _buildNotAvailableButton(cs)
+                        : _buildAddOrQuantity(cs),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -450,7 +451,7 @@ class _ProductCardState extends State<ProductCard> {
           BoxShadow(
             color: AppTheme.primaryGreen.withValues(alpha: 0.3),
             blurRadius: AppSpacing.xxs,
-            offset: Offset(0, 2.h),
+            offset: Offset(0, ScreenScale.h(2)),
           ),
         ],
       ),

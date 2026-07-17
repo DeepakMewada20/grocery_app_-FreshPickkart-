@@ -8,8 +8,8 @@ import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class SmgmGiftCard extends StatelessWidget {
   final CartController cartController;
@@ -49,8 +49,8 @@ class SmgmGiftCard extends StatelessWidget {
               : '';
 
           return Container(
-            margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
-            padding: EdgeInsets.all(14.r),
+            margin: EdgeInsets.fromLTRB(ScreenScale.w(16), ScreenScale.h(8), ScreenScale.w(16), 0),
+            padding: EdgeInsets.all(ScreenScale.r(14)),
             decoration: BoxDecoration(
               color: offerTheme.badgeSoft,
               borderRadius: BorderRadius.circular(AppRadius.extraLarge),
@@ -74,21 +74,21 @@ class SmgmGiftCard extends StatelessWidget {
                         'SHOP MORE, GET MORE',
                         style: TextStyle(
                           color: offerTheme.onBadge,
-                          fontSize: 10.sp,
+                          fontSize: ScreenScale.sp(10),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 Row(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                       child: Container(
-                        width: 56.r,
-                        height: 56.r,
+                        width: ScreenScale.r(56),
+                        height: ScreenScale.r(56),
                         color: cs.surface,
                         child: SafeNetworkImage(
                           url: displayImage,
@@ -96,7 +96,7 @@ class SmgmGiftCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: ScreenScale.w(12)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,30 +105,30 @@ class SmgmGiftCard extends StatelessWidget {
                             displayName,
                             style: TextStyle(
                               color: cs.onSurface,
-                              fontSize: 14.sp,
+                              fontSize: ScreenScale.sp(14),
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (qtyLabel.isNotEmpty) ...[
-                            SizedBox(height: 2.h),
+                            SizedBox(height: ScreenScale.h(2)),
                             Text(
                               qtyLabel,
                               style: TextStyle(
                                 color: cs.onSurface.withValues(alpha: 0.5),
-                                fontSize: 12.sp,
+                                fontSize: ScreenScale.sp(12),
                               ),
                             ),
                           ],
                           if (freeItem.rewardThreshold != null &&
                               freeItem.rewardThreshold! > 0) ...[
-                            SizedBox(height: 2.h),
+                            SizedBox(height: ScreenScale.h(2)),
                             Text(
                               'Free on orders above ₹${freeItem.rewardThreshold!.formatPrice}',
                               style: TextStyle(
                                 color: offerTheme.badge,
-                                fontSize: 11.sp,
+                                fontSize: ScreenScale.sp(11),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -142,7 +142,7 @@ class SmgmGiftCard extends StatelessWidget {
                         '₹${freeItem.rewardValue!.formatPrice}',
                         style: TextStyle(
                           color: offerTheme.badge,
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                           fontWeight: FontWeight.w700,
                         ),
                       ),

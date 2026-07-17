@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -8,6 +7,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class AddressFormWidget extends StatefulWidget {
   final bool showTitle;
@@ -144,16 +144,16 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             Text(
               'Select Your Address',
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: ScreenScale.sp(18),
                 fontWeight: FontWeight.bold,
                 color: _getTextColor(),
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
           ],
           // Name field
           _buildLabel('Your Name *'),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildTextField(
             controller: _nameController,
             hint: 'Enter your full name',
@@ -161,43 +161,43 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             errorText: _fieldErrors['name'],
             fieldKey: 'name',
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: ScreenScale.h(24)),
 
           // Email field
           _buildLabel('Email (Optional)'),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildTextField(
             controller: _emailController,
             hint: 'Enter your email',
             icon: Icons.email_outlined,
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: ScreenScale.h(24)),
 
           // Location section
           _buildLabel('Select Address *'),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           // Location display card
           _buildLocationCard(),
-          SizedBox(height: 24.h),
+          SizedBox(height: ScreenScale.h(24)),
 
           // Optional fields (always visible - map provides the address)
           _buildLabel('Additional Details (Optional)'),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           _buildTextField(
             controller: _floorController,
             hint: 'Floor / Apartment number',
             icon: Icons.apartment_outlined,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           _buildTextField(
             controller: _landmarkController,
             hint: 'Nearby landmark',
             icon: Icons.place_outlined,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           _buildTextField(
             controller: _instructionsController,
@@ -206,7 +206,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
             maxLines: 2,
           ),
 
-          SizedBox(height: 32.h),
+          SizedBox(height: ScreenScale.h(32)),
         ],
       );
     });
@@ -216,7 +216,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14.sp,
+        fontSize: ScreenScale.sp(14),
         fontWeight: FontWeight.w600,
         color: _getLabelColor(),
       ),
@@ -245,11 +245,11 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: TextStyle(fontSize: 15.sp, color: _getTextColor()),
+            style: TextStyle(fontSize: ScreenScale.sp(15), color: _getTextColor()),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: _getHintColor(), fontSize: 14.sp),
-              prefixIcon: Icon(icon, color: Colors.grey[600], size: 22.r),
+              hintStyle: TextStyle(color: _getHintColor(), fontSize: ScreenScale.sp(14)),
+              prefixIcon: Icon(icon, color: Colors.grey[600], size: ScreenScale.r(22)),
               border: InputBorder.none,
               contentPadding: AppSpacing.symmetric(
                 horizontal: 16,
@@ -264,12 +264,12 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
           ),
         ),
         if (errorText != null) ...[
-          SizedBox(height: 4.h),
+          SizedBox(height: ScreenScale.h(4)),
           Text(
             errorText,
             style: TextStyle(
               color: Colors.red[widget.isDarkTheme ? 400 : 600],
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -357,7 +357,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
               color: hasAddress ? Colors.green : Colors.grey,
               size: AppIcons.extraLarge,
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: ScreenScale.w(12)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,27 +365,27 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                   AutoSizeText(
                     hasAddress ? 'Selected Location' : 'No Location Selected',
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                       fontWeight: FontWeight.w600,
                       color: _getTextColor(),
                     ),
                     maxLines: 1,
                     minFontSize: 11,
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   Text(
                     hasAddress
                         ? '${address.street}, ${address.city}, ${address.state} - ${address.zipCode}'
                         : 'Tap "Select from Map" to add your address',
                     style: TextStyle(
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                       color: _getHintColor(),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: ScreenScale.w(8)),
             Container(
               padding: AppSpacing.symmetric(
                 horizontal: 12,
@@ -399,7 +399,7 @@ class _AddressFormWidgetState extends State<AddressFormWidget> {
                 hasAddress ? 'Change' : 'Add',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12.sp,
+                  fontSize: ScreenScale.sp(12),
                   fontWeight: FontWeight.w600,
                 ),
                 minFontSize: 9,

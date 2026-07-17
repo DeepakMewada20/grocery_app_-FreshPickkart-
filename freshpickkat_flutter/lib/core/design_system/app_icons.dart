@@ -1,15 +1,15 @@
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class AppIcons {
   AppIcons._();
 
-  static double get tiny => 12.r;
-  static double get small => 16.r;
-  static double get medium => 20.r;
-  static double get large => 24.r;
-  static double get extraLarge => 28.r;
-  static double get button => 18.r;
-  static double get nav => 24.r;
-  static double get badge => 14.r;
-  static double get category => 32.r;
+  static double get tiny => ScreenScale.r(12);
+  static double get small => ScreenScale.r(16);
+  static double get medium => ScreenScale.r(20);
+  static double get large => ScreenScale.r(24);
+  static double get extraLarge => ScreenScale.r(28);
+  static double get button => ScreenScale.r(18);
+  static double get nav => ScreenScale.r(24);
+  static double get badge => ScreenScale.r(14);
+  static double get category => ScreenScale.r(32);
 }

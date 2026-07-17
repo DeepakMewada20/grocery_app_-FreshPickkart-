@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -12,6 +11,7 @@ import 'package:freshpickkat_flutter/utils/deferred_navigation.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -76,10 +76,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
           onRefresh: orderController.fetchOrders,
           child: ListView.separated(
             padding: AppResponsive.pagePadding(context).copyWith(
-              bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+              bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
             ),
             itemCount: orderController.orders.length,
-            separatorBuilder: (_, _) => SizedBox(height: 12.h),
+            separatorBuilder: (_, _) => SizedBox(height: ScreenScale.h(12)),
             itemBuilder: (context, index) {
               final order = orderController.orders[index];
               return AppResponsive.constrainContent(
@@ -93,12 +93,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                     );
                   },
-                  borderRadius: BorderRadius.circular(16.r),
+                  borderRadius: BorderRadius.circular(ScreenScale.r(16)),
                   child: Container(
-                    padding: EdgeInsets.all(16.w),
+                    padding: EdgeInsets.all(ScreenScale.w(16)),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16.r),
+                      borderRadius: BorderRadius.circular(ScreenScale.r(16)),
                       border: Border.all(color: cs.outlineVariant),
                     ),
                     child: Column(
@@ -112,35 +112,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 style: TextStyle(
                                   color: cs.onSurface,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14.sp,
+                                  fontSize: ScreenScale.sp(14),
                                 ),
                                 minFontSize: 10,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            SizedBox(width: 8.w),
+                            SizedBox(width: ScreenScale.w(8)),
                             AutoSizeText(
                               'INR ${order.finalAmount.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14.sp,
+                                fontSize: ScreenScale.sp(14),
                               ),
                               minFontSize: 10,
                               maxLines: 1,
                             ),
                           ],
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         Text(
                           'Placed on ${_formatDate(order.orderedAt)}',
                           style: AppText.caption(context),
                         ),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         Wrap(
-                          spacing: 8.w,
-                          runSpacing: 8.h,
+                          spacing: ScreenScale.w(8),
+                          runSpacing: ScreenScale.h(8),
                           children: [
                             _buildStatusChip(
                               'Order: ${order.status}',
@@ -178,14 +178,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
               MediaQuery.sizeOf(context).height -
               kToolbarHeight -
               MediaQuery.paddingOf(context).vertical -
-              48.h,
+              ScreenScale.h(48),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(24.w),
+                padding: EdgeInsets.all(ScreenScale.w(24)),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
@@ -193,24 +193,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 child: Icon(
                   Icons.shopping_bag_outlined,
                   color: AppTheme.primaryGreen,
-                  size: 64.r,
+                  size: ScreenScale.r(64),
                 ),
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: ScreenScale.h(24)),
               Text(
                 'No Orders Yet',
                 style: TextStyle(
-                  fontSize: 20.sp,
+                  fontSize: ScreenScale.sp(20),
                   fontWeight: FontWeight.bold,
                   color: cs.onSurface,
                 ),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: ScreenScale.h(12)),
               Text(
                 'Your order history will appear here\nonce you make a purchase.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15.sp,
+                  fontSize: ScreenScale.sp(15),
                   color: cs.onSurface.withValues(alpha: 0.6),
                 ),
               ),
@@ -223,17 +223,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(10), vertical: ScreenScale.h(6)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(20)),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: AutoSizeText(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 12.sp,
+          fontSize: ScreenScale.sp(12),
           fontWeight: FontWeight.w600,
         ),
         minFontSize: 9,

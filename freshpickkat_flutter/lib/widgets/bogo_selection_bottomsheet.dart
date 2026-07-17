@@ -9,8 +9,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class BogoSelectionBottomSheet extends StatefulWidget {
   final String triggerProductId;
@@ -130,7 +130,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                               size: AppIcons.small,
                               color: offerTheme.badge,
                             ),
-                            SizedBox(width: 6.w),
+                            SizedBox(width: ScreenScale.w(6)),
                             Text(
                               'BOGO Gift',
                               style: TextStyle(
@@ -157,7 +157,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   Text(
                     helperMessage,
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -165,7 +165,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                     ),
                   ),
                   if (eligibleVariants.isNotEmpty) ...[
-                    SizedBox(height: 16.h),
+                    SizedBox(height: ScreenScale.h(16)),
                     Container(
                       width: double.infinity,
                       padding: AppSpacing.all(14),
@@ -186,7 +186,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          SizedBox(height: 4.h),
+                          SizedBox(height: ScreenScale.h(4)),
                           Text(
                             isSelectionEnabled
                                 ? 'This offer works on these packs. You can switch here if needed.'
@@ -195,10 +195,10 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                               color: cs.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
-                          SizedBox(height: 12.h),
+                          SizedBox(height: ScreenScale.h(12)),
                           Wrap(
-                            spacing: 8.w,
-                            runSpacing: 8.h,
+                            spacing: ScreenScale.w(8),
+                            runSpacing: ScreenScale.h(8),
                             children: eligibleVariants
                                 .map((variant) {
                                   final isCurrent =
@@ -228,18 +228,18 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                 .toList(growable: false),
                           ),
                           if (_isSwitchingVariant) ...[
-                            SizedBox(height: 10.h),
+                            SizedBox(height: ScreenScale.h(10)),
                             Row(
                               children: [
                                 SizedBox(
-                                  width: 16.r,
-                                  height: 16.r,
+                                  width: ScreenScale.r(16),
+                                  height: ScreenScale.r(16),
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     color: offerTheme.badge,
                                   ),
                                 ),
-                                SizedBox(width: 8.w),
+                                SizedBox(width: ScreenScale.w(8)),
                                 Text(
                                   'Updating cart pack...',
                                   style: theme.textTheme.bodySmall?.copyWith(
@@ -253,7 +253,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                       ),
                     ),
                   ],
-                  SizedBox(height: 18.h),
+                  SizedBox(height: ScreenScale.h(18)),
                   if (eligibleProducts.isEmpty)
                     Padding(
                         padding: AppSpacing.symmetric(vertical: 12),
@@ -269,7 +269,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
                       itemCount: eligibleProducts.length,
-                      separatorBuilder: (_, _) => SizedBox(height: 12.h),
+                      separatorBuilder: (_, _) => SizedBox(height: ScreenScale.h(12)),
                       itemBuilder: (context, index) {
                         final product = eligibleProducts[index];
                         final isSelected =
@@ -300,8 +300,8 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(AppRadius.large),
                                 child: Container(
-                                  width: 64.r,
-                                  height: 64.r,
+                                  width: ScreenScale.r(64),
+                                  height: ScreenScale.r(64),
                                   color: cs.surface,
                                   child: product.imageUrl.isEmpty
                                       ? Icon(
@@ -326,7 +326,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                         ),
                                 ),
                               ),
-                              SizedBox(width: 12.w),
+                              SizedBox(width: ScreenScale.w(12)),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +341,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                             fontWeight: FontWeight.w700,
                                           ),
                                     ),
-                                    SizedBox(height: 4.h),
+                                    SizedBox(height: ScreenScale.h(4)),
                                     Text(
                                       displayQuantity,
                                       maxLines: 1,
@@ -353,7 +353,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                             ),
                                           ),
                                     ),
-                                    SizedBox(height: 6.h),
+                                    SizedBox(height: ScreenScale.h(6)),
                                     Text(
                                       isSelectionEnabled
                                           ? 'FREE with this offer'
@@ -367,7 +367,7 @@ class _BogoSelectionBottomSheetState extends State<BogoSelectionBottomSheet> {
                                   ],
                                 ),
                               ),
-                              SizedBox(width: 8.w),
+                              SizedBox(width: ScreenScale.w(8)),
                               FilledButton(
                                 onPressed: !isSelectionEnabled
                                     ? null

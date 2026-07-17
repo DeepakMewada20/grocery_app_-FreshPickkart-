@@ -24,7 +24,6 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
@@ -33,6 +32,7 @@ import 'package:freshpickkat_flutter/basket/widgets/reward_banner_overlay.dart';
 import 'package:freshpickkat_flutter/basket/widgets/savings_card.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class BasketScreen extends StatefulWidget {
   const BasketScreen({super.key});
@@ -111,7 +111,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: _onRefresh,
-                        displacement: 40.h,
+                        displacement: ScreenScale.h(40),
                         child: SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           child: Column(
@@ -124,7 +124,7 @@ class _BasketScreenState extends State<BasketScreen> {
                                   return const SizedBox.shrink();
                                 }
                                 return Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 8.h, 0, 4.h),
+                                  padding: EdgeInsets.fromLTRB(0, ScreenScale.h(8), 0, ScreenScale.h(4)),
                                   child: NetworkBannerWidget(
                                     height: AppResponsive.bannerHeight(
                                       context,
@@ -236,8 +236,8 @@ class _BasketScreenState extends State<BasketScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.large),
                       child: Container(
-                        width: 76.r,
-                        height: 76.r,
+                        width: ScreenScale.r(76),
+                        height: ScreenScale.r(76),
                         color: cs.surface,
                         child: SafeNetworkImage(
                           url: item.product.imageUrl,
@@ -247,7 +247,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     ),
                   ],
                 ),
-                SizedBox(width: 14.w),
+                SizedBox(width: ScreenScale.w(14)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,35 +256,35 @@ class _BasketScreenState extends State<BasketScreen> {
                         item.product.productName,
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 16.sp,
+                          fontSize: ScreenScale.sp(16),
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
                         minFontSize: 12,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 4.h),
+                      SizedBox(height: ScreenScale.h(4)),
                       Text(
                         productFullQuantityLabel(item.product),
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.5),
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: ScreenScale.h(8)),
                       LayoutBuilder(
                         builder: (context, constraints) {
                           final price = Wrap(
-                            spacing: 8.w,
+                            spacing: ScreenScale.w(8),
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               AutoSizeText(
                                 '₹${item.product.price.formatPrice}',
                                 style: TextStyle(
                                   color: cs.onSurface,
-                                  fontSize: 18.sp,
+                                  fontSize: ScreenScale.sp(18),
                                   fontWeight: FontWeight.bold,
                                 ),
                                 maxLines: 1,
@@ -295,7 +295,7 @@ class _BasketScreenState extends State<BasketScreen> {
                                   '₹${item.product.realPrice.formatPrice}',
                                   style: TextStyle(
                                     color: cs.onSurface.withValues(alpha: 0.4),
-                                    fontSize: 14.sp,
+                                    fontSize: ScreenScale.sp(14),
                                     decoration: TextDecoration.lineThrough,
                                   ),
                                   maxLines: 1,
@@ -308,7 +308,7 @@ class _BasketScreenState extends State<BasketScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 price,
-                                SizedBox(height: 8.h),
+                                SizedBox(height: ScreenScale.h(8)),
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: _buildRegularQuantitySelector(
@@ -323,7 +323,7 @@ class _BasketScreenState extends State<BasketScreen> {
                           return Row(
                             children: [
                               Expanded(child: price),
-                              SizedBox(width: 8.w),
+                              SizedBox(width: ScreenScale.w(8)),
                               _buildRegularQuantitySelector(
                                 cartController,
                                 item,
@@ -349,8 +349,8 @@ class _BasketScreenState extends State<BasketScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                       child: Container(
-                        width: 40.r,
-                        height: 40.r,
+                        width: ScreenScale.r(40),
+                        height: ScreenScale.r(40),
                         color: cs.surface,
                         child: SafeNetworkImage(
                           url: freeProduct.imageUrl,
@@ -358,7 +358,7 @@ class _BasketScreenState extends State<BasketScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: ScreenScale.w(12)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,29 +367,29 @@ class _BasketScreenState extends State<BasketScreen> {
                             children: [
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 5.w,
-                                  vertical: 2.h,
+                                  horizontal: ScreenScale.w(5),
+                                  vertical: ScreenScale.h(2),
                                 ),
                                 decoration: BoxDecoration(
                                   color: cs.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(3.r),
+                                  borderRadius: BorderRadius.circular(ScreenScale.r(3)),
                                 ),
                                 child: Text(
                                   'FREE',
                                   style: TextStyle(
                                     color: cs.onSurface,
-                                    fontSize: 9.sp,
+                                    fontSize: ScreenScale.sp(9),
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 6.w),
+                              SizedBox(width: ScreenScale.w(6)),
                               Expanded(
                                 child: AutoSizeText(
                                   freeProduct.productName,
                                   style: TextStyle(
                                     color: cs.onSurface,
-                                    fontSize: 13.sp,
+                                    fontSize: ScreenScale.sp(13),
                                     fontWeight: FontWeight.bold,
                                   ),
                                   maxLines: 2,
@@ -399,11 +399,11 @@ class _BasketScreenState extends State<BasketScreen> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 3.h),
+                          SizedBox(height: ScreenScale.h(3)),
                           Text(
                             '${freeProductQuantity ?? freeProduct.quantity} x ${item.quantity}',
                             style: TextStyle(
-                              fontSize: 11.sp,
+                              fontSize: ScreenScale.sp(11),
                               color: cs.onSurface.withValues(alpha: 0.7),
                             ),
                             maxLines: 1,
@@ -447,7 +447,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: cs.onSurface,
                       side: BorderSide(color: cs.outlineVariant),
-                      minimumSize: Size(double.infinity, 40.h),
+                      minimumSize: Size(double.infinity, ScreenScale.h(40)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.medium),
                       ),
@@ -475,7 +475,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   'BOGO',
                   style: TextStyle(
                     color: offerTheme.onBadge,
-                    fontSize: 10.sp,
+                    fontSize: ScreenScale.sp(10),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -483,7 +483,7 @@ class _BasketScreenState extends State<BasketScreen> {
             ),
           if (item.product.isFreeDelivery)
             Positioned(
-              top: bogoOffer != null ? 26.h : 0,
+              top: bogoOffer != null ? ScreenScale.h(26) : 0,
               left: 0,
               child: Container(
                 padding: AppSpacing.only(left: 10, top: 4, right: 6, bottom: 4),
@@ -498,7 +498,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   'FREE DELIVERY',
                   style: TextStyle(
                     color: offerTheme.onBadge,
-                    fontSize: 10.sp,
+                    fontSize: ScreenScale.sp(10),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -706,7 +706,7 @@ class _BasketScreenState extends State<BasketScreen> {
               style: TextStyle(
                 color: cs.onPrimary,
                 fontWeight: FontWeight.bold,
-                fontSize: 15.sp,
+                fontSize: ScreenScale.sp(15),
               ),
             ),
           ),
@@ -754,7 +754,7 @@ class _BasketScreenState extends State<BasketScreen> {
               style: TextStyle(
                 color: cs.onPrimary,
                 fontWeight: FontWeight.bold,
-                fontSize: 15.sp,
+                fontSize: ScreenScale.sp(15),
               ),
             ),
           ),
@@ -787,11 +787,11 @@ class _BasketScreenState extends State<BasketScreen> {
             'Bill Details',
             style: TextStyle(
               color: cs.onSurface,
-              fontSize: 18.sp,
+              fontSize: ScreenScale.sp(18),
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: ScreenScale.h(20)),
           Obx(() {
             final showEstimatedDelivery =
                 cartController.isPricingStale.value ||
@@ -804,7 +804,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   cs: cs,
                 ),
                 if (cartController.productDiscountTotal > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'Product Discount',
                     '₹${cartController.productDiscountTotal.formatPrice}',
@@ -813,7 +813,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ],
                 if (cartController.comboDiscountTotal > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'Combo Savings',
                     '₹${cartController.comboDiscountTotal.formatPrice}',
@@ -822,7 +822,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ],
                 if (cartController.bogoDiscountTotal > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'BOGO Savings',
                     '₹${cartController.bogoDiscountTotal.formatPrice}',
@@ -831,7 +831,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ],
                 if (cartController.categoryOfferDiscountTotal > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'Category Offer Savings',
                     '₹${cartController.categoryOfferDiscountTotal.formatPrice}',
@@ -839,14 +839,14 @@ class _BasketScreenState extends State<BasketScreen> {
                     cs: cs,
                   ),
                 ],
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 _buildBillRow(
                   'Items Total (Combo Applied)',
                   '₹${cartController.subtotal.formatPrice}',
                   cs: cs,
                 ),
                 if (cartController.couponDiscount > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'Coupon Discount',
                     '₹${cartController.couponDiscount.formatPrice}',
@@ -855,7 +855,7 @@ class _BasketScreenState extends State<BasketScreen> {
                   ),
                 ],
                 if ((cartController.cartPricing.value?.freshPointsDiscount ?? 0) > 0) ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   _buildBillRow(
                     'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
                     '₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
@@ -863,7 +863,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     cs: cs,
                   ),
                 ],
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 _buildBillRow(
                   showEstimatedDelivery
                       ? 'Delivery Fee (Est.)'
@@ -917,7 +917,7 @@ class _BasketScreenState extends State<BasketScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: ScreenScale.w(12)),
         Flexible(
           child: AutoSizeText(
             value,
@@ -967,14 +967,14 @@ class _BasketScreenState extends State<BasketScreen> {
             child: Row(
               children: [
                 Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 20),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Expanded(
                   child: Obx(() => Text(
                     'FreshPoints Balance: ${cart.freshPointsToRedeem.value > 0 ? '${cart.freshPointsToRedeem.value} pts used' : '$balance pts'}',
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w600,
-                      fontSize: 15.sp,
+                      fontSize: ScreenScale.sp(15),
                     ),
                   )),
                 ),
@@ -992,15 +992,15 @@ class _BasketScreenState extends State<BasketScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 Text(
                   'Redeem up to $maxRedeem pts${_redemptionPercentageLimit > 0 ? ' (max ${_redemptionPercentageLimit.toInt()}% of payable)' : ''}',
-                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: ScreenScale.sp(13)),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: ScreenScale.h(8)),
                 Row(
                   children: [
-                    Text('0', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+                    Text('0', style: TextStyle(color: cs.onSurfaceVariant, fontSize: ScreenScale.sp(13))),
                     Expanded(
                       child: Slider(
                         value: redeemed.clamp(0, maxRedeem).toDouble(),
@@ -1013,7 +1013,7 @@ class _BasketScreenState extends State<BasketScreen> {
                         },
                       ),
                     ),
-                    Text('$maxRedeem', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.sp)),
+                    Text('$maxRedeem', style: TextStyle(color: cs.onSurfaceVariant, fontSize: ScreenScale.sp(13))),
                   ],
                 ),
                 if (redeemed > 0)
@@ -1021,7 +1021,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     padding: AppSpacing.only(top: 4),
                     child: Text(
                       'Saving ₹${redeemed.toStringAsFixed(0)}',
-                      style: TextStyle(color: Colors.green, fontSize: 12.sp),
+                      style: TextStyle(color: Colors.green, fontSize: ScreenScale.sp(12)),
                     ),
                   ),
               ],
@@ -1045,8 +1045,8 @@ class _BasketScreenState extends State<BasketScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10.r,
-            offset: Offset(0, -5.h),
+            blurRadius: ScreenScale.r(10),
+            offset: Offset(0, ScreenScale.h(-5)),
           ),
         ],
       ),
@@ -1057,7 +1057,7 @@ class _BasketScreenState extends State<BasketScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primaryGreen,
           foregroundColor: cs.onPrimary,
-          minimumSize: Size(double.infinity, 56.h),
+          minimumSize: Size(double.infinity, ScreenScale.h(56)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.extraLarge),
           ),
@@ -1077,7 +1077,7 @@ class _BasketScreenState extends State<BasketScreen> {
                       maxLines: 1,
                       minFontSize: 12,
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: ScreenScale.sp(18),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1087,7 +1087,7 @@ class _BasketScreenState extends State<BasketScreen> {
                     maxLines: 1,
                     minFontSize: 8,
                     style: TextStyle(
-                      fontSize: 10.sp,
+                      fontSize: ScreenScale.sp(10),
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,
                     ),
@@ -1095,7 +1095,7 @@ class _BasketScreenState extends State<BasketScreen> {
                 ],
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: ScreenScale.w(12)),
             Row(
               children: [
                 AutoSizeText(
@@ -1103,11 +1103,11 @@ class _BasketScreenState extends State<BasketScreen> {
                   maxLines: 1,
                   minFontSize: 12,
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: ScreenScale.sp(16),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Icon(Icons.arrow_forward_ios, size: AppIcons.small),
               ],
             ),

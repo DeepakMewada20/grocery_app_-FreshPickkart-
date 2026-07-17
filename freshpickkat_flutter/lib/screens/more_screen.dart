@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -31,6 +30,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
@@ -70,7 +70,7 @@ class _MoreScreenState extends State<MoreScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+            bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
           ),
           child: AppResponsive.constrainContent(
             context: context,
@@ -79,12 +79,12 @@ class _MoreScreenState extends State<MoreScreen> {
               children: [
                 _buildProfileHeader(userController, cs),
                 _buildQuickActions(cs),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _buildSectionHeader('Your Delivery Address', cs),
                 _buildAddressSection(userController, cs),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _buildAppearanceSection(cs),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _buildMenuItem(
                   icon: Icons.notifications_none_outlined,
                   title: 'Notifications',
@@ -200,9 +200,9 @@ class _MoreScreenState extends State<MoreScreen> {
                   },
                   cs: cs,
                 ),
-                SizedBox(height: 40.h),
+                SizedBox(height: ScreenScale.h(40)),
                 _buildFooter(cs),
-                SizedBox(height: 40.h),
+                SizedBox(height: ScreenScale.h(40)),
               ],
             ),
           ),
@@ -232,17 +232,17 @@ class _MoreScreenState extends State<MoreScreen> {
           Obx(() {
             final imageUrl = userController.profileImageUrl.value;
             return CircleAvatar(
-              radius: 35.r,
+              radius: ScreenScale.r(35),
               backgroundColor: cs.surfaceContainerHighest,
               backgroundImage: imageUrl.isNotEmpty
                   ? NetworkImage(imageUrl)
                   : null,
               child: imageUrl.isEmpty
-                  ? Icon(Icons.person, size: 40.r, color: cs.onSurface)
+                  ? Icon(Icons.person, size: ScreenScale.r(40), color: cs.onSurface)
                   : null,
             );
           }),
-          SizedBox(width: 16.w),
+          SizedBox(width: ScreenScale.w(16)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +254,7 @@ class _MoreScreenState extends State<MoreScreen> {
                         : userController.userName.value,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 22.sp,
+                      fontSize: ScreenScale.sp(22),
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -266,7 +266,7 @@ class _MoreScreenState extends State<MoreScreen> {
                   'email address',
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.6),
-                    fontSize: 14.sp,
+                    fontSize: ScreenScale.sp(14),
                   ),
                 ),
                 Obx(
@@ -274,7 +274,7 @@ class _MoreScreenState extends State<MoreScreen> {
                     userController.userPhone.value,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.6),
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                     ),
                     maxLines: 1,
                     minFontSize: 11,
@@ -320,7 +320,7 @@ class _MoreScreenState extends State<MoreScreen> {
               cs: cs,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: _buildActionCard(
               icon: Icons.local_offer_outlined,
@@ -350,7 +350,7 @@ class _MoreScreenState extends State<MoreScreen> {
       child: Container(
         height: AppResponsive.isWideWeb(context)
             ? 112.0
-            : 100.h.clamp(86.0, 116.0),
+            : ScreenScale.h(100).clamp(86.0, 116.0),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.extraLarge),
@@ -366,13 +366,13 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
               child: Icon(icon, color: cs.onSurface, size: AppIcons.extraLarge),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             AutoSizeText(
               label,
               style: TextStyle(
                 color: cs.onSurface,
                 fontWeight: FontWeight.w500,
-                fontSize: 14.sp,
+                fontSize: ScreenScale.sp(14),
               ),
               maxLines: 1,
               minFontSize: 10,
@@ -390,7 +390,7 @@ class _MoreScreenState extends State<MoreScreen> {
         title,
         style: TextStyle(
           color: cs.onSurface.withValues(alpha: 0.6),
-          fontSize: 16.sp,
+          fontSize: ScreenScale.sp(16),
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -418,7 +418,7 @@ class _MoreScreenState extends State<MoreScreen> {
                 ),
                 child: Icon(Icons.location_on, color: cs.onSurface),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: ScreenScale.w(12)),
               Expanded(
                 child: Obx(() {
                   final addr = userController.shippingAddress.value;
@@ -427,7 +427,7 @@ class _MoreScreenState extends State<MoreScreen> {
                       'No address set',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.4),
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                       ),
                     );
                   }
@@ -445,7 +445,7 @@ class _MoreScreenState extends State<MoreScreen> {
                         '${addr.city}, ${addr.state} ${addr.zipCode}',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.5),
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                         ),
                       ),
                     ],
@@ -472,7 +472,7 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
         ],
       ),
     );
@@ -497,20 +497,20 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
             child: Icon(Icons.brightness_4, color: cs.onSurface),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Text(
               'Appearance',
               style: TextStyle(
                 color: cs.onSurface,
                 fontWeight: FontWeight.bold,
-                fontSize: 16.sp,
+                fontSize: ScreenScale.sp(16),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
           Obx(() {
             String label;
             switch (themeController.themeMode) {
@@ -531,7 +531,7 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
               child: AutoSizeText(
                 label,
-                style: TextStyle(color: cs.onSurface, fontSize: 10.sp),
+                style: TextStyle(color: cs.onSurface, fontSize: ScreenScale.sp(10)),
                 minFontSize: 8,
                 maxLines: 1,
               ),
@@ -578,15 +578,15 @@ class _MoreScreenState extends State<MoreScreen> {
                 color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
-              child: Icon(icon, color: cs.onSurface, size: 22.r),
+              child: Icon(icon, color: cs.onSurface, size: ScreenScale.r(22)),
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: ScreenScale.w(16)),
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
                   color: cs.onSurface,
-                  fontSize: 16.sp,
+                  fontSize: ScreenScale.sp(16),
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
@@ -607,12 +607,12 @@ class _MoreScreenState extends State<MoreScreen> {
     return Center(
       child: Column(
         children: [
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             'App Version 1.0.0+3',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.2),
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
             ),
           ),
         ],
@@ -666,8 +666,8 @@ class _LogoutDialogState extends State<_LogoutDialog> {
                 },
           child: _isLoggingOut
               ? SizedBox(
-                  width: 20.h,
-                  height: 20.h,
+                  width: ScreenScale.h(20),
+                  height: ScreenScale.h(20),
                   child: const CircularProgressIndicator(
                     strokeWidth: 2,
                     color: Colors.redAccent,

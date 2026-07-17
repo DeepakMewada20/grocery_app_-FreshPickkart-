@@ -7,6 +7,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'dart:math' as math;
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ModernSplashScreen extends StatefulWidget {
   const ModernSplashScreen({super.key});
@@ -177,7 +178,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
     final size = MediaQuery.of(context).size;
     final isLandscape = AppResponsive.isLandscape(context);
     final logoSize = (isLandscape ? 92.0 : 140.0).r;
-    final skylineBottom = isLandscape ? 48.h : 80.h;
+    final skylineBottom = isLandscape ? ScreenScale.h(48) : ScreenScale.h(80);
 
     return Scaffold(
       body: Container(
@@ -253,7 +254,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                     ),
                   ),
 
-                  SizedBox(height: isLandscape ? 16.h : 30.h),
+                  SizedBox(height: isLandscape ? ScreenScale.h(16) : ScreenScale.h(30)),
 
                   // Simple text animation
                   SlideTransition(
@@ -275,12 +276,12 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                             minFontSize: 20,
                             maxLines: 1,
                           ),
-                          SizedBox(height: 10.h),
+                          SizedBox(height: ScreenScale.h(10)),
                           // Tagline
                           Text(
                             'Fresh Groceries, Delivered Fast',
                             style: TextStyle(
-                              fontSize: 15.sp,
+                              fontSize: ScreenScale.sp(15),
                               fontWeight: FontWeight.w400,
                               color: Colors.white.withValues(alpha: 0.85),
                               letterSpacing: 0.5,
@@ -302,8 +303,8 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(
-                            width: 16.r,
-                            height: 16.r,
+                            width: ScreenScale.r(16),
+                            height: ScreenScale.r(16),
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -311,12 +312,12 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                               ),
                             ),
                           ),
-                          SizedBox(width: 12.w),
+                          SizedBox(width: ScreenScale.w(12)),
                           Flexible(
                             child: Text(
                               'Delivering freshness...',
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: ScreenScale.sp(14),
                                 fontWeight: FontWeight.w500,
                                 color: Colors.white.withValues(alpha: 0.8),
                               ),
@@ -451,7 +452,7 @@ class _ModernSplashScreenState extends State<ModernSplashScreen>
                 left:
                     size.width * 0.5 +
                     (_vehiclePosition.value * size.width * 0.45) -
-                    28.r,
+                    ScreenScale.r(28),
                 child: Transform.translate(
                   offset: Offset(0, _bounceAnimation.value),
                   child: _buildDeliveryScooter(),

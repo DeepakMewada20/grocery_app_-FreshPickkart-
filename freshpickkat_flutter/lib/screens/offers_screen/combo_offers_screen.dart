@@ -8,8 +8,8 @@ import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 /// Screen shown when user taps a "combo" type banner.
 class ComboOffersScreen extends StatefulWidget {
@@ -100,7 +100,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
               _comboController.activeComboOffers.isEmpty) {
             return ProductGridShimmer(
               itemCount: 4,
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12), vertical: ScreenScale.h(8)),
             );
           }
 
@@ -112,32 +112,32 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(28.w),
+                    padding: EdgeInsets.all(ScreenScale.w(28)),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.shopping_basket_outlined,
-                      size: 56.r,
+                      size: ScreenScale.r(56),
                       color: cs.onSurface.withValues(alpha: 0.3),
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: ScreenScale.h(20)),
                   Text(
                     'No combo deals right now',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 20.sp,
+                      fontSize: ScreenScale.sp(20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
                   Text(
                     'Check back soon for exciting bundle deals.',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                     ),
                   ),
                 ],
@@ -146,18 +146,18 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
           }
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12), vertical: ScreenScale.h(8)),
             child: Column(
               children: [
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 10.h,
+                    horizontal: ScreenScale.w(12),
+                    vertical: ScreenScale.h(10),
                   ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(14.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(14)),
                   ),
                   child: Obx(() {
                     final count = _comboController.activeComboOffers.length;
@@ -165,10 +165,10 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                       children: [
                         Icon(
                           Icons.shopping_basket_outlined,
-                          size: 18.r,
+                          size: ScreenScale.r(18),
                           color: AppTheme.primaryGreen,
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: ScreenScale.w(8)),
                         Expanded(
                           child: Text(
                             '$count combo${count == 1 ? '' : 's'} available',
@@ -182,7 +182,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                     );
                   }),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 Expanded(
                   child: AppResponsive.constrainContent(
                     context: context,
@@ -203,7 +203,7 @@ class _ComboOffersScreenState extends State<ComboOffersScreen> {
                                 ? null
                                 : combo.comboId;
                           }),
-                          margin: EdgeInsets.only(bottom: 16.h),
+                          margin: EdgeInsets.only(bottom: ScreenScale.h(16)),
                         );
                       },
                     ),

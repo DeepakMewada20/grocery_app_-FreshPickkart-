@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
@@ -17,6 +16,7 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CouponsScreen extends StatefulWidget {
   /// If set, this coupon will be visually highlighted on screen open.
@@ -111,7 +111,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                   '${_coupons.length}',
                   style: TextStyle(
                     color: AppTheme.primaryGreen,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -138,10 +138,10 @@ class _CouponsScreenState extends State<CouponsScreen> {
                         children: [
                           Icon(
                             Icons.error_outline,
-                            size: 64.r,
+                            size: ScreenScale.r(64),
                             color: cs.onSurface.withValues(alpha: 0.3),
                           ),
-                          SizedBox(height: 16.h),
+                          SizedBox(height: ScreenScale.h(16)),
                           Text(
                             _error!,
                             style: TextStyle(
@@ -175,25 +175,25 @@ class _CouponsScreenState extends State<CouponsScreen> {
                             ),
                             child: Icon(
                               Icons.local_offer_outlined,
-                              size: 56.r,
+                              size: ScreenScale.r(56),
                               color: cs.onSurface.withValues(alpha: 0.25),
                             ),
                           ),
-                          SizedBox(height: 24.h),
+                          SizedBox(height: ScreenScale.h(24)),
                           Text(
                             'No Coupons Available',
                             style: GoogleFonts.poppins(
                               color: cs.onSurface,
-                              fontSize: 20.sp,
+                              fontSize: ScreenScale.sp(20),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           Text(
                             'Check back soon for exciting offers!',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.5),
-                              fontSize: 14.sp,
+                              fontSize: ScreenScale.sp(14),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -206,7 +206,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
             : CustomScrollView(
                 physics: const ClampingScrollPhysics(),
                 slivers: [
-                  SliverToBoxAdapter(child: SizedBox(height: 16.h)),
+                  SliverToBoxAdapter(child: SizedBox(height: ScreenScale.h(16))),
                   SliverPadding(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppResponsive.pageHorizontalPadding(context),
@@ -230,7 +230,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                   ),
                   SliverToBoxAdapter(
                     child: SizedBox(
-                      height: 32.h + MediaQuery.paddingOf(context).bottom,
+                      height: ScreenScale.h(32) + MediaQuery.paddingOf(context).bottom,
                     ),
                   ),
                 ],
@@ -280,7 +280,7 @@ class _CouponListCard extends StatelessWidget {
                   BoxShadow(
                     color: _accentColor.withValues(alpha: 0.2),
                     blurRadius: 12,
-                    offset: Offset(0, 4.h),
+                    offset: Offset(0, ScreenScale.h(4)),
                   ),
                 ]
               : [],
@@ -295,8 +295,8 @@ class _CouponListCard extends StatelessWidget {
                 children: [
                   // Icon
                   Container(
-                    width: 50.r,
-                    height: 50.r,
+                    width: ScreenScale.r(50),
+                    height: ScreenScale.r(50),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -321,7 +321,7 @@ class _CouponListCard extends StatelessWidget {
                       },
                     ),
                   ),
-                  SizedBox(width: 14.w),
+                  SizedBox(width: ScreenScale.w(14)),
                   // Code + description
                   Expanded(
                     child: Column(
@@ -331,7 +331,7 @@ class _CouponListCard extends StatelessWidget {
                           coupon.code,
                           style: GoogleFonts.poppins(
                             color: cs.onSurface,
-                            fontSize: 17.sp,
+                            fontSize: ScreenScale.sp(17),
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
                           ),
@@ -339,12 +339,12 @@ class _CouponListCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 3.h),
+                        SizedBox(height: ScreenScale.h(3)),
                         Text(
                           coupon.description,
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.55),
-                            fontSize: 12.5.sp,
+                            fontSize: ScreenScale.sp(12.5),
                             height: 1.4,
                           ),
                           maxLines: 2,
@@ -353,7 +353,7 @@ class _CouponListCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: ScreenScale.w(8)),
                   // Category badge
                   Container(
                     padding: AppSpacing.symmetric(horizontal: 10, vertical: 4),
@@ -365,7 +365,7 @@ class _CouponListCard extends StatelessWidget {
                       coupon.isDeliveryDiscount ? 'Delivery' : 'Price',
                       style: TextStyle(
                         color: _accentColor,
-                        fontSize: 10.sp,
+                        fontSize: ScreenScale.sp(10),
                         fontWeight: FontWeight.bold,
                       ),
                       minFontSize: 8,
@@ -382,8 +382,8 @@ class _CouponListCard extends StatelessWidget {
                 Transform.translate(
                   offset: const Offset(-1, 0),
                   child: Container(
-                    width: 20.r,
-                    height: 20.r,
+                    width: ScreenScale.r(20),
+                    height: ScreenScale.r(20),
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       shape: BoxShape.circle,
@@ -403,7 +403,7 @@ class _CouponListCard extends StatelessWidget {
                         children: List.generate(
                           count,
                           (_) => Container(
-                            width: 4.w,
+                            width: ScreenScale.w(4),
                             height: 1.5,
                             decoration: BoxDecoration(
                               color: cs.outlineVariant,
@@ -418,8 +418,8 @@ class _CouponListCard extends StatelessWidget {
                 Transform.translate(
                   offset: const Offset(1, 0),
                   child: Container(
-                    width: 20.r,
-                    height: 20.r,
+                    width: ScreenScale.r(20),
+                    height: ScreenScale.r(20),
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       shape: BoxShape.circle,
@@ -439,8 +439,8 @@ class _CouponListCard extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final details = Wrap(
-                    spacing: 14.w,
-                    runSpacing: 8.h,
+                    spacing: ScreenScale.w(14),
+                    runSpacing: ScreenScale.h(8),
                     children: [
                       _detail(
                         icon: Icons.shopping_bag_outlined,
@@ -477,7 +477,7 @@ class _CouponListCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         details,
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         copyButton,
                       ],
                     );
@@ -485,7 +485,7 @@ class _CouponListCard extends StatelessWidget {
                   return Row(
                     children: [
                       Expanded(child: details),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: ScreenScale.w(12)),
                       copyButton,
                     ],
                   );
@@ -508,7 +508,7 @@ class _CouponListCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: AppIcons.tiny, color: cs.onSurface.withValues(alpha: 0.4)),
-        SizedBox(width: 4.w),
+        SizedBox(width: ScreenScale.w(4)),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -516,7 +516,7 @@ class _CouponListCard extends StatelessWidget {
               label,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.4),
-                fontSize: 9.sp,
+                fontSize: ScreenScale.sp(9),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -524,7 +524,7 @@ class _CouponListCard extends StatelessWidget {
               value,
               style: GoogleFonts.poppins(
                 color: cs.onSurface,
-                fontSize: 11.5.sp,
+                fontSize: ScreenScale.sp(11.5),
                 fontWeight: FontWeight.bold,
               ),
               minFontSize: 9,
@@ -575,15 +575,15 @@ class _CopyCouponButton extends StatelessWidget {
                 Icon(
                   Icons.copy_rounded,
                   color: cs.onPrimary,
-                  size: 15.r,
+                  size: ScreenScale.r(15),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: ScreenScale.w(6)),
                 AutoSizeText(
                   'Copy Code',
                   style: TextStyle(
                     color: cs.onPrimary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                   ),
                   minFontSize: 10,
                   maxLines: 1,

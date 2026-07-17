@@ -3,7 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ViewAllCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -28,8 +28,8 @@ class ViewAllCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8.r,
-              offset: Offset(0, 2.h),
+            blurRadius: ScreenScale.r(8),
+              offset: Offset(0, ScreenScale.h(2)),
             ),
           ],
         ),
@@ -43,12 +43,12 @@ class ViewAllCard extends StatelessWidget {
                 minFontSize: 10,
                 style: TextStyle(
                   color: AppTheme.primaryGreen,
-                  fontSize: 14.sp,
+                  fontSize: ScreenScale.sp(14),
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: ScreenScale.h(8)),
               Icon(
                 Icons.arrow_forward,
                 color: AppTheme.primaryGreen,

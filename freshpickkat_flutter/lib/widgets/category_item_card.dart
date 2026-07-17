@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CategoryItemCard extends StatelessWidget {
   final String itemName;
@@ -29,12 +28,11 @@ class CategoryItemCard extends StatelessWidget {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.large),
         ),
-        child: Column(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Image Container
-            AspectRatio(
-              aspectRatio: 1,
+            // Image Container (flexible — fills remaining height after text)
+            Expanded(
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -55,25 +53,22 @@ class CategoryItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Item Name
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: AppSpacing.only(top: 4),
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: AutoSizeText(
-                    itemName,
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    minFontSize: 9,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
-                    ),
+            // Item Name (fixed height — never clipped)
+            Container(
+              width: double.infinity,
+              height: ScreenScale.h(36),
+              padding: AppSpacing.only(top: 4),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Text(
+                  itemName,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: ScreenScale.sp(11),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -89,7 +84,7 @@ class CategoryItemCard extends StatelessWidget {
       return Center(
         child: Icon(
           Icons.category,
-          size: 36.r,
+          size: ScreenScale.r(36),
           color: Colors.grey[400],
         ),
       );
@@ -102,7 +97,7 @@ class CategoryItemCard extends StatelessWidget {
         errorBuilder: (context, error, stackTrace) => Center(
           child: Icon(
             Icons.broken_image,
-            size: 36.r,
+            size: ScreenScale.r(36),
             color: Colors.grey[400],
           ),
         ),
@@ -114,7 +109,7 @@ class CategoryItemCard extends StatelessWidget {
       errorBuilder: (context, error, stackTrace) => Center(
         child: Icon(
           Icons.broken_image,
-          size: 36.r,
+          size: ScreenScale.r(36),
           color: Colors.grey[400],
         ),
       ),

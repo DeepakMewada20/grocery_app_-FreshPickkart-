@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
@@ -23,6 +22,7 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 import 'package:freshpickkat_flutter/tracking/screens/order_tracking_map_screen.dart'
     deferred as order_tracking_map_screen;
 
@@ -192,7 +192,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: AppResponsive.pagePadding(context).copyWith(
-          bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+          bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
         ),
         child: AppResponsive.constrainContent(
           context: context,
@@ -201,45 +201,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(order, cs),
-              SizedBox(height: 20.h),
+              SizedBox(height: ScreenScale.h(20)),
               _buildStatusTimeline(order, cs),
               if (order.status == 'out_for_delivery')
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildTrackingCard(order, cs),
                 ),
               if (order.status == 'delivery_otp_pending')
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildDeliveryOtpCard(order, cs),
                 ),
               if (order.status == 'delivery_photo_pending')
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildPhotoPendingCard(order, cs),
                 ),
               if (_showActionsCard(order))
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildActionsCard(order, cs),
                 ),
               if (_refund != null)
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildRefundInfoCard(order, cs),
                 ),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               _buildComplaintCta(order, cs),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               _buildAddress(order, cs),
               if (order.status == 'delivered')
                 Padding(
-                  padding: EdgeInsets.only(top: 16.h),
+                  padding: EdgeInsets.only(top: ScreenScale.h(16)),
                   child: _buildDeliveryProof(order, cs),
                 ),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               _buildItems(order, cs),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               _buildTotals(order, cs),
             ],
           ),
@@ -254,10 +254,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (currentIndex == -1) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -267,9 +267,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Order Progress',
             style: AppText.sectionTitle(context),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           SizedBox(
-            height: AppResponsive.isSmallPhone(context) ? 74.h : 86.h,
+            height: AppResponsive.isSmallPhone(context) ? ScreenScale.h(74) : ScreenScale.h(86),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(
@@ -284,8 +284,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       children: [
                         // Status Point
                         Container(
-                          width: 38.r,
-                          height: 38.r,
+                          width: ScreenScale.r(38),
+                          height: ScreenScale.r(38),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isCompleted || isCurrent
@@ -294,7 +294,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             border: isCurrent
                                 ? Border.all(
                                     color: Colors.green,
-                                    width: 2.5.r,
+                                    width: ScreenScale.r(2.5),
                                   )
                                 : null,
                           ),
@@ -309,11 +309,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               color: isCompleted || isCurrent
                                   ? Colors.white
                                   : cs.outlineVariant,
-                              size: isCurrent ? 19.r : 15.r,
+                              size: isCurrent ? ScreenScale.r(19) : ScreenScale.r(15),
                             ),
                           ),
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         // Status Label
                         Expanded(
                           child: AutoSizeText(
@@ -323,7 +323,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               color: isCompleted || isCurrent
                                   ? Colors.green
                                   : cs.onSurface.withValues(alpha: 0.5),
-                              fontSize: 11.sp,
+                              fontSize: ScreenScale.sp(11),
                               fontWeight: isCompleted || isCurrent
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -340,23 +340,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           // Progress indicator line
           ClipRRect(
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(ScreenScale.r(4)),
             child: LinearProgressIndicator(
               value: (currentIndex + 1) / timeline.length,
-              minHeight: 6.h,
+              minHeight: ScreenScale.h(6),
               backgroundColor: cs.outlineVariant,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             '${((currentIndex + 1) / timeline.length * 100).round()}% Complete',
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.6),
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
             ),
           ),
         ],
@@ -367,10 +367,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildHeader(Order order, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -385,14 +385,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             minFontSize: 11,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             'Placed on ${_formatDate(order.orderedAt)}',
             style: AppText.caption(context),
           ),
           if (order.status == 'delivered' && order.deliveredAt != null)
             Padding(
-              padding: EdgeInsets.only(top: 4.h),
+              padding: EdgeInsets.only(top: ScreenScale.h(4)),
               child: Text(
                 'Delivered on ${_formatDate(order.deliveredAt!)}',
                 style: AppText.caption(context).copyWith(
@@ -401,10 +401,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ),
             ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
+            spacing: ScreenScale.w(8),
+            runSpacing: ScreenScale.h(8),
             children: [
               _buildStatusChip(
                 'Order: ${order.status}',
@@ -439,10 +439,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -458,9 +458,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               maxLines: 2,
               minFontSize: 11,
             ),
-          if (showRefund && canCancel) SizedBox(height: 12.h),
+          if (showRefund && canCancel) SizedBox(height: ScreenScale.h(12)),
           if (paymentBlocked) ...[
-            SizedBox(height: paymentBlocked && showRefund ? 12.h : 0),
+            SizedBox(height: paymentBlocked && showRefund ? ScreenScale.h(12) : 0),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -469,19 +469,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   backgroundColor: cs.outlineVariant,
                   foregroundColor: cs.onSurface.withValues(alpha: 0.4),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(14)),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  padding: EdgeInsets.symmetric(vertical: ScreenScale.h(14)),
                 ),
                 child: Text('Cancel Order'),
               ),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: ScreenScale.h(10)),
             Text(
               _paymentBlockMessage(order),
               style: TextStyle(
                 color: cs.error,
-                fontSize: 13.sp,
+                fontSize: ScreenScale.sp(13),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -493,9 +493,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 onPressed: _isCancelling ? null : _showCancelConfirmation,
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(14)),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  padding: EdgeInsets.symmetric(vertical: ScreenScale.h(14)),
                 ),
                 child: Text(
                   _isCancelling
@@ -517,10 +517,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildTrackingCard(Order order, ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -530,14 +530,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Your order is on the way',
             style: AppText.sectionTitle(
               context,
-            ).copyWith(fontSize: 16.sp),
+            ).copyWith(fontSize: ScreenScale.sp(16)),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             'Open the live map only when you want to follow the rider.',
             style: AppText.caption(context),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -568,10 +568,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -581,99 +581,99 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(
                 Icons.verified_user_outlined,
-                size: 20.sp,
+                size: ScreenScale.sp(20),
                 color: cs.primary,
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Text(
                 'Delivery Verification',
                 style: AppText.sectionTitle(
                   context,
-                ).copyWith(fontSize: 16.sp),
+                ).copyWith(fontSize: ScreenScale.sp(16)),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           if (!isExpired && order.deliveryOtp != null) ...[
             Text(
               'Your One-Time Password',
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Text(
               order.deliveryOtp!,
               style: TextStyle(
-                fontSize: 28.sp,
+                fontSize: ScreenScale.sp(28),
                 fontWeight: FontWeight.w700,
                 letterSpacing: 6,
                 color: cs.onSurface,
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             Row(
               children: [
                 Icon(
                   Icons.receipt_outlined,
-                  size: 16.sp,
+                  size: ScreenScale.sp(16),
                   color: cs.onSurface.withValues(alpha: 0.5),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: ScreenScale.w(6)),
                 Text(
                   'Order Amount: ₹${order.finalAmount.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: ScreenScale.sp(14),
                     fontWeight: FontWeight.w500,
                     color: cs.onSurface,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
             Row(
               children: [
                 Icon(
                   Icons.timer_outlined,
-                  size: 16.sp,
+                  size: ScreenScale.sp(16),
                   color: cs.onSurface.withValues(alpha: 0.5),
                 ),
-                SizedBox(width: 6.w),
+                SizedBox(width: ScreenScale.w(6)),
                 Text(
                   'Expires in: ',
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     color: cs.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 Text(
                   _formatOtpCountdown(expiresAt!),
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: ScreenScale.sp(14),
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
                   Icons.info_outline,
-                  size: 14.sp,
+                  size: ScreenScale.sp(14),
                   color: cs.onSurface.withValues(alpha: 0.4),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Expanded(
                   child: Text(
                     'Provide this OTP only when the order is physically handed over to you.',
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: ScreenScale.sp(11),
                       color: cs.onSurface.withValues(alpha: 0.6),
                       height: 1.3,
                     ),
@@ -686,34 +686,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               children: [
                 Icon(
                   Icons.timer_off_outlined,
-                  size: 20.sp,
+                  size: ScreenScale.sp(20),
                   color: cs.onSurface.withValues(alpha: 0.5),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Text(
                   'OTP Expired',
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: ScreenScale.sp(16),
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             Text(
               'Please request a new OTP.',
               style: TextStyle(
-                fontSize: 13.sp,
+                fontSize: ScreenScale.sp(13),
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Text(
             'Status: ${_getStatusLabel(order.status)}',
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
               fontWeight: FontWeight.w500,
               color: cs.onSurface.withValues(alpha: 0.7),
             ),
@@ -726,10 +726,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildPhotoPendingCard(Order order, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -739,53 +739,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(
                 Icons.camera_alt_outlined,
-                size: 20.sp,
+                size: ScreenScale.sp(20),
                 color: cs.primary,
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Text(
                 'Delivery Verification',
                 style: AppText.sectionTitle(
                   context,
-                ).copyWith(fontSize: 16.sp),
+                ).copyWith(fontSize: ScreenScale.sp(16)),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           Row(
             children: [
               Icon(
                 Icons.image_outlined,
-                size: 16.sp,
+                size: ScreenScale.sp(16),
                 color: cs.onSurface.withValues(alpha: 0.5),
               ),
-              SizedBox(width: 6.w),
+              SizedBox(width: ScreenScale.w(6)),
               Text(
                 'Photo Proof',
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: ScreenScale.sp(14),
                   fontWeight: FontWeight.w500,
                   color: cs.onSurface,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.info_outline,
-                size: 14.sp,
+                size: ScreenScale.sp(14),
                 color: cs.onSurface.withValues(alpha: 0.4),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Expanded(
                 child: Text(
                   'The delivery person is verifying delivery with a photo. '
                   'No action is needed from your side.',
                   style: TextStyle(
-                    fontSize: 11.sp,
+                    fontSize: ScreenScale.sp(11),
                     color: cs.onSurface.withValues(alpha: 0.6),
                     height: 1.3,
                   ),
@@ -793,11 +793,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Text(
             'Status: ${_getStatusLabel(order.status)}',
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
               fontWeight: FontWeight.w500,
               color: cs.onSurface.withValues(alpha: 0.7),
             ),
@@ -821,10 +821,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -832,39 +832,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.currency_rupee, size: 20.sp, color: cs.primary),
-              SizedBox(width: 8.w),
+              Icon(Icons.currency_rupee, size: ScreenScale.sp(20), color: cs.primary),
+              SizedBox(width: ScreenScale.w(8)),
               Text(
                 'Refund Information',
                 style: AppText.sectionTitle(
                   context,
-                ).copyWith(fontSize: 16.sp),
+                ).copyWith(fontSize: ScreenScale.sp(16)),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           _refundInfoRow('Refund Status', _refundLabel(order), cs),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           _refundInfoRow('Refund Amount', '₹${refund.amount.formatPrice}', cs),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           _refundInfoRow('Refund ID', refund.refundId, cs),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           _refundInfoRow('Initiated Date', _formatDate(refund.createdAt), cs),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           _refundInfoRow('Expected Time', '2–5 Business Days', cs),
           if (refund.status == 'failed') ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
             Container(
-              padding: EdgeInsets.all(12.w),
+              padding: EdgeInsets.all(ScreenScale.w(12)),
               decoration: BoxDecoration(
                 color: cs.error.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(ScreenScale.r(8)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 16.sp, color: cs.error),
-                  SizedBox(width: 8.w),
+                  Icon(Icons.info_outline, size: ScreenScale.sp(16), color: cs.error),
+                  SizedBox(width: ScreenScale.w(8)),
                   Expanded(
                     child: Text(
                       'We are processing your refund manually. '
@@ -872,7 +872,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       'to reflect in your account.',
                       style: TextStyle(
                         color: cs.error,
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                       ),
                     ),
                   ),
@@ -893,7 +893,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           label,
           style: TextStyle(
             color: cs.onSurface.withValues(alpha: 0.6),
-            fontSize: 13.sp,
+            fontSize: ScreenScale.sp(13),
           ),
         ),
         Flexible(
@@ -903,7 +903,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             style: TextStyle(
               color: cs.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
             ),
           ),
         ),
@@ -913,17 +913,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildStatusChip(String label, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(10), vertical: ScreenScale.h(6)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(20)),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: AutoSizeText(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 12.sp,
+          fontSize: ScreenScale.sp(12),
           fontWeight: FontWeight.w600,
         ),
         minFontSize: 9,
@@ -937,10 +937,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final address = order.deliveryAddress;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -950,9 +950,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Delivery Address',
             style: AppText.sectionTitle(
               context,
-            ).copyWith(fontSize: 16.sp),
+            ).copyWith(fontSize: ScreenScale.sp(16)),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             _formatAddress(address),
             style: AppText.caption(context),
@@ -966,10 +966,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final isPhoto = order.deliveryVerificationMethod == 'photo';
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -978,9 +978,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Text(
             'Delivery Info',
             style: AppText.sectionTitle(context)
-                .copyWith(fontSize: 16.sp),
+                .copyWith(fontSize: ScreenScale.sp(16)),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           _proofRow(
             Icons.verified_user_outlined,
             'Verification',
@@ -1012,10 +1012,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           if (isPhoto &&
               order.deliveryProofImageUrl != null &&
               order.deliveryProofImageUrl!.isNotEmpty) ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
             if (_showDeliveryPhoto) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(ScreenScale.r(12)),
                 child: GestureDetector(
                   onTap: () => _showFullProofImage(order.deliveryProofImageUrl!),
                   child: Image.network(
@@ -1047,11 +1047,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: ScreenScale.h(8)),
               Text(
                 'Tap to view full image',
                 style: TextStyle(
-                  fontSize: 12.sp.clamp(10.0, 13.0),
+                  fontSize: ScreenScale.sp(12).clamp(10.0, 13.0),
                   color: cs.primary,
                 ),
               ),
@@ -1070,12 +1070,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _proofRow(IconData icon, String label, String value, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(8)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: cs.onSurface.withValues(alpha: 0.5)),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1083,11 +1083,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12.sp.clamp(10.0, 13.0),
+                    fontSize: ScreenScale.sp(12).clamp(10.0, 13.0),
                     color: cs.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: ScreenScale.h(2)),
                 Text(
                   value,
                   style: AppText.bodyMedium(context),
@@ -1163,10 +1163,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         .toList();
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -1176,9 +1176,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             'Items (${order.items.length})',
             style: AppText.sectionTitle(
               context,
-            ).copyWith(fontSize: 16.sp),
+            ).copyWith(fontSize: ScreenScale.sp(16)),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           if (bogoGroups.isNotEmpty) ...[
             _buildOrderSectionTitle('BOGO Offers', cs),
             ...bogoGroups.map(
@@ -1222,13 +1222,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildOrderSectionTitle(String title, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+      padding: EdgeInsets.only(top: ScreenScale.h(4), bottom: ScreenScale.h(8)),
       child: Text(
         title,
         style: AppText.bodyMedium(context).copyWith(
           color: cs.primary,
           fontWeight: FontWeight.w700,
-          fontSize: 13.sp,
+          fontSize: ScreenScale.sp(13),
         ),
       ),
     );
@@ -1237,7 +1237,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildOrderRegularItem(GroupedOrderItem entry, ColorScheme cs) {
     final item = entry.item;
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(10)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1252,13 +1252,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               AutoSizeText(
                 'INR ${item.totalPrice.formatPrice}',
                 style: TextStyle(
                   color: cs.onSurface,
                   fontWeight: FontWeight.w600,
-                  fontSize: 14.sp,
+                  fontSize: ScreenScale.sp(14),
                 ),
                 minFontSize: 11,
                 maxLines: 1,
@@ -1267,34 +1267,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           ...entry.freeItems.map(
             (freeItem) => Padding(
-              padding: EdgeInsets.only(top: 4.h),
+              padding: EdgeInsets.only(top: ScreenScale.h(4)),
               child: Row(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 6.w,
-                      vertical: 2.h,
+                      horizontal: ScreenScale.w(6),
+                      vertical: ScreenScale.h(2),
                     ),
                     decoration: BoxDecoration(
                       color: Colors.green.shade600,
-                      borderRadius: BorderRadius.circular(4.r),
+                      borderRadius: BorderRadius.circular(ScreenScale.r(4)),
                     ),
                     child: Text(
                       'FREE',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 9.sp,
+                        fontSize: ScreenScale.sp(9),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: ScreenScale.w(6)),
                   Expanded(
                     child: AutoSizeText(
                       '${freeItem.productName}${freeItem.variantLabel != null && freeItem.variantLabel!.isNotEmpty ? ' (${freeItem.variantLabel})' : ''} x${freeItem.quantity}',
                       style: TextStyle(
                         color: Colors.green.shade700,
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                         fontWeight: FontWeight.w600,
                       ),
                       minFontSize: 9,
@@ -1306,7 +1306,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           _buildComplaintControls(item, cs),
         ],
       ),
@@ -1315,7 +1315,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildSmgmOrderItem(OrderItem item, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(8)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1327,29 +1327,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
+                        horizontal: ScreenScale.w(6),
+                        vertical: ScreenScale.h(2),
                       ),
                       decoration: BoxDecoration(
                         color: cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4.r),
+                        borderRadius: BorderRadius.circular(ScreenScale.r(4)),
                       ),
                       child: Text(
                         'FREE',
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 9.sp,
+                          fontSize: ScreenScale.sp(9),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: ScreenScale.w(6)),
                     Expanded(
                       child: Text(
                         '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1359,12 +1359,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (item.rewardOfferName != null &&
                     item.rewardOfferName!.isNotEmpty)
                   Padding(
-                    padding: EdgeInsets.only(left: 2.w, top: 2.h),
+                    padding: EdgeInsets.only(left: ScreenScale.w(2), top: ScreenScale.h(2)),
                     child: Text(
                       'Unlocked via ${item.rewardOfferName}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.7),
-                        fontSize: 10.sp,
+                        fontSize: ScreenScale.sp(10),
                       ),
                     ),
                   ),
@@ -1373,12 +1373,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           if (item.rewardValue != null && item.rewardValue! > 0)
             Padding(
-              padding: EdgeInsets.only(left: 8.w),
+              padding: EdgeInsets.only(left: ScreenScale.w(8)),
               child: Text(
                 'INR ${item.rewardValue!.formatPrice}',
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.7),
-                  fontSize: 14.sp,
+                  fontSize: ScreenScale.sp(14),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1429,16 +1429,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
         children: [
           Icon(Icons.report_problem_outlined, color: cs.primary),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1450,18 +1450,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   subtitle,
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.62),
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: ScreenScale.w(10)),
           OutlinedButton(
             onPressed: () async {
               if (complaint != null) {
@@ -1525,12 +1525,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _buildOrderComboGroup(GroupedOrderCombo group, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(12)),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(ScreenScale.w(12)),
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -1547,7 +1547,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Flexible(
                   child: AutoSizeText(
                     comboDiscountBadgeText(
@@ -1556,7 +1556,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                     style: TextStyle(
                       color: Colors.green.shade700,
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                       fontWeight: FontWeight.w700,
                     ),
                     minFontSize: 9,
@@ -1566,10 +1566,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...group.items.map(
               (item) => Padding(
-                padding: EdgeInsets.only(bottom: 6.h),
+                padding: EdgeInsets.only(bottom: ScreenScale.h(6)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1581,30 +1581,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.75),
-                              fontSize: 13.sp,
+                              fontSize: ScreenScale.sp(13),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: ScreenScale.w(8)),
                         AutoSizeText(
                           'INR ${item.totalPrice.formatPrice}',
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.75),
-                            fontSize: 13.sp,
+                            fontSize: ScreenScale.sp(13),
                           ),
                           minFontSize: 10,
                           maxLines: 1,
                         ),
                       ],
                     ),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: ScreenScale.h(6)),
                     _buildComplaintControls(item, cs),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1617,7 +1617,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -1632,7 +1632,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       'INR ${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -1649,10 +1649,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _buildTotals(Order order, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -1660,17 +1660,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.receipt_outlined, size: 20.sp, color: cs.primary),
-              SizedBox(width: 8.w),
+              Icon(Icons.receipt_outlined, size: ScreenScale.sp(20), color: cs.primary),
+              SizedBox(width: ScreenScale.w(8)),
               Text(
                 'Bill Summary',
                 style: AppText.sectionTitle(
                   context,
-                ).copyWith(fontSize: 16.sp),
+                ).copyWith(fontSize: ScreenScale.sp(16)),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           _buildRow(
             Icons.shopping_bag_outlined,
             'Item Total',
@@ -1711,9 +1711,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               valueColor: Colors.green,
             ),
           ],
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Divider(color: cs.outlineVariant),
-          SizedBox(height: 4.h),
+          SizedBox(height: ScreenScale.h(4)),
           _buildRow(
             Icons.payments_outlined,
             order.freshPointsUsed > 0
@@ -1731,7 +1731,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           if (order.paymentMode == 'cod' && order.paymentStatus == 'paid')
             Padding(
-              padding: EdgeInsets.only(top: 12.h),
+              padding: EdgeInsets.only(top: ScreenScale.h(12)),
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -1755,15 +1755,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     Color? valueColor,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6.h),
+      padding: EdgeInsets.symmetric(vertical: ScreenScale.h(6)),
       child: Row(
         children: [
           Icon(
             icon,
-            size: 18.sp,
+            size: ScreenScale.sp(18),
             color: cs.onSurface.withValues(alpha: 0.4),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: ScreenScale.w(10)),
           Expanded(
             child: Text(
               label,
@@ -1772,7 +1772,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           AutoSizeText(
             value,
             textAlign: TextAlign.right,
@@ -1808,12 +1808,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 child: Text(
                   'Payment Receipt',
                   style: TextStyle(
-                    fontSize: 18.sp.clamp(16.0, 20.0),
+                    fontSize: ScreenScale.sp(18).clamp(16.0, 20.0),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: ScreenScale.h(12)),
               const Divider(),
               _receiptRow('Order Number', receipt.orderNumber),
               _receiptRow('Payment Method', receipt.paymentMethod),
@@ -1852,7 +1852,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Widget _receiptRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
+      padding: EdgeInsets.symmetric(vertical: ScreenScale.h(4)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -2081,26 +2081,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   'If approved, the refund will be processed according to our cancellation policy.',
                 ),
                 if (status == 'out_for_delivery') ...[
-                  SizedBox(height: 12.h),
+                  SizedBox(height: ScreenScale.h(12)),
                   Container(
-                    padding: EdgeInsets.all(12.w),
+                    padding: EdgeInsets.all(ScreenScale.w(12)),
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
                       ).colorScheme.error.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                     ),
                     child: Text(
                       'Estimated refund: ₹${refundEstimate.formatPrice}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                         fontWeight: FontWeight.w600,
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                       ),
                     ),
                   ),
                 ],
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 TextField(
                   controller: reasonController,
                   decoration: const InputDecoration(

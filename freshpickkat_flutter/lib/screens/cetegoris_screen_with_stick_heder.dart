@@ -11,8 +11,8 @@ import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CategoriesScreenWithStickyHeader extends StatefulWidget {
   const CategoriesScreenWithStickyHeader({super.key});
@@ -91,7 +91,7 @@ class _CategoriesScreenWithStickyHeaderState
     if (!mounted || !context.mounted) return;
     final width = AppResponsive.layoutWidth(context);
     final sidebarWidth = AppResponsive.railWidth(context);
-    final availableWidth = width - sidebarWidth - 9.w - 20.w;
+    final availableWidth = width - sidebarWidth - ScreenScale.w(9) - ScreenScale.w(20);
     final columns = AppResponsive.categoryGridColumnsForWidth(availableWidth);
     final cellWidth = availableWidth / columns;
     final aspectRatio =
@@ -297,21 +297,21 @@ class _CategoriesScreenWithStickyHeaderState
                 child: ListView.builder(
                   itemCount: 8,
                   itemBuilder: (context, index) => Container(
-                    padding: EdgeInsets.all(8.w),
+                    padding: EdgeInsets.all(ScreenScale.w(8)),
                     child: Column(
                       children: [
                         Container(
-                          width: 56.r,
-                          height: 56.r,
+                          width: ScreenScale.r(56),
+                          height: ScreenScale.r(56),
                           decoration: BoxDecoration(
                             color: cs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: ScreenScale.h(4)),
                         Container(
-                          width: 50.w,
-                          height: 8.h,
+                          width: ScreenScale.w(50),
+                          height: ScreenScale.h(8),
                           decoration: BoxDecoration(
                             color: cs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(4),
@@ -324,7 +324,7 @@ class _CategoriesScreenWithStickyHeaderState
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(10.w),
+                  padding: EdgeInsets.all(ScreenScale.w(10)),
                   child: const CategoryItemGridShimmer(itemCount: 9),
                 ),
               ),
@@ -347,7 +347,7 @@ class _CategoriesScreenWithStickyHeaderState
             children: [
               _buildCategoriesList(cs),
               Container(
-                width: 9.w,
+                width: ScreenScale.w(9),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -422,19 +422,19 @@ class _CategoriesScreenWithStickyHeaderState
                     ),
                   ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(8), vertical: ScreenScale.h(8)),
                 child: Center(
                   child: Column(
                     children: isAllItems
                         ? [
                             Padding(
-                              padding: EdgeInsets.all(8.w),
+                              padding: EdgeInsets.all(ScreenScale.w(8)),
                               child: AnimatedScale(
                                 scale: isTapped ? 1.3 : 1.0,
                                 duration: const Duration(milliseconds: 250),
                                 child: Icon(
                                   Icons.grid_view_rounded,
-                                  size: 46.r,
+                                  size: ScreenScale.r(46),
                                   color: isSelected
                                       ? AppTheme.primaryGreen
                                       : cs.onSurface.withValues(alpha: 0.4),
@@ -450,7 +450,7 @@ class _CategoriesScreenWithStickyHeaderState
                                 color: isSelected
                                     ? cs.onSurface
                                     : cs.onSurface.withValues(alpha: 0.6),
-                                fontSize: 12.sp,
+                                fontSize: ScreenScale.sp(12),
                                 fontWeight: isSelected
                                     ? FontWeight.bold
                                     : FontWeight.normal,
@@ -461,7 +461,7 @@ class _CategoriesScreenWithStickyHeaderState
                             AspectRatio(
                               aspectRatio: 1,
                               child: Padding(
-                                padding: EdgeInsets.all(8.w),
+                                padding: EdgeInsets.all(ScreenScale.w(8)),
                                 child: AnimatedScale(
                                   scale: isTapped ? 1.3 : 1.0,
                                   duration: const Duration(milliseconds: 250),
@@ -474,7 +474,7 @@ class _CategoriesScreenWithStickyHeaderState
                                       return Center(
                                         child: Icon(
                                           Icons.image,
-                                          size: 46.r,
+                                          size: ScreenScale.r(46),
                                           color: Colors.grey[400],
                                         ),
                                       );
@@ -492,7 +492,7 @@ class _CategoriesScreenWithStickyHeaderState
                                 color: isSelected
                                     ? cs.onSurface
                                     : cs.onSurface.withValues(alpha: 0.6),
-                                fontSize: 12.sp,
+                                fontSize: ScreenScale.sp(12),
                                 fontWeight: isSelected
                                     ? FontWeight.bold
                                     : FontWeight.normal,
@@ -516,7 +516,7 @@ class _CategoriesScreenWithStickyHeaderState
       right: 0,
       child: Container(
         color: Theme.of(context).scaffoldBackgroundColor,
-        padding: EdgeInsets.fromLTRB(10.w, 10.h, 16.w, 10.h),
+        padding: EdgeInsets.fromLTRB(ScreenScale.w(10), ScreenScale.h(10), ScreenScale.w(16), ScreenScale.h(10)),
         child: Text(
           _currentStickyHeader,
           maxLines: 1,
@@ -545,7 +545,7 @@ class _CategoriesScreenWithStickyHeaderState
         child: ListView(
           controller: _itemsScrollController,
           cacheExtent: 10000,
-          padding: EdgeInsets.only(left: 10.w, right: 10.w),
+          padding: EdgeInsets.only(left: ScreenScale.w(10), right: ScreenScale.w(10)),
           children: [
             ...List.generate(categoryController.categories.length, (
               categoryIndex,
@@ -567,7 +567,7 @@ class _CategoriesScreenWithStickyHeaderState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
+                    padding: EdgeInsets.symmetric(vertical: ScreenScale.h(10)),
                     child: Text(
                       categoryName,
                       maxLines: 1,
@@ -577,7 +577,7 @@ class _CategoriesScreenWithStickyHeaderState
                   ),
                   if (subCategoriesList.isEmpty)
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20.h),
+                      padding: EdgeInsets.symmetric(vertical: ScreenScale.h(20)),
                       child: Text(
                         'No subcategories for $categoryName',
                         style: TextStyle(
@@ -623,7 +623,7 @@ class _CategoriesScreenWithStickyHeaderState
                         );
                       },
                     ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: ScreenScale.h(16)),
                 ],
               );
             }),
@@ -636,19 +636,19 @@ class _CategoriesScreenWithStickyHeaderState
             if (productController.isLoading.value && productController.hasData)
               ProductGridShimmer(
                 itemCount: 4,
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12)),
               ),
 
             if (!productController.isMoreDataAvailable.value &&
                 productController.hasData)
               Padding(
-                padding: EdgeInsets.all(20.w),
+                padding: EdgeInsets.all(ScreenScale.w(20)),
                 child: Center(
                   child: Text(
                     'All products loaded',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.4),
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                     ),
                   ),
                 ),

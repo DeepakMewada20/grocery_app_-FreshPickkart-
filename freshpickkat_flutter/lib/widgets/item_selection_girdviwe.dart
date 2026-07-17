@@ -4,8 +4,8 @@ import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class GridInsertion {
   final int afterCount;
@@ -44,8 +44,8 @@ class ItemSelectionGirdviwe extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: effectiveColumns,
         childAspectRatio: effectiveAspectRatio,
-        crossAxisSpacing: 12.w,
-        mainAxisSpacing: 12.h,
+        crossAxisSpacing: ScreenScale.w(12),
+        mainAxisSpacing: ScreenScale.h(12),
       ),
       itemCount: products.length,
       itemBuilder: (context, index) {
@@ -69,7 +69,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
         builder: (context, constraints) {
           final availableWidth = constraints.maxWidth.isFinite
               ? constraints.maxWidth
-              : AppResponsive.layoutWidth(context) - 24.w;
+              : AppResponsive.layoutWidth(context) - ScreenScale.w(24);
           final effectiveColumns = adaptiveLayout
               ? AppResponsive.productGridColumnsForWidth(availableWidth)
               : crossAxisCount;
@@ -77,7 +77,7 @@ class ItemSelectionGirdviwe extends StatelessWidget {
               ? AppResponsive.productCardAspectRatioForWidth(
                   availableWidth,
                   effectiveColumns,
-                  spacing: 12.w,
+                  spacing: ScreenScale.w(12),
                 )
               : childAspectRatio;
 

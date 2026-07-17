@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/search_provider_controller.dart';
@@ -6,7 +7,7 @@ import 'package:freshpickkat_flutter/widgets/combo_offer_card.dart';
 import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ProductSearchDelegate extends SearchDelegate<Product?> {
   final SearchProviderController searchController =
@@ -15,7 +16,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   ProductSearchDelegate()
     : super(
         searchFieldLabel: 'Search products...',
-        searchFieldStyle: TextStyle(fontSize: 16.sp),
+        searchFieldStyle: TextStyle(fontSize: ScreenScale.sp(16)),
       );
 
   @override
@@ -75,8 +76,8 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   Widget _buildEmptySuggestions(BuildContext context) {
     return ListView(
       padding: EdgeInsets.only(
-        top: 8.h,
-        bottom: 8.h + MediaQuery.paddingOf(context).bottom,
+        top: ScreenScale.h(8),
+        bottom: ScreenScale.h(8) + MediaQuery.paddingOf(context).bottom,
       ),
       children: [
         _buildOfferChips(context),
@@ -96,14 +97,14 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16.r, 16.r, 8.r, 4.r),
+            padding: EdgeInsets.fromLTRB(ScreenScale.r(16), ScreenScale.r(16), ScreenScale.r(8), ScreenScale.r(4)),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     'Recent Searches',
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                       fontWeight: FontWeight.bold,
                       color: cs.onSurface.withValues(alpha: 0.6),
                     ),
@@ -147,16 +148,16 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
   }) {
     return GridView.builder(
       padding: EdgeInsets.fromLTRB(
-        16.w,
-        16.w,
-        16.w,
-        16.w + MediaQuery.of(context).padding.bottom,
+        ScreenScale.w(16),
+        ScreenScale.w(16),
+        ScreenScale.w(16),
+        ScreenScale.w(16) + MediaQuery.of(context).padding.bottom,
       ),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+        crossAxisCount: kIsWeb ? 3 : 2,
         childAspectRatio: 0.56,
-        crossAxisSpacing: 16.w,
-        mainAxisSpacing: 16.h,
+        crossAxisSpacing: ScreenScale.w(16),
+        mainAxisSpacing: ScreenScale.h(16),
       ),
       itemCount: itemCount + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -283,10 +284,10 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
           SliverToBoxAdapter(child: _buildOfferChips(context)),
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
-              16.w,
+              ScreenScale.w(16),
               0,
-              16.w,
-              16.w + MediaQuery.paddingOf(context).bottom,
+              ScreenScale.w(16),
+              ScreenScale.w(16) + MediaQuery.paddingOf(context).bottom,
             ),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
@@ -295,7 +296,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                     if (searchController.hasMoreOfferResults.value) {
                       searchController.loadMoreOfferResults();
                       return Container(
-                        height: 80.h,
+                        height: ScreenScale.h(80),
                         alignment: Alignment.center,
                         child: const CircularProgressIndicator(),
                       );
@@ -306,7 +307,7 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
                   final item = searchController.offerResults[index];
                   return Padding(
                     key: ValueKey('offer_item_${index}_${item.hashCode}'),
-                    padding: EdgeInsets.only(bottom: 16.h),
+                    padding: EdgeInsets.only(bottom: ScreenScale.h(16)),
                     child: _buildOfferItem(item),
                   );
                 },
@@ -326,11 +327,11 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 64.r, color: Colors.grey),
-          SizedBox(height: 16.h),
+          Icon(Icons.search_off, size: ScreenScale.r(64), color: Colors.grey),
+          SizedBox(height: ScreenScale.h(16)),
           Text(
             'No results found',
-            style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+            style: TextStyle(fontSize: ScreenScale.sp(16), color: Colors.grey),
           ),
           SizedBox(height: MediaQuery.paddingOf(context).bottom),
         ],
@@ -353,13 +354,13 @@ class ProductSearchDelegate extends SearchDelegate<Product?> {
     return Obx(() {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(16), vertical: ScreenScale.h(8)),
         child: Row(
           children: offers.map((filter) {
             final isSelected =
                 searchController.selectedOfferFilter.value == filter.value;
             return Padding(
-              padding: EdgeInsets.only(right: 8.w),
+              padding: EdgeInsets.only(right: ScreenScale.w(8)),
               child: ChoiceChip(
                 label: Text(filter.label),
                 selected: isSelected,

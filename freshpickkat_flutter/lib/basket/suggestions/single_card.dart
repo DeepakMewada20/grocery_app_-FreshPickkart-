@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -13,6 +12,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class SingleCardBody extends StatelessWidget {
   final client.BasketSuggestion s;
@@ -43,7 +43,7 @@ class SingleCardBody extends StatelessWidget {
             children: [
               if (isBest) ...[
                 const BestBadge(),
-                SizedBox(width: 6.w),
+                SizedBox(width: ScreenScale.w(6)),
               ],
               if (action != null)
                 Flexible(
@@ -58,13 +58,13 @@ class SingleCardBody extends StatelessWidget {
                 SaveBadge(amount: s.savingAmount!, accent: accent),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             isSmgm ? _buildSmgmMainText(s) : (s.title ?? s.message),
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w700,
-              fontSize: 13.5.sp,
+              fontSize: ScreenScale.sp(13.5),
               height: 1.3,
               letterSpacing: -0.1,
             ),
@@ -73,12 +73,12 @@ class SingleCardBody extends StatelessWidget {
           ),
           if (isSmgm) ...[
             if (s.progressTarget != null && s.progressTarget! > 0) ...[
-              SizedBox(height: 3.h),
+              SizedBox(height: ScreenScale.h(3)),
               Text(
                 'Free on orders above ₹${s.progressTarget!.toStringAsFixed(0)}',
                 style: TextStyle(
                   color: textSecondary,
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   height: 1.3,
                 ),
                 maxLines: 1,
@@ -86,12 +86,12 @@ class SingleCardBody extends StatelessWidget {
               ),
             ],
           ] else if ((s.subtitle ?? '').trim().isNotEmpty) ...[
-            SizedBox(height: 3.h),
+            SizedBox(height: ScreenScale.h(3)),
             Text(
               s.subtitle!,
               style: TextStyle(
                 color: textSecondary,
-                fontSize: 11.sp,
+                fontSize: ScreenScale.sp(11),
                 height: 1.3,
               ),
               maxLines: 2,
@@ -123,20 +123,20 @@ class SingleCardBody extends StatelessWidget {
                           s.metadata?['productName'] ?? '',
                           style: TextStyle(
                             color: textPrimary,
-                            fontSize: 12.sp,
+                            fontSize: ScreenScale.sp(12),
                             fontWeight: FontWeight.w600,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: ScreenScale.h(2)),
                         if (s.metadata?['quantity'] case final qty?
                             when qty.isNotEmpty)
                           Text(
                             qty,
                             style: TextStyle(
                               color: textSecondary,
-                              fontSize: 11.sp,
+                              fontSize: ScreenScale.sp(11),
                             ),
                           ),
                       ],
@@ -144,7 +144,7 @@ class SingleCardBody extends StatelessWidget {
                   ),
                 )
               else ...[
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 if (s.metadata != null &&
                     s.metadata!.containsKey('curLabel') &&
                     s.metadata!.containsKey('vLabel'))
@@ -178,7 +178,7 @@ class SingleCardBody extends StatelessWidget {
                   const Spacer(),
               ],
 
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               CTAButton(
                 label: (action?.ctaLabel ?? 'View Offer').toUpperCase(),
                 accent: accent,
@@ -219,8 +219,8 @@ class SingleCardBody extends StatelessWidget {
       }
     }
     return Container(
-      width: 40.r,
-      height: 40.r,
+      width: ScreenScale.r(40),
+      height: ScreenScale.r(40),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -304,8 +304,8 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40.r,
-      height: 40.r,
+      width: ScreenScale.r(40),
+      height: ScreenScale.r(40),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.medium),

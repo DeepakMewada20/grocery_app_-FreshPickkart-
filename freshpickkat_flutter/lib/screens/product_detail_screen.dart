@@ -26,8 +26,8 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -326,8 +326,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   builder: (context, constraints) {
                     final screenHeight = MediaQuery.sizeOf(context).height;
                     final imageHeight = AppResponsive.isLandscape(context)
-                        ? (screenHeight * 0.58).clamp(220.h, 360.h).toDouble()
-                        : constraints.maxWidth.clamp(280.w, 500.h).toDouble();
+                        ? (screenHeight * 0.58).clamp(ScreenScale.h(220), ScreenScale.h(360)).toDouble()
+                        : constraints.maxWidth.clamp(ScreenScale.w(280), ScreenScale.h(500)).toDouble();
                     return Container(
                       height: imageHeight,
                       width: double.infinity,
@@ -348,8 +348,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       if ((product.countryOfOrigin ?? '').trim().isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 6.h,
+                            horizontal: ScreenScale.w(10),
+                            vertical: ScreenScale.h(6),
                           ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.08),
@@ -366,13 +366,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 color: Colors.white,
                                 size: 14,
                               ),
-                              SizedBox(width: 6.w),
+                              SizedBox(width: ScreenScale.w(6)),
                               Flexible(
                                 child: Text(
                                   'Country of Origin: ${product.countryOfOrigin}',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11.sp,
+                                    fontSize: ScreenScale.sp(11),
                                     fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
@@ -382,7 +382,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ],
                           ),
                         ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -401,7 +401,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   minFontSize: 18,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(height: 4.h),
+                                SizedBox(height: ScreenScale.h(4)),
                                 Text(
                                   productFullQuantityLabel(displayProduct),
                                   style: const TextStyle(
@@ -426,11 +426,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       if (variants.length > 1)
                         Wrap(
-                          spacing: 8.w,
-                          runSpacing: 8.h,
+                          spacing: ScreenScale.w(8),
+                          runSpacing: ScreenScale.h(8),
                           children: variants
                               .map(
                                 (variant) => ChoiceChip(
@@ -466,7 +466,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               )
                               .toList(),
                         ),
-                      if (variants.length > 1) SizedBox(height: 12.h),
+                      if (variants.length > 1) SizedBox(height: ScreenScale.h(12)),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -479,7 +479,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8.w),
+                            SizedBox(width: ScreenScale.w(8)),
                             Text(
                               'M.R.P: ₹${displayProduct.realPrice.formatPrice}',
                               style: const TextStyle(
@@ -489,7 +489,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                             ),
                             if (hasProductOffer(displayProduct)) ...[
-                              SizedBox(width: 12.w),
+                              SizedBox(width: ScreenScale.w(12)),
                               Text(
                                 buildProductOfferLabel(displayProduct),
                                 style: TextStyle(
@@ -522,7 +522,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              SizedBox(height: 6.h),
+                              SizedBox(height: ScreenScale.h(6)),
                               Text(
                                 selectedQuantity == 0
                                     ? 'Add this item to choose 1 free product from ${displayProduct.bogoFreeProductIds?.length ?? 0} options.'
@@ -536,15 +536,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                               ),
                               if (selectedQuantity > 0) ...[
-                                SizedBox(height: 12.h),
+                                SizedBox(height: ScreenScale.h(12)),
                                 if (selectedFreeProduct != null)
                                   Row(
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(AppRadius.large),
                                         child: Container(
-                                          width: 54.r,
-                                          height: 54.r,
+                                          width: ScreenScale.r(54),
+                                          height: ScreenScale.r(54),
                                           color: cs.surface,
                                           child: Image.network(
                                             selectedFreeProduct.imageUrl,
@@ -562,7 +562,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 12.w),
+                                      SizedBox(width: ScreenScale.w(12)),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -577,7 +577,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            SizedBox(height: 4.h),
+                                            SizedBox(height: ScreenScale.h(4)),
                                             Text(
                                               _selectedBogoFreeQuantity(
                                                 displayProduct,
@@ -595,7 +595,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       ),
                                     ],
                                   ),
-                                SizedBox(height: 12.h),
+                                SizedBox(height: ScreenScale.h(12)),
                                 FilledButton.tonalIcon(
                                   onPressed: () =>
                                       _openBogoSelectionSheet(displayProduct),
@@ -626,7 +626,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 color: productOfferColor(context),
                                 size: AppIcons.medium,
                               ),
-                              SizedBox(width: 8.w),
+                              SizedBox(width: ScreenScale.w(8)),
                               Text(
                                 'Free Delivery',
                                 style: TextStyle(
@@ -657,7 +657,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     color: offerTheme.badge,
                                     size: AppIcons.medium,
                                   ),
-                                  SizedBox(width: 8.w),
+                                  SizedBox(width: ScreenScale.w(8)),
                                   Expanded(
                                     child: Text(
                                       'Get this product FREE on orders above ₹${displayProduct.shopMoreGetMoreMinAmount?.toStringAsFixed(0) ?? "0"}.',
@@ -670,7 +670,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 8.h),
+                              SizedBox(height: ScreenScale.h(8)),
                               Text(
                                 'Unlock this free gift when your cart reaches ₹${displayProduct.shopMoreGetMoreMinAmount?.toStringAsFixed(0) ?? "0"}. Add more items to qualify!',
                                 style: TextStyle(
@@ -681,27 +681,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ],
                           ),
                         ),
-                      SizedBox(height: 4.h),
+                      SizedBox(height: ScreenScale.h(4)),
                       const Text(
                         '(Inclusive of all taxes)',
                         style: TextStyle(color: Colors.white54, fontSize: 12),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       const Divider(color: Colors.white24),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       _buildDescriptionSection(displayProduct),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       const Divider(color: Colors.white24),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       Text(
                         'Related Products',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18.sp,
+                          fontSize: ScreenScale.sp(18),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       _buildRelatedProducts(displayProduct),
 
                       // 🎯 Product Page Banners
@@ -718,11 +718,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 'Special Deals For You',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16.sp,
+                                  fontSize: ScreenScale.sp(16),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 12.h),
+                              SizedBox(height: ScreenScale.h(12)),
                               NetworkBannerWidget(
                                 height: AppResponsive.bannerHeight(
                                   context,
@@ -765,14 +765,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E88E5),
                   borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(16.r),
+                    top: Radius.circular(ScreenScale.r(16)),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_today, color: Colors.white, size: 22.r),
-                    SizedBox(width: 12.w),
+                    Icon(Icons.calendar_today, color: Colors.white, size: ScreenScale.r(22)),
+                    SizedBox(width: ScreenScale.w(12)),
                     Flexible(
                       child: AutoSizeText(
                         'Subscribe Now',
@@ -780,7 +780,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         minFontSize: 13,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18.sp,
+                          fontSize: ScreenScale.sp(18),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -798,7 +798,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildAddButton(Product product, int quantity) {
     if (!product.isAvailable) {
       return SizedBox(
-        height: 36.h.clamp(34.0, 42.0),
+        height: ScreenScale.h(36).clamp(34.0, 42.0),
         child: Container(
           alignment: Alignment.center,
           padding: AppSpacing.symmetric(horizontal: 12),
@@ -816,7 +816,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
             ),
           ),
         ),
@@ -824,7 +824,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
     if (quantity == 0) {
       return SizedBox(
-        height: 36.h.clamp(34.0, 42.0),
+        height: ScreenScale.h(36).clamp(34.0, 42.0),
         child: OutlinedButton(
           onPressed: () => _handleAddToCart(product),
           style: OutlinedButton.styleFrom(
@@ -839,13 +839,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             '+ Add',
             maxLines: 1,
             minFontSize: 11,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: ScreenScale.sp(14)),
           ),
         ),
       );
     } else {
       return Container(
-        height: 36.h.clamp(34.0, 42.0),
+        height: ScreenScale.h(36).clamp(34.0, 42.0),
         padding: AppSpacing.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF1B8A4C),
@@ -862,16 +862,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Icon(Icons.remove, color: Colors.white, size: AppIcons.button),
               ),
             ),
-            SizedBox(width: 4.w),
+            SizedBox(width: ScreenScale.w(4)),
             Text(
               '$quantity',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 16.sp,
+                fontSize: ScreenScale.sp(16),
               ),
             ),
-            SizedBox(width: 4.w),
+            SizedBox(width: ScreenScale.w(4)),
             InkWell(
               onTap: () => _incrementQuantity(product),
               borderRadius: BorderRadius.circular(AppRadius.small),
@@ -901,7 +901,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'There is no short and long description for this product',
           style: TextStyle(
             color: cs.onSurface.withValues(alpha: 0.5),
-            fontSize: 14.sp,
+            fontSize: ScreenScale.sp(14),
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -918,19 +918,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               'Description',
               style: TextStyle(
                 color: cs.onSurface,
-                fontSize: 16.sp,
+                fontSize: ScreenScale.sp(16),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             Text(
               product.shortDescription!,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.7),
-                fontSize: 14.sp,
+                fontSize: ScreenScale.sp(14),
               ),
             ),
-            if (hasLong) SizedBox(height: 16.h),
+            if (hasLong) SizedBox(height: ScreenScale.h(16)),
           ],
           if (hasLong) ...[
             if (!hasShort)
@@ -938,11 +938,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 'Description',
                 style: TextStyle(
                   color: cs.onSurface,
-                  fontSize: 16.sp,
+                  fontSize: ScreenScale.sp(16),
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             InkWell(
               onTap: () {
                 setState(() {
@@ -961,11 +961,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         : TextOverflow.ellipsis,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.7),
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                       height: 1.5,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -973,7 +973,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         _isDescriptionExpanded ? 'Show less' : 'Read more',
                         style: TextStyle(
                           color: cs.primary,
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

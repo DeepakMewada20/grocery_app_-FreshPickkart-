@@ -10,8 +10,8 @@ import 'package:freshpickkat_flutter/widgets/product_offer_badge.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class HomeBannerWithHorizontalItem extends StatefulWidget {
   final double height;
@@ -119,16 +119,19 @@ class _HomeBannerWithHorizontalItemState
         final banner = bannerController.homeTopImageBanners.firstOrNull;
         final width = MediaQuery.sizeOf(context).width;
         final productStripHeight = AppResponsive.isLandscape(context)
-            ? 80.h
-            : 100.h;
-        final bannerHeight = AppResponsive.isWideWeb(context)
-            ? width / 1.2
-            : (width / 1.2)
-                  .clamp(
-                    productStripHeight + 34.h,
-                    AppResponsive.isLandscape(context) ? 280.h : 450.h,
-                  )
-                  .toDouble();
+            ? ScreenScale.h(120)
+            : ScreenScale.h(150);
+        final maxBanner = AppResponsive.isWideWeb(context)
+            ? ScreenScale.h(520)
+            : AppResponsive.isLandscape(context)
+                ? ScreenScale.h(520)
+                : ScreenScale.h(800);
+        final bannerHeight = (width / 1.2)
+            .clamp(
+              productStripHeight + ScreenScale.h(50),
+              maxBanner,
+            )
+            .toDouble();
 
         return SizedBox(
           height: bannerHeight,
@@ -143,6 +146,7 @@ class _HomeBannerWithHorizontalItemState
                           banner.imageUrl,
                         ),
                         fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
                         gaplessPlayback: true,
                         errorBuilder: (context, error, stackTrace) =>
                             _buildFallbackBanner(),
@@ -151,7 +155,7 @@ class _HomeBannerWithHorizontalItemState
               ),
 
               Positioned(
-                bottom: 7.h,
+                bottom: ScreenScale.h(7),
                 left: 0,
                 right: 0,
                 child: SizedBox(
@@ -172,6 +176,7 @@ class _HomeBannerWithHorizontalItemState
     return Image.asset(
       'lib/assets/images/grocry_home_banner.png',
       fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
     );
   }
 
@@ -197,7 +202,7 @@ class _HomeBannerWithHorizontalItemState
 }
 
 double _topBannerProductTileSize(BuildContext context) {
-  return AppResponsive.isLandscape(context) ? 80.h : 100.h;
+  return AppResponsive.isLandscape(context) ? ScreenScale.h(120) : ScreenScale.h(150);
 }
 
 class _ProductList extends StatelessWidget {
@@ -263,8 +268,8 @@ class _ProductBannerCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black26,
-            blurRadius: 6.r,
-              offset: Offset(0, 3.h),
+            blurRadius: ScreenScale.r(6),
+              offset: Offset(0, ScreenScale.h(3)),
             ),
           ],
         ),

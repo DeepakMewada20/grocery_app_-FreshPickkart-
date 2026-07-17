@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card_utils.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/shared_components.dart';
@@ -10,6 +9,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CombinedCardBody extends StatelessWidget {
   final client.BasketSuggestion s;
@@ -40,7 +40,7 @@ class CombinedCardBody extends StatelessWidget {
             children: [
               if (isBest) ...[
                 const BestBadge(),
-                SizedBox(width: 6.w),
+                SizedBox(width: ScreenScale.w(6)),
               ],
               Flexible(
                 child: SuggestionActionChip(
@@ -54,25 +54,25 @@ class CombinedCardBody extends StatelessWidget {
                 SaveBadge(amount: s.savingAmount!, accent: accent),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           Text(
             s.title ?? s.message,
             style: TextStyle(
               color: textPrimary,
               fontWeight: FontWeight.w800,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
               height: 1.25,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           if ((s.subtitle ?? '').trim().isNotEmpty) ...[
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Text(
               s.subtitle!,
               style: TextStyle(
                 color: textPrimary.withValues(alpha: 0.7),
-                fontSize: 11.5.sp,
+                fontSize: ScreenScale.sp(11.5),
                 height: 1.2,
               ),
               maxLines: 2,
@@ -85,7 +85,7 @@ class CombinedCardBody extends StatelessWidget {
             children: [
               if (comboAction == null && s.thumbnailUrl != null) ...[
                 _Thumb(url: s.thumbnailUrl!),
-                SizedBox(width: 12.w),
+                SizedBox(width: ScreenScale.w(12)),
               ],
               // Action steps indicators
               Row(
@@ -100,7 +100,7 @@ class CombinedCardBody extends StatelessWidget {
                       ),
                       if (!isLast)
                         Container(
-                          width: 12.w,
+                          width: ScreenScale.w(12),
                           height: 1,
                           margin: AppSpacing.symmetric(horizontal: 4),
                           color: accent.withValues(alpha: 0.3),
@@ -201,8 +201,8 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40.r,
-      height: 40.r,
+      width: ScreenScale.r(40),
+      height: ScreenScale.r(40),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.medium),

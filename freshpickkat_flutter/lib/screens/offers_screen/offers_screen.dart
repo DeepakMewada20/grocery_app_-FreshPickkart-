@@ -9,8 +9,8 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 /// Screen shown when user taps an "offer" type banner.
 /// Displays all products that have an active offer/discount.
@@ -189,7 +189,7 @@ class _OffersScreenState extends State<OffersScreen> {
           if (isLoading && !hasData) {
             return ProductGridShimmer(
               itemCount: 6,
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12), vertical: ScreenScale.h(8)),
             );
           }
 
@@ -201,32 +201,32 @@ class _OffersScreenState extends State<OffersScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(28.w),
+                    padding: EdgeInsets.all(ScreenScale.w(28)),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.local_offer_outlined,
-                      size: 56.r,
+                      size: ScreenScale.r(56),
                       color: cs.onSurface.withValues(alpha: 0.3),
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: ScreenScale.h(20)),
                   Text(
                     'No offers right now',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 20.sp,
+                      fontSize: ScreenScale.sp(20),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
                   Text(
                     'Check back soon for exciting deals.',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                     ),
                   ),
                 ],
@@ -235,7 +235,7 @@ class _OffersScreenState extends State<OffersScreen> {
           }
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12), vertical: ScreenScale.h(8)),
             child: Column(
               children: [
                 // ── Smart Analysis Section ──────────────────────────────────
@@ -249,26 +249,26 @@ class _OffersScreenState extends State<OffersScreen> {
                     children: [
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 4.w,
-                          vertical: 8.h,
+                          horizontal: ScreenScale.w(4),
+                          vertical: ScreenScale.h(8),
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(6.w),
+                              padding: EdgeInsets.all(ScreenScale.w(6)),
                               decoration: BoxDecoration(
                                 color: AppTheme.primaryGreen.withValues(
                                   alpha: 0.1,
                                 ),
-                                borderRadius: BorderRadius.circular(8.r),
+                                borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                               ),
                               child: Icon(
                                 Icons.auto_awesome_rounded,
-                                size: 16.r,
+                                size: ScreenScale.r(16),
                                 color: AppTheme.primaryGreen,
                               ),
                             ),
-                            SizedBox(width: 10.w),
+                            SizedBox(width: ScreenScale.w(10)),
                             Expanded(
                               child: Text(
                                 'Smart Analysis for You',
@@ -276,7 +276,7 @@ class _OffersScreenState extends State<OffersScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: AppText.sectionTitle(
                                   context,
-                                ).copyWith(fontSize: 16.sp),
+                                ).copyWith(fontSize: ScreenScale.sp(16)),
                               ),
                             ),
                           ],
@@ -285,7 +285,7 @@ class _OffersScreenState extends State<OffersScreen> {
                       SizedBox(
                         height: AppResponsive.horizontalProductListHeight(
                           context,
-                        ).clamp(170.h, 220.h).toDouble(),
+                        ).clamp(ScreenScale.h(170), ScreenScale.h(220)).toDouble(),
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           clipBehavior: Clip.none,
@@ -294,18 +294,18 @@ class _OffersScreenState extends State<OffersScreen> {
                             suggestion: suggestions[i],
                             index: i,
                             width: (MediaQuery.sizeOf(context).width * 0.85)
-                                .clamp(280.w, 520.w),
+                                .clamp(ScreenScale.w(280), ScreenScale.w(520)),
                           ),
                         ),
                       ),
-                      SizedBox(height: 24.h),
+                      SizedBox(height: ScreenScale.h(24)),
                       Text(
                         'All Offers',
                         style: AppText.sectionTitle(
                           context,
-                        ).copyWith(fontSize: 16.sp),
+                        ).copyWith(fontSize: ScreenScale.sp(16)),
                       ),
-                      SizedBox(height: 10.h),
+                      SizedBox(height: ScreenScale.h(10)),
                     ],
                   );
                 }),
@@ -313,12 +313,12 @@ class _OffersScreenState extends State<OffersScreen> {
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 10.h,
+                    horizontal: ScreenScale.w(12),
+                    vertical: ScreenScale.h(10),
                   ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(14.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(14)),
                   ),
                   child: Obx(() {
                     final count = _filteredProducts.length;
@@ -326,10 +326,10 @@ class _OffersScreenState extends State<OffersScreen> {
                       children: [
                         Icon(
                           Icons.local_offer_outlined,
-                          size: 18.r,
+                          size: ScreenScale.r(18),
                           color: AppTheme.primaryGreen,
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: ScreenScale.w(8)),
                         Expanded(
                           child: Text(
                             '$count deal${count == 1 ? '' : 's'} available',
@@ -343,7 +343,7 @@ class _OffersScreenState extends State<OffersScreen> {
                     );
                   }),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {

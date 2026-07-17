@@ -9,8 +9,8 @@ import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class NetworkErrorWidget extends StatefulWidget {
   final String message;
@@ -736,9 +736,9 @@ class _HomeScreenLoadingSkeletonState extends State<HomeScreenLoadingSkeleton>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          shimmerBox(height: 8.h, width: 50.w),
-                          SizedBox(height: 4.h),
-                          shimmerBox(height: 6.h, width: 30.w),
+                          shimmerBox(height: ScreenScale.h(8), width: ScreenScale.w(50)),
+                          SizedBox(height: ScreenScale.h(4)),
+                          shimmerBox(height: ScreenScale.h(6), width: ScreenScale.w(30)),
                         ],
                       ),
                     ),

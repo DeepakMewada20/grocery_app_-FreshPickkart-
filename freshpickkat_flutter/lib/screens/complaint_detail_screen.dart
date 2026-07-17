@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/services/product_complaint_service.dart';
@@ -12,6 +11,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ComplaintDetailScreen extends StatefulWidget {
   const ComplaintDetailScreen({
@@ -109,7 +109,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
               onRefresh: _fetch,
               child: ListView(
                 padding: AppResponsive.pagePadding(context).copyWith(
-                  bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+                  bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
                 ),
                 children: [
                   AppResponsive.constrainContent(
@@ -118,14 +118,14 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _ProductSummary(complaint: _complaint!),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         _Section(
                           title: 'Issue',
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _StatusBadge(status: _complaint!.status),
-                              SizedBox(height: 10.h),
+                              SizedBox(height: ScreenScale.h(10)),
                               Text(
                                 _complaint!.issueType,
                                 style: TextStyle(
@@ -133,27 +133,27 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              SizedBox(height: 6.h),
+                              SizedBox(height: ScreenScale.h(6)),
                               Text(_complaint!.description),
                             ],
                           ),
                         ),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         if (_complaint!.resolutionType != null &&
                             _complaint!.status == 'Resolved') ...[
                           _Section(
                             title: 'Resolution',
                             child: Text(_complaint!.resolutionType!),
                           ),
-                          SizedBox(height: 12.h),
+                          SizedBox(height: ScreenScale.h(12)),
                         ],
                         if (_complaint!.selectedField != null ||
                             (_complaint!.extraData?.isNotEmpty ?? false)) ...[
                           _AddressChangeSection(complaint: _complaint!),
-                          SizedBox(height: 12.h),
+                          SizedBox(height: ScreenScale.h(12)),
                         ],
                         _ImageSection(urls: _complaint!.imageUrls),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         _Section(
                           title: 'Reply',
                           child: Text(
@@ -165,10 +165,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                                 : 'No reply yet.',
                           ),
                         ),
-                        SizedBox(height: 12.h),
+                        SizedBox(height: ScreenScale.h(12)),
                         _Timeline(status: _complaint!.status),
                         if (_complaintRefund != null) ...[
-                          SizedBox(height: 12.h),
+                          SizedBox(height: ScreenScale.h(12)),
                           _RefundInfoCard(refund: _complaintRefund!),
                         ],
                       ],
@@ -196,13 +196,13 @@ class _ProductSummary extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.medium),
             child: Image.network(
               (complaint.productImage ?? ''),
-              width: 58.r,
-              height: 58.r,
+              width: ScreenScale.r(58),
+              height: ScreenScale.r(58),
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Text(
               (complaint.productName ?? complaint.title),
@@ -237,22 +237,22 @@ class _AddressChangeSection extends StatelessWidget {
         children: [
           _InfoLine('Selected field', selectedField),
           if (currentAddress != null) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _AddressBlock(title: 'Current address', address: currentAddress),
           ],
           if (requestedAddress != null) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _AddressBlock(
               title: 'Requested address',
               address: requestedAddress,
             ),
           ],
           if (requestedNote != null && requestedNote.isNotEmpty) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _InfoLine('Requested note', requestedNote),
           ],
           if (extra['reason']?.trim().isNotEmpty == true) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _InfoLine('Reason', extra['reason']!),
           ],
         ],
@@ -297,7 +297,7 @@ class _AddressBlock extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-          SizedBox(height: 6.h),
+          SizedBox(height: ScreenScale.h(6)),
           Text(_addressText(address)),
         ],
       ),
@@ -348,16 +348,16 @@ class _ImageSection extends StatelessWidget {
     return _Section(
       title: 'Images',
       child: Wrap(
-        spacing: 8.w,
-        runSpacing: 8.h,
+        spacing: ScreenScale.w(8),
+        runSpacing: ScreenScale.h(8),
         children: urls
               .map(
                 (url) => ClipRRect(
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                 child: Image.network(
                   url,
-                  width: 86.r,
-                  height: 86.r,
+                  width: ScreenScale.r(86),
+                  height: ScreenScale.r(86),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -458,39 +458,39 @@ class _RefundInfoCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 8.r,
-                height: 8.r,
+                width: ScreenScale.r(8),
+                height: ScreenScale.r(8),
                 decoration: BoxDecoration(
                   color: statusColor,
                   shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Text(
                 'Refund Information',
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900),
+                style: TextStyle(fontSize: ScreenScale.sp(16), fontWeight: FontWeight.w900),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           _refundRow(
             'Status',
             _statusLabel(refund.status),
             statusColor,
             context,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _refundRow(
             'Amount',
             '₹${refund.amount.toStringAsFixed(2)}',
             null,
             context,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _refundRow('Refund ID', refund.refundId, null, context),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _refundRow('Initiated', _formatDate(refund.createdAt), null, context),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _refundRow('Expected', '2–5 Business Days', null, context),
         ],
       ),
@@ -507,12 +507,12 @@ class _RefundInfoCard extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 100.w,
+          width: ScreenScale.w(100),
           child: Text(
             label,
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.62),
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
             ),
           ),
         ),
@@ -568,9 +568,9 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: ScreenScale.sp(16), fontWeight: FontWeight.w900),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           child,
         ],
       ),
@@ -604,7 +604,7 @@ class _StatusBadge extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w800,
-          fontSize: 11.sp,
+          fontSize: ScreenScale.sp(11),
         ),
       ),
     );

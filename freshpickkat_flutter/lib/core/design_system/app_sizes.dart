@@ -1,68 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../responsive/adaptive_value.dart';
+import 'screen_scale.dart';
 
 class AppSizes {
   AppSizes._();
 
   static double get buttonHeight =>
-      48.h;
+      ScreenScale.h(48);
 
-  static double get searchBarHeight => 44.h;
+  static double get searchBarHeight => ScreenScale.h(44);
 
-  static double get productImageSize => 140.r;
+  static double get productImageSize => ScreenScale.r(140);
 
-  static double get categoryImageSize => 72.r;
+  static double get categoryImageSize => ScreenScale.r(72);
 
-  static double get offerCardHeight => 120.h;
+  static double get offerCardHeight => ScreenScale.h(120);
 
-  static double get bannerMinHeight => 112.h;
+  static double get bannerMinHeight => ScreenScale.h(112);
 
-  static double get bannerMaxHeight => 190.h;
+  static double get bannerMaxHeight => ScreenScale.h(190);
 
-  static double get productCardMinHeight => 240.h;
+  static double get productCardMinHeight => ScreenScale.h(240);
 
-  static double get bottomNavHeight => 64.h;
+  static double get bottomNavHeight => ScreenScale.h(64);
 
-  static double get appBarHeight => 56.h;
+  static double get appBarHeight => ScreenScale.h(56);
 
-  static double get fabSize => 56.r;
+  static double get fabSize => ScreenScale.r(56);
 
-  static double get bottomSheetHandleHeight => 32.h;
+  static double get bottomSheetHandleHeight => ScreenScale.h(32);
 
-  static double get sectionHeaderHeight => 44.h;
+  static double get sectionHeaderHeight => ScreenScale.h(44);
 
-  static double get badgeSize => 20.r;
+  static double get badgeSize => ScreenScale.r(20);
 
-  static double get dividerThickness => 1.h;
+  static double get dividerThickness => ScreenScale.h(1);
 
-  static double get chipHeight => 32.h;
+  static double get chipHeight => ScreenScale.h(32);
 
-  static double get inputHeight => 48.h;
+  static double get inputHeight => ScreenScale.h(48);
 
-  static double get sliderHeight => 40.h;
+  static double get sliderHeight => ScreenScale.h(40);
 
-  static double get tabBarHeight => 48.h;
+  static double get tabBarHeight => ScreenScale.h(48);
 
   static EdgeInsets get dialogPadding => EdgeInsets.symmetric(
-        horizontal: 24.w,
-        vertical: 20.h,
+        horizontal: ScreenScale.w(24),
+        vertical: ScreenScale.h(20),
       );
 
   static double dialogWidth(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    if (width >= 900) return 600.w;
-    if (width >= 600) return 520.w;
-    return 400.w;
+    if (width >= 900) return ScreenScale.w(600);
+    if (width >= 600) return ScreenScale.w(520);
+    return ScreenScale.w(400);
   }
 
   static const double dialogMaxWidth = 600;
 
   static double drawerWidth(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    if (width >= 900) return 360.w;
-    if (width >= 600) return 320.w;
-    return 280.w;
+    if (width >= 900) return ScreenScale.w(360);
+    if (width >= 600) return ScreenScale.w(320);
+    return ScreenScale.w(280);
   }
 
   static double get sheetMaxWidth => 720;

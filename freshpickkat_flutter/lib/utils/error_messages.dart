@@ -111,7 +111,7 @@ class ErrorMessages {
       'Delivery address updated successfully.';
   static const String deliveryNoteSaved = 'Delivery note saved successfully.';
   static const String supportContact =
-      'Please contact us at support@freshpickkart.com';
+      'Please contact us at freshpickkart@gmail.com';
 
   // ── Validation ──
   static const String submissionInProgress = 'Already processing. Please wait.';

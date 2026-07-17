@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/combo_offer_utils.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/product_variant_utils.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ComboProductPreviewCard extends StatelessWidget {
   final ResolvedComboProduct item;
@@ -54,24 +54,24 @@ class ComboProductPreviewCard extends StatelessWidget {
                   style: TextStyle(
                     color: cs.onSurface,
                     fontWeight: FontWeight.w700,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     height: 1.2,
                   ),
                   minFontSize: 9,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: ScreenScale.h(6)),
                 Text(
                   productFullQuantityLabel(item.selectedProduct),
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.55),
-                    fontSize: 11.sp,
+                    fontSize: ScreenScale.sp(11),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: ScreenScale.h(6)),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -83,23 +83,23 @@ class ComboProductPreviewCard extends StatelessWidget {
                             'MRP ₹${item.bundleMrpTotal.formatPrice}',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.45),
-                              fontSize: 10.sp,
+                              fontSize: ScreenScale.sp(10),
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          SizedBox(height: 2.h),
+                          SizedBox(height: ScreenScale.h(2)),
                           Text(
                             'Sell ₹${item.bundleLineTotal.formatPrice}',
                             style: TextStyle(
                               color: cs.onSurface,
-                              fontSize: 11.sp,
+                              fontSize: ScreenScale.sp(11),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: ScreenScale.w(8)),
                     Container(
                       padding: AppSpacing.symmetric(
                         horizontal: 8,
@@ -113,7 +113,7 @@ class ComboProductPreviewCard extends StatelessWidget {
                         'x${item.bundleQuantity}',
                         style: TextStyle(
                           color: cs.primary,
-                          fontSize: 10.sp,
+                          fontSize: ScreenScale.sp(10),
                           fontWeight: FontWeight.w700,
                         ),
                       ),

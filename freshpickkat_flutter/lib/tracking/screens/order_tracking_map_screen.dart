@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -14,6 +13,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import '../controllers/order_tracking_controller.dart';
 import '../models/order_tracking_snapshot.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class OrderTrackingMapScreen extends StatefulWidget {
   const OrderTrackingMapScreen({super.key, required this.orderId});
@@ -291,7 +291,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
     return Material(
       elevation: 10,
       color: cs.surface,
-      borderRadius: BorderRadius.circular(24.r),
+      borderRadius: BorderRadius.circular(ScreenScale.r(24)),
       shadowColor: Colors.black.withValues(alpha: 0.18),
       child: Padding(
         padding: AppSpacing.all(16),
@@ -302,8 +302,8 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
             Row(
               children: [
                 Container(
-                  width: 42.r,
-                  height: 42.r,
+                  width: ScreenScale.r(42),
+                  height: ScreenScale.r(42),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -313,24 +313,24 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                         ? Icons.local_shipping_rounded
                         : Icons.info_outline_rounded,
                     color: statusColor,
-                    size: 22.r,
+                    size: ScreenScale.r(22),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Expanded(
                   child: AutoSizeText(
                     statusText,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: cs.onSurface,
-                      fontSize: 15.sp,
+                      fontSize: ScreenScale.sp(15),
                     ),
                     minFontSize: 11,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (_controller.hasArrivingSoonFlag) SizedBox(width: 8.w),
+                if (_controller.hasArrivingSoonFlag) SizedBox(width: ScreenScale.w(8)),
                 if (_controller.hasArrivingSoonFlag)
                   _BadgeChip(
                     label: 'Arriving soon',
@@ -338,7 +338,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                   ),
               ],
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: ScreenScale.h(14)),
             LayoutBuilder(
               builder: (context, constraints) {
                 final distanceTile = _MetricTile(
@@ -359,7 +359,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                   return Column(
                     children: [
                       distanceTile,
-                      SizedBox(height: 10.h),
+                      SizedBox(height: ScreenScale.h(10)),
                       etaTile,
                     ],
                   );
@@ -367,7 +367,7 @@ class _OrderTrackingMapScreenState extends State<OrderTrackingMapScreen>
                 return Row(
                   children: [
                     Expanded(child: distanceTile),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: ScreenScale.w(12)),
                     Expanded(child: etaTile),
                   ],
                 );
@@ -413,7 +413,7 @@ class _BadgeChip extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 12.sp,
+          fontSize: ScreenScale.sp(12),
         ),
         minFontSize: 9,
         maxLines: 1,
@@ -447,15 +447,15 @@ class _MetricTile extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 34.r,
-            height: 34.r,
+            width: ScreenScale.r(34),
+            height: ScreenScale.r(34),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppRadius.large),
             ),
             child: Icon(icon, size: AppIcons.button, color: accent),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: ScreenScale.w(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,11 +464,11 @@ class _MetricTile extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: ScreenScale.h(2)),
                 AutoSizeText(
                   value,
                   maxLines: 1,
@@ -476,7 +476,7 @@ class _MetricTile extends StatelessWidget {
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
-                    fontSize: 14.sp,
+                    fontSize: ScreenScale.sp(14),
                   ),
                   minFontSize: 10,
                 ),

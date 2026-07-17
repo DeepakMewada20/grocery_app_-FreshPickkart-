@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/delivery_issue_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
@@ -13,6 +12,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ReportDeliveryIssueScreen extends StatefulWidget {
   const ReportDeliveryIssueScreen({
@@ -82,10 +82,10 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.fromLTRB(
-                    16.w,
-                    8.h,
-                    16.w,
-                    28.h + MediaQuery.paddingOf(context).bottom,
+                    ScreenScale.w(16),
+                    ScreenScale.h(8),
+                    ScreenScale.w(16),
+                    ScreenScale.h(28) + MediaQuery.paddingOf(context).bottom,
                   ),
                   child: AppResponsive.constrainContent(
                     context: context,
@@ -98,7 +98,7 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                             orderStatus: widget.orderStatus,
                             isOutForDelivery: _controller.isOutForDelivery,
                           ),
-                          SizedBox(height: 16.h),
+                          SizedBox(height: ScreenScale.h(16)),
                           _SectionCard(
                             title: 'Issue type',
                             child: DropdownButtonFormField<String>(
@@ -136,7 +136,7 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               },
                             ),
                           ),
-                          SizedBox(height: 16.h),
+                          SizedBox(height: ScreenScale.h(16)),
                           if (_controller.isDeliveryLocationIssue)
                             Column(
                               children: [
@@ -147,8 +147,8 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Wrap(
-                                        spacing: 10.w,
-                                        runSpacing: 8.h,
+                                        spacing: ScreenScale.w(10),
+                                        runSpacing: ScreenScale.h(8),
                                         children: [
                                           _buildFieldChip(
                                             context,
@@ -178,9 +178,9 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                           ),
                                         ],
                                       ),
-                                      SizedBox(height: 14.h),
+                                      SizedBox(height: ScreenScale.h(14)),
                                       SizedBox(
-                                        height: 110.h,
+                                        height: ScreenScale.h(110),
                                         child: _controller.isAddressChange
                                             ? _AddressPreviewCard(
                                                 address:
@@ -206,7 +206,7 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                                     ],
                                   ),
                                 ),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: ScreenScale.h(16)),
                               ],
                             ),
                           _SectionCard(
@@ -235,10 +235,10 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               },
                             ),
                           ),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           SizedBox(
                             width: double.infinity,
-                            height: 52.h,
+                            height: ScreenScale.h(52),
                             child: ElevatedButton(
                               onPressed: submitting ? null : _submit,
                               style: ElevatedButton.styleFrom(
@@ -248,8 +248,8 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
                               ),
                               child: submitting
                                   ? SizedBox(
-                                      width: 22.r,
-                                      height: 22.r,
+                                      width: ScreenScale.r(22),
+                                      height: ScreenScale.r(22),
                                       child: const CircularProgressIndicator(
                                         strokeWidth: 2.4,
                                         color: Colors.white,
@@ -303,7 +303,7 @@ class _ReportDeliveryIssueScreenState extends State<ReportDeliveryIssueScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13.sp,
+            fontSize: ScreenScale.sp(13),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             color: cs.onSurface,
           ),
@@ -352,7 +352,7 @@ InputDecoration _inputDecoration(
     hintText: hintText,
     hintStyle: TextStyle(
       color: cs.onSurface.withValues(alpha: 0.38),
-      fontSize: 14.sp,
+      fontSize: ScreenScale.sp(14),
     ),
     prefixIcon: prefixIcon == null
         ? null
@@ -410,7 +410,7 @@ class _IntroCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline_rounded, color: cs.primary, size: AppIcons.medium),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,18 +420,18 @@ class _IntroCard extends StatelessWidget {
                       ? 'Request approval for delivery changes'
                       : 'Update the delivery details directly',
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     fontWeight: FontWeight.w700,
                     color: cs.primary,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   isOutForDelivery
                       ? 'The order is out for delivery. Address changes and delivery notes will go to admin for approval.'
                       : 'The order is $orderStatus. Address changes and delivery notes are saved directly to the order.',
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     color: cs.onSurface.withValues(alpha: 0.7),
                     height: 1.3,
                   ),
@@ -467,9 +467,9 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: ScreenScale.sp(16), fontWeight: FontWeight.w900),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           child,
         ],
       ),
@@ -513,21 +513,21 @@ class _AddressPreviewCard extends StatelessWidget {
                 Text(
                   'Current address',
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   addressText,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.sp, height: 1.35),
+                  style: TextStyle(fontSize: ScreenScale.sp(13), height: 1.35),
                 ),
               ],
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: ScreenScale.w(10)),
           OutlinedButton(
             onPressed: onEdit,
             style: OutlinedButton.styleFrom(
@@ -539,7 +539,7 @@ class _AddressPreviewCard extends StatelessWidget {
             ),
             child: Text(
               'Change',
-              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: ScreenScale.sp(12), fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -566,17 +566,17 @@ class _BlockedState extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.info_outline_rounded, size: 48),
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 Text(
                   'Status: ${complaint.status}',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: ScreenScale.h(8)),
                 Text(
                   'You already have an active complaint for this order. Please view the complaint details or wait for a response.',
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 14.h),
+                SizedBox(height: ScreenScale.h(14)),
                 OutlinedButton(
                   onPressed: () async {
                     await navigateDeferred(

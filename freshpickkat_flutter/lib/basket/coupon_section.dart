@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -10,6 +9,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/coupon_extensions.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COUPON SECTION — Auto-Apply UX
@@ -75,13 +75,13 @@ class _CouponSectionState extends State<CouponSection> {
                         size: AppIcons.small,
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: ScreenScale.w(10)),
                     Flexible(
                       child: AutoSizeText(
                         'Smart Savings',
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 16.sp,
+                          fontSize: ScreenScale.sp(16),
                           fontWeight: FontWeight.bold,
                         ),
                         minFontSize: 12,
@@ -91,7 +91,7 @@ class _CouponSectionState extends State<CouponSection> {
                   ],
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               GestureDetector(
                 onTap: () async {
                   setState(() => _showCouponList = !_showCouponList);
@@ -105,7 +105,7 @@ class _CouponSectionState extends State<CouponSection> {
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     color: AppTheme.primaryGreen,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     fontWeight: FontWeight.w500,
                   ),
                   minFontSize: 10,
@@ -114,7 +114,7 @@ class _CouponSectionState extends State<CouponSection> {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           // ── Status area ─────────────────────────────────────────────────
           Obx(() {
@@ -135,7 +135,7 @@ class _CouponSectionState extends State<CouponSection> {
                 _cartController.appliedCoupon.value == null) {
               return Text(
                 _cartController.couponError.value,
-                style: TextStyle(color: cs.error, fontSize: 12.sp),
+                style: TextStyle(color: cs.error, fontSize: ScreenScale.sp(12)),
               );
             }
 
@@ -169,9 +169,9 @@ class _CouponSectionState extends State<CouponSection> {
 
           // ── Offer list (view-only, expandable) ──────────────────────────
           if (_showCouponList) ...[
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             const Divider(),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             Obx(() {
               if (_cartController.isLoadingCoupons.value) {
                 return Center(
@@ -214,7 +214,7 @@ class _CouponSectionState extends State<CouponSection> {
                           'Best offer is auto-applied • You can switch anytime',
                       cs: cs,
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: ScreenScale.h(8)),
                     ...applicable.map(
                       (c) => Padding(
                         padding: AppSpacing.only(bottom: 8),
@@ -229,13 +229,13 @@ class _CouponSectionState extends State<CouponSection> {
                     ),
                   ],
                   if (notApplicable.isNotEmpty) ...[
-                    SizedBox(height: 8.h),
+                    SizedBox(height: ScreenScale.h(8)),
                     _SectionLabel(
                       label: 'Unlock More Offers',
                       subtitle: 'Add more items to unlock these',
                       cs: cs,
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: ScreenScale.h(8)),
                     ...notApplicable.map(
                       (c) => Padding(
                         padding: AppSpacing.only(bottom: 8),
@@ -294,13 +294,13 @@ class _AppliedCouponCard extends StatelessWidget {
                 color: Colors.green.shade600,
                 size: AppIcons.small,
               ),
-              SizedBox(width: 6.w),
+              SizedBox(width: ScreenScale.w(6)),
               Expanded(
                 child: AutoSizeText(
                   'Best coupon applied automatically',
                   style: TextStyle(
                     color: Colors.green.shade700,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -318,14 +318,14 @@ class _AppliedCouponCard extends StatelessWidget {
                   ),
                   child: Icon(
                     Icons.close_rounded,
-                    size: 14.r,
+                    size: ScreenScale.r(14),
                     color: cs.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: ScreenScale.h(10)),
           // Coupon code + savings
           Row(
             children: [
@@ -346,12 +346,12 @@ class _AppliedCouponCard extends StatelessWidget {
                       color: Colors.green.shade600,
                       size: AppIcons.tiny,
                     ),
-                    SizedBox(width: 4.w),
+                    SizedBox(width: ScreenScale.w(4)),
                     Text(
                       coupon.code,
                       style: TextStyle(
                         color: Colors.green.shade700,
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -359,7 +359,7 @@ class _AppliedCouponCard extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: ScreenScale.w(10)),
               Expanded(
                 child: Text(
                   isDelivery
@@ -369,7 +369,7 @@ class _AppliedCouponCard extends StatelessWidget {
                       : coupon.displayDiscount,
                   style: TextStyle(
                     color: Colors.green.shade700,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
@@ -378,12 +378,12 @@ class _AppliedCouponCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: ScreenScale.h(6)),
           Text(
             '✨ You are getting the best available offer',
             style: TextStyle(
               color: Colors.green.shade600.withValues(alpha: 0.8),
-              fontSize: 11.sp,
+              fontSize: ScreenScale.sp(11),
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -425,7 +425,7 @@ class _BestOfferAvailableCard extends StatelessWidget {
               size: AppIcons.button,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,18 +445,18 @@ class _BestOfferAvailableCard extends StatelessWidget {
                         'Best',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 9.sp,
+                          fontSize: ScreenScale.sp(9),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    SizedBox(width: 6.w),
+                    SizedBox(width: ScreenScale.w(6)),
                     Expanded(
                       child: AutoSizeText(
                         coupon.code,
                         style: TextStyle(
                           color: cs.onSurface,
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
@@ -465,23 +465,23 @@ class _BestOfferAvailableCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   coupon.displayDiscount,
                   style: TextStyle(
                     color: AppTheme.primaryGreen,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: ScreenScale.h(2)),
                 Text(
                   'Best savings unlocked automatically',
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.55),
-                    fontSize: 11.sp,
+                    fontSize: ScreenScale.sp(11),
                   ),
                 ),
               ],
@@ -516,13 +516,13 @@ class _NoApplicableOfferHint extends StatelessWidget {
             color: cs.onSurface.withValues(alpha: 0.4),
             size: AppIcons.small,
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
           Expanded(
             child: Text(
               'Add more items to unlock exclusive offers',
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.6),
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
               ),
             ),
           ),
@@ -550,18 +550,18 @@ class _SectionLabel extends StatelessWidget {
           label,
           style: TextStyle(
             color: cs.onSurface.withValues(alpha: 0.7),
-            fontSize: 12.sp,
+            fontSize: ScreenScale.sp(12),
             fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
           ),
         ),
         if (subtitle != null) ...[
-          SizedBox(height: 2.h),
+          SizedBox(height: ScreenScale.h(2)),
           Text(
             subtitle!,
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.45),
-              fontSize: 10.sp,
+              fontSize: ScreenScale.sp(10),
             ),
           ),
         ],
@@ -637,7 +637,7 @@ class _OfferListCard extends StatelessWidget {
               size: AppIcons.button,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
 
           // Details
           Expanded(
@@ -654,7 +654,7 @@ class _OfferListCard extends StatelessWidget {
                               ? cs.onSurface
                               : cs.onSurface.withValues(alpha: 0.45),
                           fontWeight: FontWeight.bold,
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                         ),
                         minFontSize: 10,
                         maxLines: 1,
@@ -662,7 +662,7 @@ class _OfferListCard extends StatelessWidget {
                       ),
                     ),
                     if (coupon.isBest) ...[
-                      SizedBox(width: 6.w),
+                      SizedBox(width: ScreenScale.w(6)),
                       Container(
                         padding: AppSpacing.symmetric(
                           horizontal: 5,
@@ -670,13 +670,13 @@ class _OfferListCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryGreen,
-                          borderRadius: BorderRadius.circular(3.r),
+                          borderRadius: BorderRadius.circular(ScreenScale.r(3)),
                         ),
                         child: Text(
                           'Best',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 8.sp,
+                            fontSize: ScreenScale.sp(8),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -684,17 +684,17 @@ class _OfferListCard extends StatelessWidget {
                     ],
                   ],
                 ),
-                SizedBox(height: 3.h),
+                SizedBox(height: ScreenScale.h(3)),
                 Text(
                   coupon.description,
                   style: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.55),
-                    fontSize: 11.sp,
+                    fontSize: ScreenScale.sp(11),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: ScreenScale.h(2)),
                 Text(
                   isApplicable
                       ? coupon.displayDiscount
@@ -703,7 +703,7 @@ class _OfferListCard extends StatelessWidget {
                     color: isApplicable
                         ? AppTheme.primaryGreen
                         : cs.onSurface.withValues(alpha: 0.4),
-                    fontSize: 11.sp,
+                    fontSize: ScreenScale.sp(11),
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -713,7 +713,7 @@ class _OfferListCard extends StatelessWidget {
             ),
           ),
 
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
 
           // Action area — Apply button or status chip
           if (isApplied)
@@ -729,7 +729,7 @@ class _OfferListCard extends StatelessWidget {
                 '✓ Applied',
                 style: TextStyle(
                   color: Colors.green.shade700,
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -741,7 +741,7 @@ class _OfferListCard extends StatelessWidget {
                   cartController.isApplyingCoupon.value &&
                   cartController.applyingCouponCode.value == normalizedCode;
               return SizedBox(
-                height: 34.h,
+                height: ScreenScale.h(34),
                 child: ElevatedButton(
                   onPressed: cartController.isApplyingCoupon.value
                       ? null
@@ -760,8 +760,8 @@ class _OfferListCard extends StatelessWidget {
                   ),
                   child: isApplyingThis
                       ? SizedBox(
-                          height: 14.r,
-                          width: 14.r,
+                          height: ScreenScale.r(14),
+                          width: ScreenScale.r(14),
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
@@ -770,7 +770,7 @@ class _OfferListCard extends StatelessWidget {
                       : Text(
                           'Apply',
                           style: TextStyle(
-                            fontSize: 12.sp,
+                            fontSize: ScreenScale.sp(12),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -792,7 +792,7 @@ class _OfferListCard extends StatelessWidget {
                 'Used',
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5),
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -810,7 +810,7 @@ class _OfferListCard extends StatelessWidget {
                 'Locked',
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.35),
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   fontWeight: FontWeight.w700,
                 ),
               ),

@@ -29,7 +29,6 @@ import 'package:freshpickkat_flutter/widgets/network_banner_widget.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/utils/app_snackbar.dart';
 import 'package:freshpickkat_flutter/utils/app_logger.dart';
@@ -39,6 +38,7 @@ import 'package:razorpay_flutter_customui/razorpay_flutter_customui.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -272,8 +272,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.link_off, color: cs.error, size: 24.r),
-            SizedBox(width: 12.w),
+            Icon(Icons.link_off, color: cs.error, size: ScreenScale.r(24)),
+            SizedBox(width: ScreenScale.w(12)),
             Expanded(
               child: Text(
                 'Active Payment Link',
@@ -1043,7 +1043,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: ConstrainedBox(
             constraints: AppResponsive.sheetConstraints(context),
             child: Container(
-              padding: EdgeInsets.all(20.w),
+              padding: EdgeInsets.all(ScreenScale.w(20)),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.vertical(
@@ -1065,65 +1065,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 40.w,
-                        height: 4.h,
+                        width: ScreenScale.w(40),
+                        height: ScreenScale.h(4),
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: ScreenScale.h(20)),
                       Icon(
                         Icons.check_circle,
                         color: Colors.green,
-                        size: 48.r,
+                        size: ScreenScale.r(48),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       Text(
                         'Payment Link Ready',
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: ScreenScale.sp(20),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: ScreenScale.h(8)),
                       Text(
                         'Share the payment link with someone to complete the payment.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                           color: Colors.grey[600],
                         ),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       Container(
-                        padding: EdgeInsets.all(12.w),
+                        padding: EdgeInsets.all(ScreenScale.w(12)),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                         ),
                         child: Text(
                           '#$orderId',
                           style: TextStyle(
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                             fontWeight: FontWeight.w600,
                             color: AppTheme.primaryGreen,
                           ),
                         ),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: ScreenScale.h(12)),
                       if (remaining.inSeconds > 0)
                         Text(
                           'Expires in ${remaining.inMinutes} min ${remaining.inSeconds.remainder(60)} sec',
                           style: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: ScreenScale.sp(13),
                             color: remaining.inMinutes < 2
                                 ? Colors.red
                                 : Colors.orange[700],
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       Row(
                         children: [
                           Expanded(
@@ -1148,7 +1148,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               },
                             ),
                           ),
-                          SizedBox(width: 12.w),
+                          SizedBox(width: ScreenScale.w(12)),
                           Expanded(
                             child: _buildShareButton(
                               icon: Icons.share,
@@ -1164,7 +1164,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                     ],
                   );
                 },
@@ -1188,22 +1188,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(ScreenScale.r(12)),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
+        padding: EdgeInsets.symmetric(vertical: ScreenScale.h(12)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 28.r),
-            SizedBox(height: 4.h),
+            Icon(icon, color: color, size: ScreenScale.r(28)),
+            SizedBox(height: ScreenScale.h(4)),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -1389,33 +1389,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       top: Radius.circular(20),
                     ),
                   ),
-                  padding: EdgeInsets.all(20.w),
+                  padding: EdgeInsets.all(ScreenScale.w(20)),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 40.w,
-                        height: 4.h,
+                        width: ScreenScale.w(40),
+                        height: ScreenScale.h(4),
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                       Text(
                         'Select UPI App',
                         style: TextStyle(
-                          fontSize: 18.sp,
+                          fontSize: ScreenScale.sp(18),
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: ScreenScale.h(20)),
                       ...upiApps.map((app) {
                         return ListTile(
                           leading: Container(
-                            width: 48.r,
-                            height: 48.r,
+                            width: ScreenScale.r(48),
+                            height: ScreenScale.r(48),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryGreen.withValues(
                                 alpha: 0.14,
@@ -1430,7 +1430,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             child: Icon(
                               app['icon'] as IconData,
                               color: AppTheme.primaryGreen,
-                              size: 26.r,
+                              size: ScreenScale.r(26),
                             ),
                           ),
                           title: Text(
@@ -1442,7 +1442,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                           trailing: Icon(
                             Icons.arrow_forward_ios,
-                            size: 16.r,
+                            size: ScreenScale.r(16),
                             color: Theme.of(
                               context,
                             ).colorScheme.onSurface.withValues(alpha: 0.4),
@@ -1462,11 +1462,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           },
                         );
                       }),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: ScreenScale.h(8)),
                       ListTile(
                         leading: Container(
-                          width: 48.r,
-                          height: 48.r,
+                          width: ScreenScale.r(48),
+                          height: ScreenScale.r(48),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryGreen.withValues(
                               alpha: 0.14,
@@ -1481,7 +1481,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Icon(
                             Icons.account_balance_wallet_outlined,
                             color: AppTheme.primaryGreen,
-                            size: 26.r,
+                            size: ScreenScale.r(26),
                           ),
                         ),
                         title: Text(
@@ -1493,7 +1493,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                         trailing: Icon(
                           Icons.arrow_forward_ios,
-                          size: 16.r,
+                          size: ScreenScale.r(16),
                           color: Theme.of(
                             context,
                           ).colorScheme.onSurface.withValues(alpha: 0.4),
@@ -1512,7 +1512,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           );
                         },
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: ScreenScale.h(16)),
                     ],
                   ),
                 ),
@@ -2106,7 +2106,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: RefreshIndicator(
                   onRefresh: _handleRefresh,
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.only(top: 16.r),
+                    padding: EdgeInsets.only(top: ScreenScale.r(16)),
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: [
@@ -2116,7 +2116,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               BannerController.instance.checkoutPageBanners;
                           if (banners.isEmpty) return const SizedBox.shrink();
                           return Padding(
-                            padding: EdgeInsets.only(bottom: 16.h),
+                            padding: EdgeInsets.only(bottom: ScreenScale.h(16)),
                             child: NetworkBannerWidget(
                               height: AppResponsive.bannerHeight(
                                 context,
@@ -2133,7 +2133,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           );
                         }),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(16)),
                           child: AppResponsive.constrainContent(
                             context: context,
                             maxWidth: AppResponsive.maxCheckoutWidth,
@@ -2141,17 +2141,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildAddressSection(cs),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: ScreenScale.h(16)),
                                 _buildItemsSection(cs),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: ScreenScale.h(16)),
                                 _buildBillDetails(cs),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: ScreenScale.h(16)),
                                 _buildPaymentSection(cs),
                                 if (_errorMessage != null) ...[
-                                  SizedBox(height: 16.h),
+                                  SizedBox(height: ScreenScale.h(16)),
                                   _buildErrorBanner(cs),
                                 ],
-                                SizedBox(height: 80.h),
+                                SizedBox(height: ScreenScale.h(80)),
                               ],
                             ),
                           ),
@@ -2215,10 +2215,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final displayAddress = userController.shippingAddress.value;
 
       return Container(
-        padding: EdgeInsets.all(20.w),
+        padding: EdgeInsets.all(ScreenScale.w(20)),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(16)),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -2233,13 +2233,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppText.sectionTitle(context).copyWith(
-                      fontSize: 16.sp,
+                      fontSize: ScreenScale.sp(16),
                     ),
                   ),
                 ),
                 if (displayAddress != null)
                   SizedBox(
-                    height: 35.h.clamp(32.0, 42.0),
+                    height: ScreenScale.h(35).clamp(32.0, 42.0),
                     child: _buildAddressButton(
                       cs,
                       icon: Icons.my_location,
@@ -2251,13 +2251,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
               ],
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             if (displayAddress == null) ...[
               Text(
                 'No address selected. Please add delivery address.',
                 style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               _buildAddressButton(
                 cs,
                 icon: Icons.my_location,
@@ -2267,14 +2267,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ] else ...[
               if (_hasInvalidCoords(displayAddress))
                 Container(
-                  margin: EdgeInsets.only(bottom: 12.h),
+                  margin: EdgeInsets.only(bottom: ScreenScale.h(12)),
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 10.h,
+                    horizontal: ScreenScale.w(12),
+                    vertical: ScreenScale.h(10),
                   ),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                     border: Border.all(color: Colors.amber.shade200),
                   ),
                   child: Row(
@@ -2282,15 +2282,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Icon(
                         Icons.warning_amber_rounded,
                         color: Colors.amber.shade700,
-                        size: 20.sp,
+                        size: ScreenScale.sp(20),
                       ),
-                      SizedBox(width: 10.w),
+                      SizedBox(width: ScreenScale.w(10)),
                       Expanded(
                         child: Text(
                           'Location coordinates missing or incorrect. Please update on the map for accurate delivery.',
                           style: TextStyle(
                             color: Colors.amber.shade900,
-                            fontSize: 12.sp,
+                            fontSize: ScreenScale.sp(12),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -2303,12 +2303,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ],
                   ),
                 ),
-              SizedBox(height: 12.h),
+              SizedBox(height: ScreenScale.h(12)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(width: 4.w),
+                  SizedBox(width: ScreenScale.w(4)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2320,39 +2320,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: TextStyle(
                             color: cs.onSurface,
                             fontWeight: FontWeight.w600,
-                            fontSize: 15.sp,
+                            fontSize: ScreenScale.sp(15),
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: ScreenScale.h(4)),
                         Text(
                           _getCustomerPhone(),
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.7),
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: ScreenScale.w(12)),
                 ],
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: ScreenScale.h(16)),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.location_on,
                     color: cs.onSurface.withValues(alpha: 0.6),
-                    size: 20.r,
+                    size: ScreenScale.r(20),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: ScreenScale.w(12)),
                   Expanded(
                     child: Text(
                       _formatAddress(displayAddress),
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.8),
-                        fontSize: 14.sp,
+                        fontSize: ScreenScale.sp(14),
                       ),
                     ),
                   ),
@@ -2374,18 +2374,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }) {
     if (compact) {
       return Container(
-        margin: EdgeInsets.only(left: 12.w),
+        margin: EdgeInsets.only(left: ScreenScale.w(12)),
         child: OutlinedButton.icon(
           onPressed: onPressed,
-          icon: Icon(icon, size: 18.r),
+          icon: Icon(icon, size: ScreenScale.r(18)),
           label: Text(
             label,
-            style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: ScreenScale.sp(13), fontWeight: FontWeight.w600),
           ),
           style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(14), vertical: ScreenScale.h(10)),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(8)),
             ),
             side: BorderSide(
               color: cs.primary.withValues(alpha: 0.5),
@@ -2401,9 +2401,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       icon: Icon(icon),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(16), vertical: ScreenScale.h(12)),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(8)),
         ),
       ),
     );
@@ -2481,10 +2481,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             .toList();
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -2497,67 +2497,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: TextStyle(
                   color: cs.onSurface,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
+                  fontSize: ScreenScale.sp(16),
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(8), vertical: ScreenScale.h(2)),
                 decoration: BoxDecoration(
                   color: cs.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                 ),
                 child: Text(
                   '$totalCount',
                   style: TextStyle(
                     color: cs.primary,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           if (bogoItems.isNotEmpty) ...[
             _buildSectionLabel('BOGO Offers', cs),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...bogoItems.map(
               (item) => _buildBogoCheckoutCard(item, cs),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
           ],
           if (smgmFreeItems.isNotEmpty) ...[
             _buildSectionLabel('Free Gifts', cs),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...smgmFreeItems.map(
               (item) => _buildSmgmCheckoutItem(item, cs),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
           ],
           if (freeDeliveryItems.isNotEmpty) ...[
             _buildSectionLabel('Free Delivery', cs),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...freeDeliveryItems.map(
               (item) => _buildIndividualCheckoutItem(item, cs),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
           ],
           if (comboGroups.isNotEmpty) ...[
             _buildSectionLabel('Combo Offers', cs),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...comboGroups.map(
               (group) => _buildComboCheckoutGroup(group, cs),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
           ],
           if (individualItems.isNotEmpty) ...[
             _buildSectionLabel('Individual Items', cs),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...individualItems.map(
               (item) => _buildIndividualCheckoutItem(item, cs),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
           ],
           _buildTotalItemCount(totalCount, cs),
         ],
@@ -2569,19 +2569,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Row(
       children: [
         Container(
-          width: 3.w,
-          height: 14.h,
+          width: ScreenScale.w(3),
+          height: ScreenScale.h(14),
           decoration: BoxDecoration(
             color: badgeColor ?? cs.onSurface.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(2.r),
+            borderRadius: BorderRadius.circular(ScreenScale.r(2)),
           ),
         ),
-        SizedBox(width: 6.w),
+        SizedBox(width: ScreenScale.w(6)),
         Text(
           title,
           style: TextStyle(
             color: cs.onSurface.withValues(alpha: 0.7),
-            fontSize: 12.sp,
+            fontSize: ScreenScale.sp(12),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -2621,12 +2621,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         : item.quantity;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(8)),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(ScreenScale.w(12)),
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -2638,26 +2638,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Expanded(
                   child: Text(
                     '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
-                    style: TextStyle(color: cs.onSurface, fontSize: 13.sp),
+                    style: TextStyle(color: cs.onSurface, fontSize: ScreenScale.sp(13)),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Text(
                   '₹${(item.product.price * item.quantity).formatPrice}',
                   style: TextStyle(
                     color: cs.onSurface,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                   ),
                 ),
               ],
             ),
             if (freeProduct != null) ...[
-              SizedBox(height: 8.h),
+              SizedBox(height: ScreenScale.h(8)),
               Divider(color: cs.outlineVariant, height: 1),
-              SizedBox(height: 8.h),
+              SizedBox(height: ScreenScale.h(8)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -2666,29 +2666,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 6.w,
-                            vertical: 2.h,
+                            horizontal: ScreenScale.w(6),
+                            vertical: ScreenScale.h(2),
                           ),
                           decoration: BoxDecoration(
                             color: cs.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(4.r),
+                            borderRadius: BorderRadius.circular(ScreenScale.r(4)),
                           ),
                           child: Text(
                             'FREE',
                             style: TextStyle(
                               color: cs.onSurface,
-                              fontSize: 9.sp,
+                              fontSize: ScreenScale.sp(9),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
-                        SizedBox(width: 6.w),
+                        SizedBox(width: ScreenScale.w(6)),
                         Expanded(
                           child: Text(
                             '${freeProduct.productName} ($freeLabel) x$freeQuantity',
                             style: TextStyle(
                               color: cs.onSurface,
-                              fontSize: 13.sp,
+                              fontSize: ScreenScale.sp(13),
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -2697,13 +2697,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: ScreenScale.w(8)),
                   Text(
                     '₹0',
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w600,
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                     ),
                   ),
                 ],
@@ -2717,25 +2717,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildIndividualCheckoutItem(CartItem item, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(8)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Text(
               '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
-              style: TextStyle(color: cs.onSurface, fontSize: 13.sp),
+              style: TextStyle(color: cs.onSurface, fontSize: ScreenScale.sp(13)),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
           Text(
             '₹${(item.product.price * item.quantity).formatPrice}',
             style: TextStyle(
               color: cs.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
             ),
           ),
         ],
@@ -2745,31 +2745,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildSmgmCheckoutItem(FreeItemInfo item, ColorScheme cs) {
     return Container(
-      margin: EdgeInsets.only(bottom: 8.h),
-      padding: EdgeInsets.all(10.w),
+      margin: EdgeInsets.only(bottom: ScreenScale.h(8)),
+      padding: EdgeInsets.all(ScreenScale.w(10)),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(12)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+            padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(6), vertical: ScreenScale.h(2)),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(4)),
             ),
             child: Text(
               'FREE',
               style: TextStyle(
                 color: cs.onSurface,
-                fontSize: 10.sp,
+                fontSize: ScreenScale.sp(10),
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: ScreenScale.w(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2778,7 +2778,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   '${item.productName} x${item.quantity}',
                   style: TextStyle(
                     color: cs.onSurface,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -2788,7 +2788,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     'Unlocked via ${item.rewardOfferName}',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.7),
-                      fontSize: 10.sp,
+                      fontSize: ScreenScale.sp(10),
                     ),
                   ),
               ],
@@ -2799,7 +2799,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               '₹${item.rewardValue!.formatPrice}',
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.7),
-                fontSize: 14.sp,
+                fontSize: ScreenScale.sp(14),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -2811,7 +2811,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildTotalItemCount(int totalCount, ColorScheme cs) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(top: 12.h),
+      padding: EdgeInsets.only(top: ScreenScale.h(12)),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: cs.outlineVariant)),
       ),
@@ -2823,7 +2823,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: TextStyle(
               color: cs.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
             ),
           ),
           Text(
@@ -2831,7 +2831,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: TextStyle(
               color: cs.onSurface,
               fontWeight: FontWeight.w800,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
             ),
           ),
         ],
@@ -2841,12 +2841,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildComboCheckoutGroup(ComboCartGroup group, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(8)),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(ScreenScale.w(12)),
         decoration: BoxDecoration(
           color: cs.surface,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           border: Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -2860,12 +2860,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Text(
                   comboDiscountBadgeText(
                     group.discountType,
@@ -2873,16 +2873,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   style: TextStyle(
                     color: cs.onSurface,
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...group.items.map(
               (item) => Padding(
-                padding: EdgeInsets.only(bottom: 6.h),
+                padding: EdgeInsets.only(bottom: ScreenScale.h(6)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -2891,24 +2891,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         '${item.product.productName} (${productFullQuantityLabel(item.product)}) x${item.quantity}',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: ScreenScale.w(8)),
                     Text(
                       '₹${(item.product.price * item.quantity).formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.75),
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -2920,11 +2920,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: TextStyle(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w700,
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -2933,14 +2933,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       style: TextStyle(
                         color: cs.onSurface,
                         fontWeight: FontWeight.bold,
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                       ),
                     ),
                     Text(
                       '₹${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -2956,10 +2956,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildBillDetails(ColorScheme cs) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -2970,17 +2970,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: TextStyle(
               color: cs.onSurface,
               fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
+              fontSize: ScreenScale.sp(16),
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           _buildBillRow(
             'MRP Total',
             '₹${cartController.mrpTotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.productDiscountTotal > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Product Discount',
               '₹${cartController.productDiscountTotal.formatPrice}',
@@ -2989,7 +2989,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
           if (cartController.comboDiscountTotal > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Combo Savings',
               '₹${cartController.comboDiscountTotal.formatPrice}',
@@ -2998,7 +2998,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
           if (cartController.bogoDiscountTotal > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'BOGO Savings',
               '₹${cartController.bogoDiscountTotal.formatPrice}',
@@ -3007,7 +3007,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
           if (cartController.freeGiftSavings > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Free Gift Savings',
               '₹${cartController.freeGiftSavings.formatPrice}',
@@ -3016,7 +3016,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
           if (cartController.categoryOfferDiscountTotal > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Category Offer Savings',
               '₹${cartController.categoryOfferDiscountTotal.formatPrice}',
@@ -3024,14 +3024,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               cs: cs,
             ),
           ],
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildBillRow(
             'Items Total (Combo Applied)',
             '₹${cartController.subtotal.formatPrice}',
             cs: cs,
           ),
           if (cartController.couponDiscount > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Coupon Discount',
               '₹${cartController.couponDiscount.formatPrice}',
@@ -3040,7 +3040,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
           if ((cartController.cartPricing.value?.freshPointsDiscount ?? 0) > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'FreshPoints (${cartController.cartPricing.value?.freshPointsRedeemed ?? 0} pts)',
               '₹${(cartController.cartPricing.value?.freshPointsDiscount ?? 0.0).formatPrice}',
@@ -3048,7 +3048,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               cs: cs,
             ),
           ],
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildBillRow(
             'Delivery Fee',
             cartController.deliveryFee == 0
@@ -3063,7 +3063,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             cs: cs,
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
+            padding: EdgeInsets.symmetric(vertical: ScreenScale.h(12)),
             child: Divider(color: cs.outlineVariant),
           ),
           _buildBillRow(
@@ -3095,7 +3095,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: AppText.receiptLabel(context, total: isTotal),
           ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: ScreenScale.w(12)),
         Flexible(
           child: AutoSizeText(
             value,
@@ -3117,10 +3117,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildPaymentSection(ColorScheme cs) {
     final linkValid = _isLinkValidForCurrentCart;
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(color: cs.outlineVariant),
       ),
       child: Column(
@@ -3129,7 +3129,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             children: [
               Icon(Icons.payments_outlined, color: cs.onSurface),
-              SizedBox(width: 12.w),
+              SizedBox(width: ScreenScale.w(12)),
               Expanded(
                 child: Text(
                   'Payment Method',
@@ -3141,7 +3141,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           _buildPaymentOptionTile(
             cs: cs,
             icon: Icons.person,
@@ -3153,7 +3153,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _isCodPayment = false;
             }),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildPaymentOptionTile(
             cs: cs,
             icon: Icons.money,
@@ -3170,9 +3170,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 : null,
           ),
           if (!_codAvailable) ...[
-            SizedBox(height: 6.h),
+            SizedBox(height: ScreenScale.h(6)),
             Padding(
-              padding: EdgeInsets.only(left: 16.w),
+              padding: EdgeInsets.only(left: ScreenScale.w(16)),
               child: Text(
                 'Cash on Delivery is temporarily unavailable for your account '
                 'due to multiple previous delivery refusals.\n\n'
@@ -3180,12 +3180,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 'Delivery access.',
                 style: TextStyle(
                   color: Colors.red.shade700,
-                  fontSize: 13.sp,
+                  fontSize: ScreenScale.sp(13),
                 ),
               ),
             ),
           ],
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildPaymentOptionTile(
             cs: cs,
             icon: Icons.share,
@@ -3201,7 +3201,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             isDisabled: linkValid,
           ),
           if (_activePaymentLink != null) ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: ScreenScale.h(12)),
             _buildLinkStatusCard(cs),
           ],
         ],
@@ -3234,10 +3234,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(ScreenScale.w(12)),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(12)),
         border: Border.all(color: borderColor),
       ),
       child: Column(
@@ -3252,9 +3252,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ? Icons.timer_off
                     : Icons.timer_outlined,
                 color: statusColor,
-                size: 24.r,
+                size: ScreenScale.r(24),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: ScreenScale.w(10)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3268,7 +3268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       style: TextStyle(
                         color: textColor,
                         fontWeight: FontWeight.w600,
-                        fontSize: 14.sp,
+                        fontSize: ScreenScale.sp(14),
                       ),
                     ),
                     if (!_linkPaymentReceived && !expired)
@@ -3276,7 +3276,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         'Expires in ${remaining.inMinutes} min ${remaining.inSeconds.remainder(60)} sec',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.6),
-                          fontSize: 12.sp,
+                          fontSize: ScreenScale.sp(12),
                         ),
                       ),
                   ],
@@ -3285,7 +3285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           if (!expired && !_linkPaymentReceived && message.isNotEmpty) ...[
-            SizedBox(height: 10.h),
+            SizedBox(height: ScreenScale.h(10)),
             Row(
               children: [
                 Expanded(
@@ -3299,23 +3299,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         'Payment link copied to clipboard',
                       );
                     },
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      padding: EdgeInsets.symmetric(vertical: ScreenScale.h(8)),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.copy, color: statusColor, size: 16.r),
-                          SizedBox(width: 6.w),
+                          Icon(Icons.copy, color: statusColor, size: ScreenScale.r(16)),
+                          SizedBox(width: ScreenScale.w(6)),
                           Text(
                             'Copy Link',
                             style: TextStyle(
                               color: statusColor,
-                              fontSize: 12.sp,
+                              fontSize: ScreenScale.sp(12),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -3324,7 +3324,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: ScreenScale.w(10)),
                 Expanded(
                   child: InkWell(
                     onTap: () {
@@ -3334,23 +3334,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         subject: 'Payment for Order #$orderId',
                       );
                     },
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8.h),
+                      padding: EdgeInsets.symmetric(vertical: ScreenScale.h(8)),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(ScreenScale.r(8)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.share, color: statusColor, size: 16.r),
-                          SizedBox(width: 6.w),
+                          Icon(Icons.share, color: statusColor, size: ScreenScale.r(16)),
+                          SizedBox(width: ScreenScale.w(6)),
                           Text(
                             'Share',
                             style: TextStyle(
                               color: statusColor,
-                              fontSize: 12.sp,
+                              fontSize: ScreenScale.sp(12),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -3385,11 +3385,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         : AppTheme.primaryGreen;
     return InkWell(
       onTap: effectiveOnTap,
-      borderRadius: BorderRadius.circular(12.r),
+      borderRadius: BorderRadius.circular(ScreenScale.r(12)),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(ScreenScale.w(12)),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           border: Border.all(
             color: isSelected ? accentColor : cs.outlineVariant,
             width: isSelected ? 2 : 1,
@@ -3404,7 +3404,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               icon,
               color: isSelected ? accentColor : textColor,
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: ScreenScale.w(12)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -3419,7 +3419,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                       color: isDisabled
                           ? cs.onSurface.withValues(alpha: 0.3)
                           : cs.onSurface.withValues(alpha: 0.6),
@@ -3431,7 +3431,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
               color: isSelected ? accentColor : textColor,
-              size: 20.r,
+              size: ScreenScale.r(20),
             ),
           ],
         ),
@@ -3442,14 +3442,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildPlaceOrderButton(ColorScheme cs) {
     final disablePlaceOrder = _isLinkValidForCurrentCart && _isShareablePayment;
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: cs.outlineVariant)),
       ),
       child: SizedBox(
         width: double.infinity,
-        height: 54.h.clamp(50.0, 62.0),
+        height: ScreenScale.h(54).clamp(50.0, 62.0),
         child: ElevatedButton(
           onPressed: (_isProcessing || disablePlaceOrder) ? null : _placeOrder,
           style: ElevatedButton.styleFrom(
@@ -3458,7 +3458,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 : AppTheme.primaryGreen,
             foregroundColor: cs.onPrimary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(14)),
             ),
           ),
           child: _isProcessing
@@ -3466,14 +3466,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      width: 20.r,
-                      height: 20.r,
+                      width: ScreenScale.r(20),
+                      height: ScreenScale.r(20),
                       child: CircularProgressIndicator(
                         color: Colors.white,
                         strokeWidth: 2,
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: ScreenScale.w(12)),
                     Flexible(
                       child: AutoSizeText(
                         _loadingStatus ?? 'Processing...',
@@ -3482,7 +3482,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 14.sp,
+                          fontSize: ScreenScale.sp(14),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -3506,16 +3506,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final textColor = _isErrorBanner ? cs.onErrorContainer : cs.onSurface;
     final icon = _isErrorBanner ? Icons.error_outline : Icons.info_outline;
     return Container(
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(ScreenScale.w(12)),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(12)),
         border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
           Icon(icon, color: textColor),
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
           Expanded(
             child: Text(
               _errorMessage ?? '',

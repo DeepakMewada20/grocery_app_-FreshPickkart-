@@ -4,7 +4,7 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/search_bar.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class FreshPickKartHeader extends StatelessWidget {
   final double scrollOffset;
@@ -50,7 +50,7 @@ class FreshPickKartHeader extends StatelessWidget {
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: AppRadius.medium,
-                  offset: Offset(0, 2.h),
+                  offset: Offset(0, ScreenScale.h(2)),
                 ),
               ]
             : null,
@@ -59,9 +59,9 @@ class FreshPickKartHeader extends StatelessWidget {
         children: [
           // Logo and Tagline Row (Fades out earlier to avoid overlap)
           Positioned(
-            top: MediaQuery.of(context).padding.top + 10.h,
-            left: 12.w,
-            right: 12.w,
+            top: MediaQuery.of(context).padding.top + ScreenScale.h(10),
+            left: ScreenScale.w(12),
+            right: ScreenScale.w(12),
             child: Opacity(
               opacity: (1.0 - progress * 2.0).clamp(0.0, 1.0),
               child: Row(
@@ -69,7 +69,7 @@ class FreshPickKartHeader extends StatelessWidget {
                 children: [
                   Image.asset(
                     "lib/assets/images/name_logo.png",
-                    height: AppResponsive.isLandscape(context) ? 40.h : 50.h,
+                    height: AppResponsive.isLandscape(context) ? ScreenScale.h(40) : ScreenScale.h(50),
                     fit: BoxFit.contain,
                   ),
                   Flexible(
@@ -87,7 +87,7 @@ class FreshPickKartHeader extends StatelessWidget {
                                 : (progress < 0.5
                                       ? Colors.white
                                       : Colors.black),
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                           ),
                         ),
                         Text(
@@ -95,7 +95,7 @@ class FreshPickKartHeader extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.orange,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -110,9 +110,9 @@ class FreshPickKartHeader extends StatelessWidget {
 
           // Search Bar (Always at the bottom)
           Positioned(
-            bottom: 12.h,
-            left: 12.w,
-            right: 10.w,
+            bottom: ScreenScale.h(12),
+            left: ScreenScale.w(12),
+            right: ScreenScale.w(10),
             child: const SearchBarWidget(),
           ),
         ],
@@ -165,7 +165,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = AppTheme.primaryGreen;
 
-    final expandedHeight = 130.h;
+    final expandedHeight = ScreenScale.h(130);
     const collapsedHeight = kToolbarHeight;
     final progress = (_scrollOffset / (expandedHeight - collapsedHeight)).clamp(
       0.0,
@@ -188,7 +188,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(5.h),
+        preferredSize: Size.fromHeight(ScreenScale.h(5)),
         child: Padding(
           padding: AppSpacing.only(left: 12, top: 2, right: 10, bottom: 12),
           child: SearchBarWidget(),
@@ -210,7 +210,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
                       children: [
                         Image.asset(
                           "lib/assets/images/name_logo.png",
-                          height: 60.h,
+                          height: ScreenScale.h(60),
                           fit: BoxFit.contain,
                         ),
                         Column(
@@ -221,7 +221,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
                               'Order by Midnight',
                               style: TextStyle(
                                 color: isDark ? Colors.white : Colors.black,
-                                fontSize: 15.sp,
+                                fontSize: ScreenScale.sp(15),
                               ),
                             ),
                             Text(
@@ -229,7 +229,7 @@ class _FreshPickKartSliverAppBarState extends State<FreshPickKartSliverAppBar> {
                               style: TextStyle(
                                 color: Colors.orange,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15.sp,
+                                fontSize: ScreenScale.sp(15),
                               ),
                             ),
                           ],

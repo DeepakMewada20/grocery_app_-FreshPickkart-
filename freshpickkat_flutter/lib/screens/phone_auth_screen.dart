@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/user_controller.dart';
 import 'package:freshpickkat_flutter/screens/edit_profile_screen.dart';
@@ -12,6 +11,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:pinput/pinput.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 import 'package:sms_autofill/sms_autofill.dart'
     if (dart.library.html) 'sms_autofill_stub.dart';
 
@@ -493,14 +493,14 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    final pinWidth = ((MediaQuery.sizeOf(context).width - 64.w) / 6)
-        .clamp(38.w, 50.w)
+    final pinWidth = ((MediaQuery.sizeOf(context).width - ScreenScale.w(64)) / 6)
+        .clamp(ScreenScale.w(38), ScreenScale.w(50))
         .toDouble();
     final defaultPinTheme = PinTheme(
       width: pinWidth,
-      height: 56.h.clamp(48.0, 58.0),
+      height: ScreenScale.h(56).clamp(48.0, 58.0),
       textStyle: TextStyle(
-        fontSize: 22.sp,
+        fontSize: ScreenScale.sp(22),
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
@@ -551,23 +551,23 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                     Expanded(
                       child: SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
-                          24.w,
-                          24.h,
-                          24.w,
-                          24.h,
+                          ScreenScale.w(24),
+                          ScreenScale.h(24),
+                          ScreenScale.w(24),
+                          ScreenScale.h(24),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             //app logo
-                            SizedBox(height: 32.h),
+                            SizedBox(height: ScreenScale.h(32)),
                             Center(
                               child: Image.asset(
                                 'lib/assets/images/name_logo.png',
-                                height: 80.h.clamp(58.0, 86.0),
+                                height: ScreenScale.h(80).clamp(58.0, 86.0),
                               ),
                             ),
-                            SizedBox(height: 32.h),
+                            SizedBox(height: ScreenScale.h(32)),
 
                             // Welcome text
                             SlideTransition(
@@ -596,7 +596,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                 ],
                               ),
                             ),
-                            SizedBox(height: 40.h),
+                            SizedBox(height: ScreenScale.h(40)),
 
                             // Phone Number Input
                             SlideTransition(
@@ -631,7 +631,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         ),
                                     ],
                                   ),
-                                  SizedBox(height: 12.h),
+                                  SizedBox(height: ScreenScale.h(12)),
                                   Container(
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF1A1A1A),
@@ -657,8 +657,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                               ),
                                           child: Container(
                                             padding: EdgeInsets.symmetric(
-                                              horizontal: 16.w,
-                                              vertical: 18.h,
+                                              horizontal: ScreenScale.w(16),
+                                              vertical: ScreenScale.h(18),
                                             ),
                                             child: Row(
                                               children: [
@@ -671,7 +671,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                   ),
                                                 ),
                                                 if (!_showOtpInput) ...[
-                                                  SizedBox(width: 4.w),
+                                                  SizedBox(width: ScreenScale.w(4)),
                                                   Icon(
                                                     Icons.arrow_drop_down,
                                                     color: Colors.white70,
@@ -682,8 +682,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                           ),
                                         ),
                                         Container(
-                                          width: 1.w,
-                                          height: 30.h,
+                                          width: ScreenScale.w(1),
+                                          height: ScreenScale.h(30),
                                           color: Colors.grey[600],
                                         ),
                                         Expanded(
@@ -705,8 +705,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                               border: InputBorder.none,
                                               contentPadding:
                                                   EdgeInsets.symmetric(
-                                                    horizontal: 16.w,
-                                                    vertical: 18.h,
+                                                    horizontal: ScreenScale.w(16),
+                                                    vertical: ScreenScale.h(18),
                                                   ),
                                             ),
                                             inputFormatters: [
@@ -734,7 +734,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
                             // OTP Input Section
                             if (_showOtpInput) ...[
-                              SizedBox(height: 32.h),
+                              SizedBox(height: ScreenScale.h(32)),
                               SlideTransition(
                                 position: _otpSlideAnimation,
                                 child: Column(
@@ -748,7 +748,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         color: Colors.white70,
                                       ),
                                     ),
-                                    SizedBox(height: 12.h),
+                                    SizedBox(height: ScreenScale.h(12)),
                                     Text(
                                       'Enter the 6-digit code sent to $_phoneNumber',
                                       style: TextStyle(
@@ -756,7 +756,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         color: Colors.white70,
                                       ),
                                     ),
-                                    SizedBox(height: 20.h),
+                                    SizedBox(height: ScreenScale.h(20)),
                                     Center(
                                       child: Pinput(
                                         controller: _otpController,
@@ -777,7 +777,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                         ),
                                       ),
                                     ),
-                                    SizedBox(height: 20.h),
+                                    SizedBox(height: ScreenScale.h(20)),
                                     Center(
                                       child: _resendTimer > 0
                                           ? Text(
@@ -793,8 +793,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                                   : _resendOTP,
                                               child: _isLoading
                                                   ? SizedBox(
-                                                      width: 16.r,
-                                                      height: 16.r,
+                                                      width: ScreenScale.r(16),
+                                                      height: ScreenScale.r(16),
                                                       child:
                                                           CircularProgressIndicator(
                                                             strokeWidth: 2,
@@ -823,7 +823,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
                             // Error message
                             if (_errorMessage != null) ...[
-                              SizedBox(height: 16.h),
+                              SizedBox(height: ScreenScale.h(16)),
                               Container(
                                  padding: AppSpacing.all(12),
                                 decoration: BoxDecoration(
@@ -841,7 +841,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                       size: 16,
                                       color: Colors.red[700],
                                     ),
-                                    SizedBox(width: 8.w),
+                                    SizedBox(width: ScreenScale.w(8)),
                                     Expanded(
                                       child: Text(
                                         _errorMessage!,
@@ -872,7 +872,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                           // Action Button
                           SizedBox(
                             width: double.infinity,
-                            height: 56.h.clamp(50.0, 62.0),
+                            height: ScreenScale.h(56).clamp(50.0, 62.0),
                             child: ElevatedButton(
                               onPressed: _isLoading || _isVerifying
                                   ? null
@@ -888,8 +888,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                               ),
                               child: _isLoading || _isVerifying
                                   ? SizedBox(
-                                      width: 24.r,
-                                      height: 24.r,
+                                      width: ScreenScale.r(24),
+                                      height: ScreenScale.r(24),
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2.5,
@@ -908,7 +908,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                             ),
                           ),
                           if (!_showOtpInput) ...[
-                            SizedBox(height: 20.h),
+                            SizedBox(height: ScreenScale.h(20)),
                             // Terms
                             Center(
                               child: Text(

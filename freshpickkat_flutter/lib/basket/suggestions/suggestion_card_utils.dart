@@ -6,6 +6,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class SuggestionProgressBar extends StatelessWidget {
   final double current;
@@ -40,7 +41,7 @@ class SuggestionProgressBar extends StatelessWidget {
                 child: Text(
                   '₹$remaining more',
                   style: TextStyle(
-                    fontSize: 10.5.sp,
+                    fontSize: ScreenScale.sp(10.5),
                     color: cs.onSurface.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w500,
                   ),
@@ -52,20 +53,20 @@ class SuggestionProgressBar extends StatelessWidget {
               Text(
                 'Unlocked',
                 style: TextStyle(
-                  fontSize: 10.5.sp,
+                  fontSize: ScreenScale.sp(10.5),
                   color: accent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
           ],
         ),
-        SizedBox(height: 6.h),
+        SizedBox(height: ScreenScale.h(6)),
         // Custom gradient progress bar
         LayoutBuilder(
           builder: (context, constraints) {
             final barWidth = constraints.maxWidth;
             return Container(
-              height: 4.h,
+              height: ScreenScale.h(4),
               width: barWidth,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
@@ -81,7 +82,7 @@ class SuggestionProgressBar extends StatelessWidget {
                     child: FractionallySizedBox(
                       widthFactor: value,
                       child: Container(
-                        height: 4.h,
+                        height: ScreenScale.h(4),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(AppRadius.medium),
                           gradient: LinearGradient(
@@ -123,8 +124,8 @@ class OverlappingThumbs extends StatelessWidget {
     final overlap = size * 0.55;
 
     return SizedBox(
-      height: size.r + 4.h,
-      width: size.r + (displayImages.length - 1) * overlap.w + 4.w,
+      height: size.r + ScreenScale.h(4),
+      width: size.r + (displayImages.length - 1) * overlap.w + ScreenScale.w(4),
       child: Stack(
         clipBehavior: Clip.none,
         children: displayImages.asMap().entries.map((entry) {
@@ -141,14 +142,14 @@ class OverlappingThumbs extends StatelessWidget {
                 color: Colors.white,
                 border: Border.all(
                   color: Colors.white,
-                  width: 2.r,
+                  width: ScreenScale.r(2),
                   strokeAlign: BorderSide.strokeAlignOutside,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.12),
                     blurRadius: 6,
-                    offset: Offset(1.w, 2.h),
+                    offset: Offset(ScreenScale.w(1), ScreenScale.h(2)),
                   ),
                 ],
               ),
@@ -206,18 +207,18 @@ class VariantComparisonView extends StatelessWidget {
               AutoSizeText(
                 curLabel,
                 style: TextStyle(
-                  fontSize: 9.5.sp,
+                  fontSize: ScreenScale.sp(9.5),
                   color: dimText,
                   fontWeight: FontWeight.w500,
                 ),
                 minFontSize: 7,
                 maxLines: 1,
               ),
-              SizedBox(height: 1.h),
+              SizedBox(height: ScreenScale.h(1)),
               AutoSizeText(
                 '\u20b9$curPrice',
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: ScreenScale.sp(12),
                   color: dimText,
                   fontWeight: FontWeight.w700,
                 ),
@@ -232,7 +233,7 @@ class VariantComparisonView extends StatelessWidget {
           padding: AppSpacing.symmetric(horizontal: 6),
           child: Icon(
             Icons.arrow_forward_ios_rounded,
-            size: 10.r,
+            size: ScreenScale.r(10),
             color: accent.withValues(alpha: 0.5),
           ),
         ),
@@ -254,18 +255,18 @@ class VariantComparisonView extends StatelessWidget {
               AutoSizeText(
                 vLabel,
                 style: TextStyle(
-                  fontSize: 9.5.sp,
+                  fontSize: ScreenScale.sp(9.5),
                   color: accent.withValues(alpha: 0.85),
                   fontWeight: FontWeight.w600,
                 ),
                 minFontSize: 7,
                 maxLines: 1,
               ),
-              SizedBox(height: 1.h),
+              SizedBox(height: ScreenScale.h(1)),
               AutoSizeText(
                 '\u20b9$vPrice',
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: ScreenScale.sp(12),
                   color: accent,
                   fontWeight: FontWeight.w800,
                 ),

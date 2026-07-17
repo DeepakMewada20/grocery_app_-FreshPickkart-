@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 bool isBogoProduct(Product product) {
   return product.discountType?.toLowerCase().trim() == 'bogo' &&
@@ -135,7 +135,7 @@ class ProductOfferBadge extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: offerTheme.badge,
-        borderRadius: BorderRadius.circular(borderRadius.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(borderRadius)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -147,7 +147,7 @@ class ProductOfferBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: offerTheme.onBadge,
-          fontSize: fontSize.sp,
+          fontSize: ScreenScale.sp(fontSize),
           fontWeight: FontWeight.w700,
         ),
         minFontSize: 7,

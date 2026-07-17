@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
     deferred as complaint_detail_screen;
@@ -12,6 +11,7 @@ import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class MyComplaintsScreen extends StatefulWidget {
   const MyComplaintsScreen({super.key});
@@ -90,7 +90,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(_error!, textAlign: TextAlign.center),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: ScreenScale.h(12)),
                     ElevatedButton(
                       onPressed: _load,
                       child: const Text('Retry'),
@@ -112,7 +112,7 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                     )
                   : ListView(
                       padding: AppResponsive.pagePadding(context).copyWith(
-                        bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+                        bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
                       ),
                       children: [
                         ..._buildComplaintItems(cs),
@@ -191,14 +191,14 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                       complaint.imageUrls.isNotEmpty
                           ? complaint.imageUrls.first
                           : (complaint.productImage ?? ''),
-                      width: 56.r,
-                      height: 56.r,
+                      width: ScreenScale.r(56),
+                      height: ScreenScale.r(56),
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) =>
                           const Icon(Icons.image_not_supported),
                     ),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: ScreenScale.w(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,23 +209,23 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: ScreenScale.h(4)),
                         Text(
                           '${complaint.issueType} • ${_formatDate(complaint.createdAt)}',
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.62),
-                            fontSize: 12.sp,
+                            fontSize: ScreenScale.sp(12),
                           ),
                         ),
                         if (complaint.status == 'Resolved' &&
                             complaint.resolutionType != null) ...[
-                          SizedBox(height: 4.h),
+                          SizedBox(height: ScreenScale.h(4)),
                           _ResolutionBadge(label: complaint.resolutionType!),
                         ],
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: ScreenScale.w(8)),
                   _StatusBadge(status: complaint.status),
                 ],
               ),
@@ -241,23 +241,23 @@ class _MyComplaintsScreenState extends State<MyComplaintsScreen> {
       padding: AppSpacing.only(top: 24, bottom: 12),
       child: Column(
         children: [
-          Icon(Icons.help_outline, size: 24.sp, color: cs.primary),
-          SizedBox(height: 8.h),
+          Icon(Icons.help_outline, size: ScreenScale.sp(24), color: cs.primary),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             'How to Report an Issue',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15.sp),
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: ScreenScale.sp(15)),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: ScreenScale.h(6)),
           Text(
             'You can report a product or delivery issue from your order details page. '
             'Go to My Orders, tap on a delivered order, and select "Report Product Issue".',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: cs.onSurface.withValues(alpha: 0.6),
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
             ),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           OutlinedButton.icon(
             icon: const Icon(Icons.shopping_bag_outlined),
             label: const Text('Go to My Orders'),
@@ -300,7 +300,7 @@ class _StatusBadge extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w800,
-          fontSize: 11.sp,
+          fontSize: ScreenScale.sp(11),
         ),
       ),
     );
@@ -325,7 +325,7 @@ class _ResolutionBadge extends StatelessWidget {
         label,
         style: TextStyle(
           color: cs.primary,
-          fontSize: 10.sp,
+          fontSize: ScreenScale.sp(10),
           fontWeight: FontWeight.w700,
         ),
       ),

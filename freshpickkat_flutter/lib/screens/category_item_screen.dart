@@ -9,8 +9,8 @@ import 'package:freshpickkat_flutter/widgets/product_card.dart';
 import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
   final String categoryName;
@@ -257,12 +257,12 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 7.w),
+        padding: EdgeInsets.symmetric(vertical: ScreenScale.h(10), horizontal: ScreenScale.w(7)),
         child: Column(
           children: [
             Container(
-              height: 56.r,
-              width: 56.r,
+              height: ScreenScale.r(56),
+              width: ScreenScale.r(56),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isSelected
@@ -278,8 +278,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   child: imageUrl != null
                       ? Image.network(
                           imageUrl,
-                          height: 48.r,
-                          width: 48.r,
+                          height: ScreenScale.r(48),
+                          width: ScreenScale.r(48),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.image,
@@ -287,19 +287,19 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                           ),
                         )
                       : Container(
-                          height: 48.r,
-                          width: 48.r,
+                          height: ScreenScale.r(48),
+                          width: ScreenScale.r(48),
                           color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                           child: Icon(
                             icon,
                             color: AppTheme.primaryGreen,
-                            size: 26.r,
+                            size: ScreenScale.r(26),
                           ),
                         ),
                 ),
               ),
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -307,7 +307,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 color: isSelected
                     ? cs.onSurface
                     : cs.onSurface.withValues(alpha: 0.6),
-                fontSize: 10.sp,
+                fontSize: ScreenScale.sp(10),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -366,10 +366,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     ];
 
     return SizedBox(
-      height: 50.h.clamp(44.0, 56.0),
+      height: ScreenScale.h(50).clamp(44.0, 56.0),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(12)),
         itemCount: filters.length,
         itemBuilder: (context, index) {
           final filter = filters[index];
@@ -378,7 +378,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               _selectedFilterSub.trim().toLowerCase();
 
           return Padding(
-            padding: EdgeInsets.only(right: 8.w),
+            padding: EdgeInsets.only(right: ScreenScale.w(8)),
             child: ChoiceChip(
               label: Text(filter),
               selected: isSelected,
@@ -391,11 +391,11 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 color: isSelected
                     ? Colors.white
                     : cs.onSurface.withValues(alpha: 0.7),
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
               ),
               side: BorderSide.none,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(ScreenScale.r(20)),
               ),
             ),
           );
@@ -412,7 +412,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       if (!hasData) {
         return ProductGridShimmer(
           itemCount: 6,
-          padding: EdgeInsets.all(12.w),
+          padding: EdgeInsets.all(ScreenScale.w(12)),
         );
       }
 
@@ -431,10 +431,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
           return GridView.builder(
             controller: _itemsScrollController,
             padding: EdgeInsets.fromLTRB(
-              12.w,
-              12.w,
-              12.w,
-              12.w + MediaQuery.of(context).padding.bottom,
+              ScreenScale.w(12),
+              ScreenScale.w(12),
+              ScreenScale.w(12),
+              ScreenScale.w(12) + MediaQuery.of(context).padding.bottom,
             ),
             gridDelegate: AppResponsive.productGridDelegate(
               context,
@@ -447,9 +447,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               if (index == productController.filteredProducts.length) {
                 return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(16.w),
+                    padding: EdgeInsets.all(ScreenScale.w(16)),
                     child: SizedBox(
-                      height: 180.h,
+                      height: ScreenScale.h(180),
                       child: const ProductGridShimmer(itemCount: 2),
                     ),
                   ),

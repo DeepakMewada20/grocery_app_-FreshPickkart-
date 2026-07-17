@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/order_controller.dart';
 import 'package:freshpickkat_flutter/screens/order_detail_screen.dart'
@@ -14,6 +13,7 @@ import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/payment_status_widget.dart';
 import 'package:freshpickkat_flutter/widgets/safe_network_image.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
   final String orderId;
@@ -108,7 +108,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             : SafeArea(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(
-                    bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+                    bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
                   ),
                   child: Column(
                     children: [
@@ -134,7 +134,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                                   if (_order?.paymentStatus != 'paid' &&
                                       _order?.razorpayPaymentId != null)
                                     Padding(
-                                      padding: EdgeInsets.only(bottom: 16.h),
+                                      padding: EdgeInsets.only(bottom: ScreenScale.h(16)),
                                       child: PaymentStatusWidget(
                                         orderId: _order!.orderId,
                                         paymentId: _order!.razorpayPaymentId!,
@@ -148,15 +148,15 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                                       ),
                                     ),
                                   _buildOrderInfoCard(cs),
-                                  SizedBox(height: 16.h),
+                                  SizedBox(height: ScreenScale.h(16)),
                                   _buildProductsCard(cs),
-                                  SizedBox(height: 16.h),
+                                  SizedBox(height: ScreenScale.h(16)),
                                   _buildDeliveryAddressCard(cs),
-                                  SizedBox(height: 16.h),
+                                  SizedBox(height: ScreenScale.h(16)),
                                   _buildTotalAmountCard(cs),
-                                  SizedBox(height: 24.h),
+                                  SizedBox(height: ScreenScale.h(24)),
                                   _buildViewDetailsButton(cs),
-                                  SizedBox(height: 12.h),
+                                  SizedBox(height: ScreenScale.h(12)),
                                   _buildContinueShoppingButton(cs),
                                 ],
                               ),
@@ -179,7 +179,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.only(top: 36.h, bottom: 30.h),
+      padding: EdgeInsets.only(top: ScreenScale.h(36), bottom: ScreenScale.h(30)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -201,7 +201,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               );
             },
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           FadeTransition(
             opacity: _fadeAnimation,
             child: AutoSizeText(
@@ -209,14 +209,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 22.sp,
+                fontSize: ScreenScale.sp(22),
                 fontWeight: FontWeight.bold,
               ),
               minFontSize: 16,
               maxLines: 2,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           FadeTransition(
             opacity: _fadeAnimation,
             child: Text(
@@ -227,7 +227,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                       : 'Payment Pending',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 16.sp,
+                fontSize: ScreenScale.sp(16),
               ),
             ),
           ),
@@ -241,10 +241,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final estimatedDelivery = order.orderedAt.add(const Duration(days: 1));
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -261,14 +261,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             value: order.orderId,
             cs: cs,
           ),
-          Divider(height: 24.h),
+          Divider(height: ScreenScale.h(24)),
           _buildInfoRow(
             icon: Icons.calendar_today_outlined,
             label: 'Order Date',
             value: _formatDate(order.orderedAt),
             cs: cs,
           ),
-          Divider(height: 24.h),
+          Divider(height: ScreenScale.h(24)),
           _buildInfoRow(
             icon: Icons.local_shipping_outlined,
             label: 'Estimated Delivery',
@@ -276,7 +276,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs: cs,
             valueColor: Colors.green.shade700,
           ),
-          Divider(height: 24.h),
+          Divider(height: ScreenScale.h(24)),
           _buildInfoRow(
             icon: Icons.info_outline,
             label: 'Status',
@@ -299,15 +299,15 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     return Row(
       children: [
         Container(
-          width: 36.r,
-          height: 36.r,
+          width: ScreenScale.r(36),
+          height: ScreenScale.r(36),
           decoration: BoxDecoration(
             color: cs.primaryContainer.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(ScreenScale.r(10)),
           ),
-          child: Icon(icon, size: 18.r, color: cs.primary),
+          child: Icon(icon, size: ScreenScale.r(18), color: cs.primary),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: ScreenScale.w(12)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,11 +319,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   color: cs.onSurface.withValues(alpha: 0.6),
                 ),
               ),
-              SizedBox(height: 2.h),
+              SizedBox(height: ScreenScale.h(2)),
               AutoSizeText(
                 value,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: ScreenScale.sp(14),
                   fontWeight: FontWeight.w600,
                   color: valueColor ?? cs.onSurface,
                 ),
@@ -343,10 +343,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final grouped = groupOrderItems(order.items);
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -360,21 +360,21 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.shopping_bag_outlined, size: 20.r, color: cs.primary),
-              SizedBox(width: 8.w),
+              Icon(Icons.shopping_bag_outlined, size: ScreenScale.r(20), color: cs.primary),
+              SizedBox(width: ScreenScale.w(8)),
               Expanded(
                 child: Text(
                   'Ordered Products (${order.items.length})',
                   style: AppText.sectionTitle(
                     context,
-                  ).copyWith(fontSize: 16.sp),
+                  ).copyWith(fontSize: ScreenScale.sp(16)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: ScreenScale.h(16)),
           if (grouped.bogoGroups.isNotEmpty) ...[
             _buildOrderSectionTitle('BOGO Offers', cs),
             ...grouped.bogoGroups.map((entry) => _buildOrderItem(entry, cs)),
@@ -401,13 +401,13 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildOrderSectionTitle(String title, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+      padding: EdgeInsets.only(top: ScreenScale.h(4), bottom: ScreenScale.h(8)),
       child: Text(
         title,
         style: AppText.bodyMedium(context).copyWith(
           color: cs.primary,
           fontWeight: FontWeight.w700,
-          fontSize: 13.sp,
+          fontSize: ScreenScale.sp(13),
         ),
       ),
     );
@@ -416,26 +416,26 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   Widget _buildOrderItem(GroupedOrderItem entry, ColorScheme cs) {
     final item = entry.item;
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 52.r,
-            height: 52.r,
+            width: ScreenScale.r(52),
+            height: ScreenScale.r(52),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(10)),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(ScreenScale.r(10)),
               child: SafeNetworkImage(
                 url: item.productImage,
                 fit: BoxFit.cover,
               ),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: ScreenScale.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,7 +443,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 Text(
                   item.productName,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: ScreenScale.sp(14),
                     fontWeight: FontWeight.w600,
                     color: cs.onSurface,
                   ),
@@ -454,17 +454,17 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   Text(
                     item.variantLabel!,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                       color: cs.onSurface.withValues(alpha: 0.5),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                SizedBox(height: 4.h),
+                SizedBox(height: ScreenScale.h(4)),
                 Text(
                   'Qty: ${item.quantity}',
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: ScreenScale.sp(12),
                     color: cs.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
@@ -473,7 +473,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     final isSmgm =
                         freeItem.rewardSource == 'SHOP_MORE_GET_MORE';
                     return Padding(
-                      padding: EdgeInsets.only(top: 4.h),
+                      padding: EdgeInsets.only(top: ScreenScale.h(4)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -481,32 +481,32 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                             children: [
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w,
-                                  vertical: 2.h,
+                                  horizontal: ScreenScale.w(6),
+                                  vertical: ScreenScale.h(2),
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSmgm
                                       ? Colors.orange
                                       : Colors.green.shade600,
-                                  borderRadius: BorderRadius.circular(4.r),
+                                  borderRadius: BorderRadius.circular(ScreenScale.r(4)),
                                 ),
                                 child: Text(
                                   isSmgm ? 'REWARD' : 'FREE',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 9.sp,
+                                    fontSize: ScreenScale.sp(9),
                                     fontWeight: FontWeight.w900,
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 6.w),
+                              SizedBox(width: ScreenScale.w(6)),
                               AutoSizeText(
                                 '${freeItem.productName} x${freeItem.quantity}',
                                 style: TextStyle(
                                   color: isSmgm
                                       ? Colors.orange.shade800
                                       : Colors.green.shade700,
-                                  fontSize: 12.sp,
+                                  fontSize: ScreenScale.sp(12),
                                   fontWeight: FontWeight.w600,
                                 ),
                                 minFontSize: 9,
@@ -517,12 +517,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                           ),
                           if (isSmgm)
                             Padding(
-                              padding: EdgeInsets.only(left: 2.w, top: 2.h),
+                              padding: EdgeInsets.only(left: ScreenScale.w(2), top: ScreenScale.h(2)),
                               child: Text(
                                 'Unlocked via ${freeItem.rewardOfferName ?? "Shop More, Get More"}',
                                 style: TextStyle(
                                   color: Colors.orange.shade400,
-                                  fontSize: 10.sp,
+                                  fontSize: ScreenScale.sp(10),
                                 ),
                               ),
                             ),
@@ -534,11 +534,11 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               ],
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: ScreenScale.w(8)),
           AutoSizeText(
             'INR ${item.totalPrice.formatPrice}',
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: ScreenScale.sp(14),
               fontWeight: FontWeight.bold,
               color: cs.onSurface,
             ),
@@ -552,12 +552,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
 
   Widget _buildOrderComboGroup(GroupedOrderCombo group, ColorScheme cs) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: ScreenScale.h(12)),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(ScreenScale.w(12)),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(ScreenScale.r(12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,7 +573,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Flexible(
                   child: AutoSizeText(
                     comboDiscountBadgeText(
@@ -582,7 +582,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     ),
                     style: TextStyle(
                       color: Colors.green.shade700,
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                       fontWeight: FontWeight.w700,
                     ),
                     minFontSize: 9,
@@ -592,10 +592,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             ...group.items.map(
               (item) => Padding(
-                padding: EdgeInsets.only(bottom: 6.h),
+                padding: EdgeInsets.only(bottom: ScreenScale.h(6)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -604,17 +604,17 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                         '${item.productName}${item.variantLabel != null && item.variantLabel!.isNotEmpty ? ' (${item.variantLabel})' : ''} x${item.quantity}',
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.75),
-                          fontSize: 13.sp,
+                          fontSize: ScreenScale.sp(13),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: ScreenScale.w(8)),
                     AutoSizeText(
                       'INR ${item.totalPrice.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.75),
-                        fontSize: 13.sp,
+                        fontSize: ScreenScale.sp(13),
                       ),
                       minFontSize: 10,
                       maxLines: 1,
@@ -623,7 +623,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 ),
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -636,7 +636,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: ScreenScale.w(8)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -651,7 +651,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                       'INR ${group.originalTotal.formatPrice}',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.45),
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                         decoration: TextDecoration.lineThrough,
                       ),
                     ),
@@ -670,10 +670,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final address = order.deliveryAddress;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withValues(alpha: 0.08),
@@ -687,28 +687,28 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.location_on_outlined, size: 20.r, color: cs.primary),
-              SizedBox(width: 8.w),
+              Icon(Icons.location_on_outlined, size: ScreenScale.r(20), color: cs.primary),
+              SizedBox(width: ScreenScale.w(8)),
               Expanded(
                 child: Text(
                   'Delivery Address',
                   style: AppText.sectionTitle(
                     context,
-                  ).copyWith(fontSize: 16.sp),
+                  ).copyWith(fontSize: ScreenScale.sp(16)),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.person_outline,
-                size: 18.r,
+                size: ScreenScale.r(18),
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -737,16 +737,16 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.home_outlined,
-                size: 18.r,
+                size: ScreenScale.r(18),
                 color: cs.onSurface.withValues(alpha: 0.6),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Expanded(
                 child: Text(
                   _formatAddress(address),
@@ -768,7 +768,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     final order = _order!;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(ScreenScale.w(16)),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -776,7 +776,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs.primaryContainer.withValues(alpha: 0.5),
           ],
         ),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
       ),
       child: Column(
         children: [
@@ -786,7 +786,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             cs: cs,
           ),
           if (order.discountAmount > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'Discount',
               '-INR ${order.discountAmount.formatPrice}',
@@ -794,7 +794,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
               valueColor: Colors.green,
             ),
           ],
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           _buildBillRow(
             'Delivery Fee',
             order.deliveryFee == 0
@@ -804,7 +804,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             valueColor: order.deliveryFee == 0 ? Colors.green : cs.onSurface,
           ),
           if (order.freshPointsUsed > 0) ...[
-            SizedBox(height: 8.h),
+            SizedBox(height: ScreenScale.h(8)),
             _buildBillRow(
               'FreshPoints Used (${order.freshPointsUsed})',
               '-INR ${order.freshPointsValue.formatPrice}',
@@ -826,7 +826,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                   style: AppText.receiptLabel(context, total: true),
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: ScreenScale.w(12)),
               AutoSizeText(
                 'INR ${
                   order.freshPointsUsed > 0
@@ -835,7 +835,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                 }',
                 textAlign: TextAlign.right,
                 style: TextStyle(
-                  fontSize: 20.sp,
+                  fontSize: ScreenScale.sp(20),
                   fontWeight: FontWeight.bold,
                   color: cs.primary,
                 ),
@@ -866,12 +866,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        SizedBox(width: 12.w),
+        SizedBox(width: ScreenScale.w(12)),
         AutoSizeText(
           value,
           textAlign: TextAlign.right,
           style: TextStyle(
-            fontSize: 14.sp,
+            fontSize: ScreenScale.sp(14),
             fontWeight: FontWeight.w600,
             color: valueColor ?? cs.onSurface,
           ),
@@ -888,18 +888,18 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       child: ElevatedButton.icon(
         onPressed: _navigateToOrderDetails,
         style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
+          padding: EdgeInsets.symmetric(vertical: ScreenScale.h(16)),
           backgroundColor: cs.primary,
           foregroundColor: cs.onPrimary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           ),
         ),
         icon: const Icon(Icons.receipt_long_outlined),
         label: AutoSizeText(
           'View Order Details',
           style: TextStyle(
-            fontSize: 16.sp,
+            fontSize: ScreenScale.sp(16),
             fontWeight: FontWeight.w600,
           ),
           minFontSize: 12,
@@ -915,17 +915,17 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       child: OutlinedButton.icon(
         onPressed: _continueShopping,
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
+          padding: EdgeInsets.symmetric(vertical: ScreenScale.h(16)),
           side: BorderSide(color: cs.primary),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(ScreenScale.r(12)),
           ),
         ),
         icon: Icon(Icons.shopping_bag_outlined, color: cs.primary),
         label: AutoSizeText(
           'Continue Shopping',
           style: TextStyle(
-            fontSize: 16.sp,
+            fontSize: ScreenScale.sp(16),
             fontWeight: FontWeight.w600,
             color: cs.primary,
           ),

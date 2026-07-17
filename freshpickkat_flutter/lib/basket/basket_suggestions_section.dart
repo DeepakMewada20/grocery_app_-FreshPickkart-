@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
@@ -8,6 +7,7 @@ import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/basket/suggestions/suggestion_card.dart';
 import 'package:freshpickkat_flutter/widgets/basket_loading_animation.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class BasketSuggestionsSection extends StatelessWidget {
   const BasketSuggestionsSection({super.key});
@@ -40,7 +40,7 @@ class BasketSuggestionsSection extends StatelessWidget {
       return SizedBox(
         height: AppResponsive.isWideWeb(context)
             ? 220.0
-            : 180.h.clamp(166.0, 210.0).toDouble(),
+            : ScreenScale.h(180).clamp(166.0, 210.0).toDouble(),
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: AppSpacing.symmetric(horizontal: 10),

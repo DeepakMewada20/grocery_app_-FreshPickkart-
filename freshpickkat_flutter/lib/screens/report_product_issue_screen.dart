@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/product_complaint_controller.dart';
 import 'package:freshpickkat_flutter/screens/complaint_detail_screen.dart'
@@ -13,6 +12,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/utils/error_messages.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ReportProductIssueScreen extends StatefulWidget {
   const ReportProductIssueScreen({
@@ -62,7 +62,7 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
         titleSpacing: 0,
         title: Text(
           'Report Product Issue',
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w800),
+          style: TextStyle(fontSize: ScreenScale.sp(18), fontWeight: FontWeight.w800),
         ),
       ),
       body: SafeArea(
@@ -93,10 +93,10 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
           return SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: EdgeInsets.fromLTRB(
-              16.w,
-              8.h,
-              16.w,
-              28.h + MediaQuery.paddingOf(context).bottom,
+              ScreenScale.w(16),
+              ScreenScale.h(8),
+              ScreenScale.w(16),
+              ScreenScale.h(28) + MediaQuery.paddingOf(context).bottom,
             ),
             child: AppResponsive.constrainContent(
               context: context,
@@ -123,24 +123,24 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                                 _controller.productError.value!,
                                 style: TextStyle(
                                   color: cs.error,
-                                  fontSize: 12.sp,
+                                  fontSize: ScreenScale.sp(12),
                                 ),
                               ),
                             ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 16.h),
+                    SizedBox(height: ScreenScale.h(16)),
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _FieldLabel('Issue Type'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           _IssueTypeDropdown(controller: _controller),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           _FieldLabel('Description'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           TextFormField(
                             controller: _descriptionController,
                             minLines: 5,
@@ -162,9 +162,9 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                               return null;
                             },
                           ),
-                          SizedBox(height: 18.h),
+                          SizedBox(height: ScreenScale.h(18)),
                           _FieldLabel('Images (1-3 required)'),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: ScreenScale.h(8)),
                           Obx(
                             () => _ImagePicker(
                               controller: _controller,
@@ -174,18 +174,18 @@ class _ReportProductIssueScreenState extends State<ReportProductIssueScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 18.h),
+                    SizedBox(height: ScreenScale.h(18)),
                     SizedBox(
                       width: double.infinity,
-                      height: 52.h,
+                      height: ScreenScale.h(52),
                       child: ElevatedButton(
                         onPressed: _controller.isSubmitting.value
                             ? null
                             : _submit,
                         child: _controller.isSubmitting.value
                             ? SizedBox(
-                                width: 22.r,
-                                height: 22.r,
+                                width: ScreenScale.r(22),
+                                height: ScreenScale.r(22),
                                 child: const CircularProgressIndicator(
                                   strokeWidth: 2.4,
                                 ),
@@ -241,7 +241,7 @@ class _ProductSelectionList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _FieldLabel('Affected Products'),
-        SizedBox(height: 10.h),
+        SizedBox(height: ScreenScale.h(10)),
         ...reportableItems.map(
           (item) => Obx(() {
             final id = item.orderItemId!;
@@ -265,7 +265,7 @@ class _ProductSelectionList extends StatelessWidget {
                 ].join(' • '),
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.62),
-                  fontSize: 12.sp,
+                  fontSize: ScreenScale.sp(12),
                 ),
               ),
             );
@@ -293,17 +293,17 @@ class _BlockedState extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.info_outline_rounded, size: 48),
-                SizedBox(height: 12.h),
+                SizedBox(height: ScreenScale.h(12)),
                 const Text(
                   'Complaint already active',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: ScreenScale.h(8)),
                 Text(
                   'Status: ${complaint.status}',
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 ElevatedButton(
                   onPressed: () async {
                     await navigateDeferred(
@@ -365,7 +365,7 @@ class _ImagePicker extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: ScreenScale.w(10)),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed:
@@ -380,7 +380,7 @@ class _ImagePicker extends StatelessWidget {
                   ],
                 ),
                 if (controller.selectedImages.isNotEmpty) ...[
-                  SizedBox(height: 10.h),
+                  SizedBox(height: ScreenScale.h(10)),
                   ...controller.selectedImages.map(
                     (image) => ListTile(
                       dense: true,
@@ -409,7 +409,7 @@ class _ImagePicker extends StatelessWidget {
               error!,
               style: TextStyle(
                 color: cs.error,
-                fontSize: 12.sp,
+                fontSize: ScreenScale.sp(12),
               ),
             ),
           ),
@@ -441,22 +441,22 @@ class _SuccessState extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle_rounded, color: cs.primary, size: 56.r),
-                SizedBox(height: 12.h),
+                Icon(Icons.check_circle_rounded, color: cs.primary, size: ScreenScale.r(56)),
+                SizedBox(height: ScreenScale.h(12)),
                 Text(
                   'Complaint submitted',
                   style: TextStyle(
                     color: cs.onSurface,
-                    fontSize: 18.sp,
+                    fontSize: ScreenScale.sp(18),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: ScreenScale.h(6)),
                 Text(
                   'Status: ${complaint.status}',
                   style: TextStyle(color: cs.onSurface.withValues(alpha: 0.65)),
                 ),
-                SizedBox(height: 18.h),
+                SizedBox(height: ScreenScale.h(18)),
                 Row(
                   children: [
                     Expanded(
@@ -465,7 +465,7 @@ class _SuccessState extends StatelessWidget {
                         child: const Text('Done'),
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: ScreenScale.w(10)),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: onView,
@@ -516,7 +516,7 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w800),
+      style: TextStyle(fontSize: ScreenScale.sp(13), fontWeight: FontWeight.w800),
     );
   }
 }

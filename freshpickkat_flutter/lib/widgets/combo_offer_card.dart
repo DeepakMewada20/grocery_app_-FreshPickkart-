@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
@@ -12,6 +11,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:get/get.dart';
 
 import 'combo_product_preview_card.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class ComboOfferCard extends StatelessWidget {
   final ComboOffer combo;
@@ -69,7 +69,7 @@ class ComboOfferCard extends StatelessWidget {
                 BoxShadow(
                   color: AppTheme.primaryGreen.withValues(alpha: 0.2),
                   blurRadius: 12,
-                  offset: Offset(0, 4.h),
+                  offset: Offset(0, ScreenScale.h(4)),
                 ),
               ]
             : [],
@@ -103,21 +103,21 @@ class ComboOfferCard extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13.sp,
+                                fontSize: ScreenScale.sp(13),
                               ),
                               minFontSize: 9,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(height: 10.h),
+                          SizedBox(height: ScreenScale.h(10)),
                         ],
                         AutoSizeText(
                           combo.name,
                           style: TextStyle(
                             color: cs.onSurface,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
+                            fontSize: ScreenScale.sp(16),
                           ),
                           minFontSize: 12,
                           maxLines: 2,
@@ -129,7 +129,7 @@ class ComboOfferCard extends StatelessWidget {
                             combo.description!,
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12.sp,
+                              fontSize: ScreenScale.sp(12),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -139,15 +139,15 @@ class ComboOfferCard extends StatelessWidget {
                             'Tap to review bundled products in this combo deal.',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 12.sp,
+                              fontSize: ScreenScale.sp(12),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        SizedBox(height: 10.h),
+                        SizedBox(height: ScreenScale.h(10)),
                         Wrap(
-                          spacing: 12.w,
-                          runSpacing: 6.h,
+                          spacing: ScreenScale.w(12),
+                          runSpacing: ScreenScale.h(6),
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
@@ -155,14 +155,14 @@ class ComboOfferCard extends StatelessWidget {
                               style: TextStyle(
                                 color: AppTheme.primaryGreen,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18.sp,
+                                fontSize: ScreenScale.sp(18),
                               ),
                             ),
                             Text(
                               'Sell ₹${originalUnitTotal.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface,
-                                fontSize: 13.sp,
+                                fontSize: ScreenScale.sp(13),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -170,7 +170,7 @@ class ComboOfferCard extends StatelessWidget {
                               'MRP ₹${mrpUnitTotal.formatPrice}',
                               style: TextStyle(
                                 color: cs.onSurface.withValues(alpha: 0.4),
-                                fontSize: 13.sp,
+                                fontSize: ScreenScale.sp(13),
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),
@@ -179,7 +179,7 @@ class ComboOfferCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: ScreenScale.w(12)),
                   Icon(
                     isExpanded
                         ? Icons.keyboard_arrow_up
@@ -249,7 +249,7 @@ class ComboOfferCard extends StatelessWidget {
                 'Products loading...',
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5),
-                  fontSize: 13.sp,
+                  fontSize: ScreenScale.sp(13),
                 ),
               ),
             ),
@@ -268,8 +268,8 @@ class ComboOfferCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 4.r,
-            offset: Offset(0, 2.h),
+            blurRadius: ScreenScale.r(4),
+            offset: Offset(0, ScreenScale.h(2)),
           ),
         ],
       ),
@@ -291,7 +291,7 @@ class ComboOfferCard extends StatelessWidget {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
+              fontSize: ScreenScale.sp(14),
             ),
           ),
           InkWell(

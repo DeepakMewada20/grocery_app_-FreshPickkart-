@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 /// A utility shimmer box that adapts its colors to the current theme.
 /// In light mode: uses light gray shades. In dark mode: uses dark gray shades.
@@ -131,6 +132,8 @@ class _ProductGridShimmerState extends State<ProductGridShimmer>
               );
 
         return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           padding:
               widget.padding ??
               AppSpacing.symmetric(horizontal: 12, vertical: 8),
@@ -185,27 +188,27 @@ class _ProductCardShimmer extends StatelessWidget {
                 children: [
                   _ShimmerBox(
                     animation: animation,
-                    height: 12.h,
+                    height: ScreenScale.h(12),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   _ShimmerBox(
                     animation: animation,
-                    height: 8.h,
-                    width: 60.w,
+                    height: ScreenScale.h(8),
+                    width: ScreenScale.w(60),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   const Spacer(),
                   _ShimmerBox(
                     animation: animation,
-                    height: 14.h,
-                    width: 50.w,
+                    height: ScreenScale.h(14),
+                    width: ScreenScale.w(50),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
                   _ShimmerBox(
                     animation: animation,
-                    height: 32.h,
+                    height: ScreenScale.h(32),
                     borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                 ],
@@ -330,27 +333,27 @@ class _HorizontalProductCardShimmer extends StatelessWidget {
                 children: [
                   _ShimmerBox(
                     animation: animation,
-                    height: 10.h,
+                    height: ScreenScale.h(10),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   _ShimmerBox(
                     animation: animation,
-                    height: 6.h,
-                    width: 50.w,
+                    height: ScreenScale.h(6),
+                    width: ScreenScale.w(50),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
                   const Spacer(),
                   _ShimmerBox(
                     animation: animation,
-                    height: 12.h,
-                    width: 40.w,
+                    height: ScreenScale.h(12),
+                    width: ScreenScale.w(40),
                     borderRadius: BorderRadius.circular(AppRadius.small),
                   ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: ScreenScale.h(6)),
                   _ShimmerBox(
                     animation: animation,
-                    height: 28.h,
+                    height: ScreenScale.h(28),
                     borderRadius: BorderRadius.circular(AppRadius.medium),
                   ),
                 ],
@@ -465,17 +468,17 @@ class _CategoryItemCardShimmer extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.large),
             ),
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: ScreenScale.h(4)),
           _ShimmerBox(
             animation: animation,
-            height: 10.h,
+            height: ScreenScale.h(10),
             borderRadius: BorderRadius.circular(AppRadius.small),
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: ScreenScale.h(2)),
           _ShimmerBox(
             animation: animation,
-            height: 8.h,
-            width: 40.w,
+            height: ScreenScale.h(8),
+            width: ScreenScale.w(40),
             borderRadius: BorderRadius.circular(AppRadius.small),
           ),
         ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class GroceryLoadingAnimation extends StatefulWidget {
   const GroceryLoadingAnimation({super.key});
@@ -95,11 +95,11 @@ class SuggestionSkeletonCard extends StatelessWidget {
       width: (MediaQuery.sizeOf(context).width * 0.82)
           .clamp(280.0, 340.0)
           .toDouble(),
-      margin: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
-      padding: EdgeInsets.all(14.w),
+      margin: EdgeInsets.symmetric(horizontal: ScreenScale.w(6), vertical: ScreenScale.h(8)),
+      padding: EdgeInsets.all(ScreenScale.w(14)),
       decoration: BoxDecoration(
         color: suggestionTheme?.cardBackground ?? cs.surface,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(ScreenScale.r(16)),
         border: Border.all(
           color: suggestionTheme?.cardBorder ?? cs.outlineVariant,
           width: 1,
@@ -110,21 +110,21 @@ class SuggestionSkeletonCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              _ShimmerWidget(width: 36.r, height: 36.r, borderRadius: 18.r),
-              SizedBox(width: 10.w),
+              _ShimmerWidget(width: ScreenScale.r(36), height: ScreenScale.r(36), borderRadius: ScreenScale.r(18)),
+              SizedBox(width: ScreenScale.w(10)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _ShimmerWidget(
                       width: double.infinity,
-                      height: 14.h,
+                      height: ScreenScale.h(14),
                       borderRadius: 4,
                     ),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: ScreenScale.h(6)),
                     _ShimmerWidget(
-                      width: 120.w,
-                      height: 14.h,
+                      width: ScreenScale.w(120),
+                      height: ScreenScale.h(14),
                       borderRadius: 4,
                     ),
                   ],
@@ -132,25 +132,25 @@ class SuggestionSkeletonCard extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           _ShimmerWidget(
             width: double.infinity,
-            height: 6.h,
+            height: ScreenScale.h(6),
             borderRadius: 3,
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: ScreenScale.h(6)),
           _ShimmerWidget(
-            width: 100.w,
-            height: 10.h,
+            width: ScreenScale.w(100),
+            height: ScreenScale.h(10),
             borderRadius: 4,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               _ShimmerWidget(
-                width: 80.w,
-                height: 36.h,
+                width: ScreenScale.w(80),
+                height: ScreenScale.h(36),
                 borderRadius: 8,
               ),
             ],
@@ -167,10 +167,10 @@ class SuggestionSkeletonSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180.h.clamp(166.0, 210.0).toDouble(),
+      height: ScreenScale.h(180).clamp(166.0, 210.0).toDouble(),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        padding: EdgeInsets.symmetric(horizontal: ScreenScale.w(8)),
         itemCount: 3,
         itemBuilder: (context, index) {
           return const SuggestionSkeletonCard();
@@ -223,14 +223,14 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
                 offset: Offset(_moveAnimation.value, 0),
                 child: Icon(
                   Icons.shopping_cart_outlined,
-                  size: 60.r,
+                  size: ScreenScale.r(60),
                   color: Colors.green,
                 ),
               );
             },
           ),
 
-          SizedBox(height: 12.h),
+          SizedBox(height: ScreenScale.h(12)),
 
           AnimatedBuilder(
             animation: _controller,
@@ -242,25 +242,25 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
                     opacity: _fadeAnimation.value,
                     child: Icon(
                       Icons.circle,
-                      size: 8.r,
+                      size: ScreenScale.r(8),
                       color: Colors.green,
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: ScreenScale.w(6)),
                   Opacity(
                     opacity: 1 - _fadeAnimation.value,
                     child: Icon(
                       Icons.circle,
-                      size: 8.r,
+                      size: ScreenScale.r(8),
                       color: Colors.green,
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: ScreenScale.w(6)),
                   Opacity(
                     opacity: _fadeAnimation.value,
                     child: Icon(
                       Icons.circle,
-                      size: 8.r,
+                      size: ScreenScale.r(8),
                       color: Colors.green,
                     ),
                   ),
@@ -269,10 +269,10 @@ class _GroceryLoadingAnimationState extends State<GroceryLoadingAnimation>
             },
           ),
 
-          SizedBox(height: 8.h),
+          SizedBox(height: ScreenScale.h(8)),
           Text(
             "Loading products...",
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+            style: TextStyle(fontSize: ScreenScale.sp(14), color: Colors.grey),
           ),
         ],
       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/screens/legal_webview_screen.dart'
     deferred as legal_webview_screen;
 import 'package:freshpickkat_flutter/screens/report_issue_screen.dart'
@@ -14,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -50,7 +50,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           'Help & Support',
           style: TextStyle(
             color: cs.onSurface,
-            fontSize: 18.sp,
+            fontSize: ScreenScale.sp(18),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -59,14 +59,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         top: false,
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+            bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
           ),
           child: AppResponsive.constrainContent(
             context: context,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 8.h),
+                SizedBox(height: ScreenScale.h(8)),
                 _sectionHeader('CONTACT US', cs),
                 _menuItem(
                   icon: Icons.chat_bubble_outline_rounded,
@@ -90,7 +90,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   cs: cs,
                   showBorder: false,
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _sectionHeader('REPORTS', cs),
                 _menuItem(
                   icon: Icons.edit_note_rounded,
@@ -106,7 +106,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   cs: cs,
                   showBorder: false,
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _sectionHeader('HELP CENTER', cs),
                 _menuItem(
                   icon: Icons.help_outline_rounded,
@@ -128,7 +128,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   cs: cs,
                   showBorder: false,
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 _sectionHeader('APP INFO', cs),
                 FutureBuilder<PackageInfo>(
                   future: _appInfoFuture,
@@ -160,7 +160,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         title,
         style: TextStyle(
           color: cs.onSurface.withValues(alpha: 0.6),
-          fontSize: 16.sp,
+          fontSize: ScreenScale.sp(16),
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -192,9 +192,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.medium),
               ),
-              child: Icon(icon, color: cs.onSurface, size: 22.r),
+              child: Icon(icon, color: cs.onSurface, size: ScreenScale.r(22)),
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: ScreenScale.w(16)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,18 +203,18 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     title,
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 16.sp,
+                      fontSize: ScreenScale.sp(16),
                       fontWeight: FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: ScreenScale.h(2)),
                   Text(
                     subtitle,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -250,10 +250,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             child: Icon(
               Icons.info_outline_rounded,
               color: cs.onSurface,
-              size: 22.r,
+              size: ScreenScale.r(22),
             ),
           ),
-          SizedBox(width: 16.w),
+          SizedBox(width: ScreenScale.w(16)),
           Expanded(
             child: Text.rich(
               TextSpan(
@@ -262,7 +262,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     text: '$version ',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 16.sp,
+                      fontSize: ScreenScale.sp(16),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -270,7 +270,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     text: '(Build $buildNumber)',
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5),
-                      fontSize: 13.sp,
+                      fontSize: ScreenScale.sp(13),
                     ),
                   ),
                 ],

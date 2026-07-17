@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'screen_scale.dart';
 
 class AppText {
   AppText._();
@@ -8,7 +8,7 @@ class AppText {
   static TextStyle displayLarge(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 28.sp,
+      fontSize: ScreenScale.sp(28),
       fontWeight: FontWeight.w700,
       height: 1.15,
     );
@@ -17,7 +17,7 @@ class AppText {
   static TextStyle displayMedium(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 24.sp,
+      fontSize: ScreenScale.sp(24),
       fontWeight: FontWeight.w700,
       height: 1.2,
     );
@@ -26,7 +26,7 @@ class AppText {
   static TextStyle headlineLarge(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 22.sp,
+      fontSize: ScreenScale.sp(22),
       fontWeight: FontWeight.w700,
       height: 1.2,
     );
@@ -35,7 +35,7 @@ class AppText {
   static TextStyle headlineMedium(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 20.sp,
+      fontSize: ScreenScale.sp(20),
       fontWeight: FontWeight.w700,
       height: 1.2,
     );
@@ -44,7 +44,7 @@ class AppText {
   static TextStyle headlineSmall(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 18.sp,
+      fontSize: ScreenScale.sp(18),
       fontWeight: FontWeight.w700,
       height: 1.2,
     );
@@ -53,7 +53,7 @@ class AppText {
   static TextStyle titleLarge(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 16.sp,
+      fontSize: ScreenScale.sp(16),
       fontWeight: FontWeight.w600,
       height: 1.2,
     );
@@ -62,7 +62,7 @@ class AppText {
   static TextStyle titleMedium(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 14.sp,
+      fontSize: ScreenScale.sp(14),
       fontWeight: FontWeight.w600,
       height: 1.2,
     );
@@ -71,7 +71,7 @@ class AppText {
   static TextStyle titleSmall(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 13.sp,
+      fontSize: ScreenScale.sp(13),
       fontWeight: FontWeight.w600,
       height: 1.15,
     );
@@ -80,7 +80,7 @@ class AppText {
   static TextStyle bodyLarge(BuildContext context) {
     return TextStyle(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 16.sp,
+      fontSize: ScreenScale.sp(16),
       height: 1.35,
     );
   }
@@ -88,7 +88,7 @@ class AppText {
   static TextStyle bodyMedium(BuildContext context) {
     return TextStyle(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 14.sp,
+      fontSize: ScreenScale.sp(14),
       height: 1.35,
     );
   }
@@ -96,7 +96,7 @@ class AppText {
   static TextStyle bodySmall(BuildContext context) {
     return TextStyle(
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
-      fontSize: 12.sp,
+      fontSize: ScreenScale.sp(12),
       height: 1.25,
     );
   }
@@ -104,14 +104,14 @@ class AppText {
   static TextStyle caption(BuildContext context) {
     return TextStyle(
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
-      fontSize: 11.sp,
+      fontSize: ScreenScale.sp(11),
       height: 1.2,
     );
   }
 
   static TextStyle button(BuildContext context) {
     return GoogleFonts.poppins(
-      fontSize: 13.sp,
+      fontSize: ScreenScale.sp(13),
       fontWeight: FontWeight.w700,
       height: 1,
     );
@@ -120,7 +120,7 @@ class AppText {
   static TextStyle label(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
-      fontSize: 10.sp,
+      fontSize: ScreenScale.sp(10),
       height: 1.15,
     );
   }
@@ -128,7 +128,7 @@ class AppText {
   static TextStyle productTitle(BuildContext context) {
     return GoogleFonts.poppins(
       color: Theme.of(context).colorScheme.onSurface,
-      fontSize: 12.sp.clamp(11.0, 14.0),
+      fontSize: ScreenScale.sp(12).clamp(11.0, 14.0),
       fontWeight: FontWeight.w600,
       height: 1.15,
     );
@@ -137,7 +137,7 @@ class AppText {
   static TextStyle productQuantity(BuildContext context) {
     return GoogleFonts.inter(
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
-      fontSize: 10.sp.clamp(9.0, 12.0),
+      fontSize: ScreenScale.sp(10).clamp(9.0, 12.0),
       height: 1.15,
     );
   }
@@ -145,7 +145,7 @@ class AppText {
   static TextStyle productPrice(BuildContext context) {
     return GoogleFonts.inter(
       color: const Color(0xFF4CAF50),
-      fontSize: 14.sp.clamp(12.0, 16.0),
+      fontSize: ScreenScale.sp(14).clamp(12.0, 16.0),
       fontWeight: FontWeight.w800,
       height: 1.1,
     );
@@ -154,7 +154,7 @@ class AppText {
   static TextStyle productMrp(BuildContext context) {
     return GoogleFonts.inter(
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
-      fontSize: 10.sp.clamp(9.0, 12.0),
+      fontSize: ScreenScale.sp(10).clamp(9.0, 12.0),
       decoration: TextDecoration.lineThrough,
       decorationColor:
           Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
@@ -13,6 +12,7 @@ import 'package:freshpickkat_flutter/utils/responsive.dart';
 import 'package:freshpickkat_flutter/widgets/address_form_widget.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String title;
@@ -192,7 +192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: AppResponsive.pagePadding(context).copyWith(
             bottom:
                 MediaQuery.viewInsetsOf(context).bottom +
-                24.h +
+                ScreenScale.h(24) +
                 MediaQuery.paddingOf(context).bottom,
           ),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -224,12 +224,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                 ),
 
-                SizedBox(height: 32.h),
+                SizedBox(height: ScreenScale.h(32)),
 
                 // Save Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56.h.clamp(48.0, 64.0).toDouble(),
+                  height: ScreenScale.h(56).clamp(48.0, 64.0).toDouble(),
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
@@ -253,7 +253,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         : AutoSizeText(
                             'Save Changes',
                             style: TextStyle(
-                              fontSize: 16.sp,
+                              fontSize: ScreenScale.sp(16),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -262,7 +262,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                   ),
                 ),
-                SizedBox(height: 20.h),
+                SizedBox(height: ScreenScale.h(20)),
               ],
             ),
           ),

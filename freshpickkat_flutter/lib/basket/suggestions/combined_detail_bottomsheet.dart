@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/combo_offer_controller.dart';
@@ -15,6 +14,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class CombinedDetailBottomSheet extends StatelessWidget {
   final client.BasketSuggestion suggestion;
@@ -36,7 +36,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(ScreenScale.r(24))),
             ),
             padding: AppSpacing.only(left: 20, top: 12, right: 20, bottom: 24),
             child: Column(
@@ -44,15 +44,15 @@ class CombinedDetailBottomSheet extends StatelessWidget {
               children: [
                 Center(
                   child: Container(
-                    width: 40.w,
-                    height: 4.h,
+                    width: ScreenScale.w(40),
+                    height: ScreenScale.h(4),
                     decoration: BoxDecoration(
                       color: cs.onSurface.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(2.r),
+                      borderRadius: BorderRadius.circular(ScreenScale.r(2)),
                     ),
                   ),
                 ),
-                SizedBox(height: 20.h),
+                SizedBox(height: ScreenScale.h(20)),
                 Row(
                   children: [
                     Container(
@@ -67,7 +67,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                         size: AppIcons.medium,
                       ),
                     ),
-                    SizedBox(width: 14.w),
+                    SizedBox(width: ScreenScale.w(14)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +75,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                           AutoSizeText(
                             'Combined Deal Breakdown',
                             style: TextStyle(
-                              fontSize: 18.sp,
+                              fontSize: ScreenScale.sp(18),
                               fontWeight: FontWeight.bold,
                             ),
                             minFontSize: 14,
@@ -86,7 +86,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                             '${actions.length} step${actions.length == 1 ? '' : 's'} to stack this deal',
                             style: TextStyle(
                               color: cs.onSurface.withValues(alpha: 0.5),
-                              fontSize: 13.sp,
+                              fontSize: ScreenScale.sp(13),
                             ),
                           ),
                         ],
@@ -94,7 +94,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 24.h),
+                SizedBox(height: ScreenScale.h(24)),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -117,12 +117,12 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                             children: [
                               if (!isLast)
                                 Positioned(
-                                  top: 28.r,
+                                  top: ScreenScale.r(28),
                                   bottom: 0,
                                   left:
-                                      14.r -
-                                      1.r, // Centered relative to 28.r circle
-                                  width: 2.r,
+                                      ScreenScale.r(14) -
+                                      ScreenScale.r(1), // Centered relative to ScreenScale.r(28) circle
+                                  width: ScreenScale.r(2),
                                   child: Container(
                                     color: AppTheme.primaryGreen.withValues(
                                       alpha: 0.1,
@@ -133,8 +133,8 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    width: 28.r,
-                                    height: 28.r,
+                                    width: ScreenScale.r(28),
+                                    height: ScreenScale.r(28),
                                     decoration: BoxDecoration(
                                       color: AppTheme.primaryGreen.withValues(
                                         alpha: 0.15,
@@ -147,12 +147,12 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                         style: TextStyle(
                                           color: AppTheme.primaryGreen,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13.sp,
+                                          fontSize: ScreenScale.sp(13),
                                         ),
                                       ),
                                     ),
                                   ),
-                                  SizedBox(width: 16.w),
+                                  SizedBox(width: ScreenScale.w(16)),
                                   Expanded(
                                     child: Padding(
                                       padding: AppSpacing.only(bottom: 24),
@@ -164,26 +164,26 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                                             action.label,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 15.sp,
+                                              fontSize: ScreenScale.sp(15),
                                             ),
                                           ),
-                                          SizedBox(height: 4.h),
+                                          SizedBox(height: ScreenScale.h(4)),
                                           Text(
                                             _stepDescription(action),
                                             style: TextStyle(
                                               color: cs.onSurface.withValues(
                                                 alpha: 0.6,
                                               ),
-                                              fontSize: 13.sp,
+                                              fontSize: ScreenScale.sp(13),
                                               height: 1.3,
                                             ),
                                           ),
                                           if ((action.extraSpend ?? 0) > 0 ||
                                               (action.benefit ?? 0) > 0) ...[
-                                            SizedBox(height: 10.h),
+                                            SizedBox(height: ScreenScale.h(10)),
                                             Wrap(
-                                              spacing: 8.w,
-                                              runSpacing: 8.h,
+                                              spacing: ScreenScale.w(8),
+                                              runSpacing: ScreenScale.h(8),
                                               children: [
                                                 if ((action.extraSpend ?? 0) >
                                                     0)
@@ -213,7 +213,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                             ],
                           );
                         }),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: ScreenScale.h(8)),
                         Container(
                           padding: AppSpacing.all(16),
                           decoration: BoxDecoration(
@@ -254,10 +254,10 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: ScreenScale.h(16)),
                 SizedBox(
                   width: double.infinity,
-                  height: 54.h.clamp(48.0, 62.0).toDouble(),
+                  height: ScreenScale.h(54).clamp(48.0, 62.0).toDouble(),
                   child: ElevatedButton(
                     onPressed: () {
                       Get.back();
@@ -274,7 +274,7 @@ class CombinedDetailBottomSheet extends StatelessWidget {
                     child: AutoSizeText(
                       'Apply All Steps',
                       style: TextStyle(
-                        fontSize: 16.sp,
+                        fontSize: ScreenScale.sp(16),
                         fontWeight: FontWeight.bold,
                       ),
                       minFontSize: 12,
@@ -379,10 +379,10 @@ class _ComboTimelineStep extends StatelessWidget {
       children: [
         if (!isLast)
           Positioned(
-            top: 28.r,
+            top: ScreenScale.r(28),
             bottom: 0,
-            left: 14.r - 1.r,
-            width: 2.r,
+            left: ScreenScale.r(14) - ScreenScale.r(1),
+            width: ScreenScale.r(2),
             child: Container(
               color: AppTheme.primaryGreen.withValues(alpha: 0.1),
             ),
@@ -391,8 +391,8 @@ class _ComboTimelineStep extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 28.r,
-              height: 28.r,
+              width: ScreenScale.r(28),
+              height: ScreenScale.r(28),
               decoration: BoxDecoration(
                 color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
@@ -403,12 +403,12 @@ class _ComboTimelineStep extends StatelessWidget {
                   style: TextStyle(
                     color: AppTheme.primaryGreen,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13.sp,
+                    fontSize: ScreenScale.sp(13),
                   ),
                 ),
               ),
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: ScreenScale.w(16)),
             Expanded(
               child: Padding(
                 padding: AppSpacing.only(bottom: 24),
@@ -525,19 +525,19 @@ class _FallbackComboCard extends StatelessWidget {
                       style: TextStyle(
                         color: cs.onSurface,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15.sp,
+                        fontSize: ScreenScale.sp(15),
                       ),
                       minFontSize: 11,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (isExpanded) ...[
-                      SizedBox(height: 6.h),
+                      SizedBox(height: ScreenScale.h(6)),
                       Text(
                         subtitle,
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.6),
-                          fontSize: 12.sp,
+                          fontSize: ScreenScale.sp(12),
                         ),
                       ),
                     ],
@@ -576,7 +576,7 @@ class _InfoPill extends StatelessWidget {
       child: AutoSizeText(
         label,
         style: TextStyle(
-          fontSize: 11.5.sp,
+          fontSize: ScreenScale.sp(11.5),
           color: cs.onSurface.withValues(alpha: 0.72),
           fontWeight: FontWeight.w600,
         ),
@@ -607,7 +607,7 @@ class _Stat extends StatelessWidget {
         AutoSizeText(
           label,
           style: TextStyle(
-            fontSize: 11.sp,
+            fontSize: ScreenScale.sp(11),
             color: Theme.of(
               context,
             ).colorScheme.onSurface.withValues(alpha: 0.5),
@@ -616,11 +616,11 @@ class _Stat extends StatelessWidget {
           minFontSize: 8,
           maxLines: 1,
         ),
-        SizedBox(height: 4.h),
+        SizedBox(height: ScreenScale.h(4)),
         AutoSizeText(
           value,
           style: TextStyle(
-            fontSize: 15.sp,
+            fontSize: ScreenScale.sp(15),
             color: color,
             fontWeight: isBold ? FontWeight.w900 : FontWeight.bold,
           ),

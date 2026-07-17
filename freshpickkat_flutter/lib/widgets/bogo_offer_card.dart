@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/controller/product_provider_controller.dart';
@@ -16,6 +15,7 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class BogoOfferCard extends StatelessWidget {
   const BogoOfferCard({
@@ -75,8 +75,8 @@ class BogoOfferCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: AppTheme.primaryGreen.withValues(alpha: 0.12),
-              blurRadius: 12.r,
-              offset: Offset(0, 4.h),
+              blurRadius: ScreenScale.r(12),
+              offset: Offset(0, ScreenScale.h(4)),
             ),
           ],
         ),
@@ -85,7 +85,7 @@ class BogoOfferCard extends StatelessWidget {
           children: [
             // Trigger Product Section (Compact)
             SizedBox(
-              height: 110.h,
+              height: ScreenScale.h(110),
               child: Stack(
                 children: [
                   Row(
@@ -97,8 +97,8 @@ class BogoOfferCard extends StatelessWidget {
                           bottomLeft: Radius.circular(AppRadius.large),
                         ),
                         child: Container(
-                          width: 100.w,
-                          height: 110.h,
+                          width: ScreenScale.w(100),
+                          height: ScreenScale.h(110),
                           color: cs.surface,
                           child: Image.network(
                             product.imageUrl,
@@ -127,7 +127,7 @@ class BogoOfferCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: cs.onSurface,
-                                    fontSize: 13.sp,
+                                    fontSize: ScreenScale.sp(13),
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -139,7 +139,7 @@ class BogoOfferCard extends StatelessWidget {
                                 style: TextStyle(
                                   color: AppTheme.primaryGreen,
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 11.sp,
+                                  fontSize: ScreenScale.sp(11),
                                 ),
                               ),
                               Row(
@@ -149,10 +149,10 @@ class BogoOfferCard extends StatelessWidget {
                                     style: TextStyle(
                                       color: cs.onSurface,
                                       fontWeight: FontWeight.w800,
-                                      fontSize: 12.sp,
+                                      fontSize: ScreenScale.sp(12),
                                     ),
                                   ),
-                                  SizedBox(width: 6.w),
+                                  SizedBox(width: ScreenScale.w(6)),
                                   if ((triggerVariant?.realPrice ?? product.realPrice) > (triggerVariant?.price ?? product.price))
                                     Text(
                                       '₹${(triggerVariant?.realPrice ?? product.realPrice).formatPrice}',
@@ -161,7 +161,7 @@ class BogoOfferCard extends StatelessWidget {
                                           alpha: 0.45,
                                         ),
                                         decoration: TextDecoration.lineThrough,
-                                        fontSize: 11.sp,
+                                        fontSize: ScreenScale.sp(11),
                                       ),
                                     ),
                                 ],
@@ -173,8 +173,8 @@ class BogoOfferCard extends StatelessWidget {
                     ],
                   ),
                   Positioned(
-                    left: 8.w,
-                    top: 8.h,
+                    left: ScreenScale.w(8),
+                    top: ScreenScale.h(8),
                     child: Container(
                       padding: AppSpacing.symmetric(
                         horizontal: 8,
@@ -188,7 +188,7 @@ class BogoOfferCard extends StatelessWidget {
                         badgeText,
                         style: TextStyle(
                           color: offerTheme.onBadge,
-                          fontSize: 9.sp,
+                          fontSize: ScreenScale.sp(9),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -205,24 +205,24 @@ class BogoOfferCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10.h),
+                  SizedBox(height: ScreenScale.h(10)),
                   // Free Products Scrollable List
                   if (freeProductObjects.isNotEmpty) ...[
                     Text(
                       'Choose Free Item:',
                       style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.7),
-                        fontSize: 10.sp,
+                        fontSize: ScreenScale.sp(10),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 8.h),
+                    SizedBox(height: ScreenScale.h(8)),
                     SizedBox(
-                      height: 90.h,
+                      height: ScreenScale.h(90),
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: freeProductObjects.length,
-                        separatorBuilder: (_, _) => SizedBox(width: 8.w),
+                        separatorBuilder: (_, _) => SizedBox(width: ScreenScale.w(8)),
                         itemBuilder: (context, index) {
                           final freeProduct = freeProductObjects[index];
                           final freeConfig = freeProducts[index];
@@ -242,7 +242,7 @@ class BogoOfferCard extends StatelessWidget {
                         },
                       ),
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: ScreenScale.h(10)),
                   ],
                   Obx(() {
                     final cart = CartController.instance;
@@ -252,7 +252,7 @@ class BogoOfferCard extends StatelessWidget {
                     );
                     return SizedBox(
                       width: double.infinity,
-                      height: 40.h,
+                      height: ScreenScale.h(40),
                       child: qty == 0
                           ? FilledButton.icon(
                               onPressed: product.productId == null
@@ -291,7 +291,7 @@ class BogoOfferCard extends StatelessWidget {
                                   horizontal: 12,
                                   vertical: 8,
                                 ),
-                                textStyle: TextStyle(fontSize: 12.sp),
+                                textStyle: TextStyle(fontSize: ScreenScale.sp(12)),
                               ),
                             )
                           : _buildQuantitySelector(
@@ -341,8 +341,8 @@ class BogoOfferCard extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: AppTheme.primaryGreen.withValues(alpha: 0.3),
-                blurRadius: 4.r,
-            offset: Offset(0, 2.h),
+                blurRadius: ScreenScale.r(4),
+            offset: Offset(0, ScreenScale.h(2)),
           ),
         ],
       ),
@@ -366,7 +366,7 @@ class BogoOfferCard extends StatelessWidget {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 12.sp,
+              fontSize: ScreenScale.sp(12),
             ),
           ),
           InkWell(
@@ -401,7 +401,7 @@ class _FreeProductCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Container(
-      width: 170.w,
+      width: ScreenScale.w(170),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -417,8 +417,8 @@ class _FreeProductCard extends StatelessWidget {
               bottomLeft: Radius.circular(AppRadius.medium),
             ),
             child: SizedBox(
-              width: 85.w,
-              height: 90.h,
+              width: ScreenScale.w(85),
+              height: ScreenScale.h(90),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -432,8 +432,8 @@ class _FreeProductCard extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    bottom: 2.h,
-                    right: 2.h,
+                    bottom: ScreenScale.h(2),
+                    right: ScreenScale.h(2),
                     child: Container(
                       padding: AppSpacing.symmetric(
                         horizontal: 3,
@@ -441,13 +441,13 @@ class _FreeProductCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(3.r),
+                        borderRadius: BorderRadius.circular(ScreenScale.r(3)),
                       ),
                       child: Text(
                         'FREE',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 7.sp,
+                          fontSize: ScreenScale.sp(7),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -473,29 +473,29 @@ class _FreeProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: cs.onSurface,
-                        fontSize: 11.sp,
+                        fontSize: ScreenScale.sp(11),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: ScreenScale.h(2)),
                   Text(
                     quantityLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.6),
-                      fontSize: 10.sp,
+                      fontSize: ScreenScale.sp(10),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: ScreenScale.h(2)),
                   Text(
                     '₹${product.price.formatPrice}',
                     maxLines: 1,
                     style: TextStyle(
                       color: cs.primary,
-                      fontSize: 11.sp,
+                      fontSize: ScreenScale.sp(11),
                       fontWeight: FontWeight.w700,
                     ),
                   ),

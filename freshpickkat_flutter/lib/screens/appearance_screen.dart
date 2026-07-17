@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class AppearanceScreen extends StatelessWidget {
   const AppearanceScreen({super.key});
@@ -30,7 +30,7 @@ class AppearanceScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         padding: AppResponsive.pagePadding(context).copyWith(
-          bottom: 24.h + MediaQuery.paddingOf(context).bottom,
+          bottom: ScreenScale.h(24) + MediaQuery.paddingOf(context).bottom,
         ),
         child: AppResponsive.constrainContent(
           context: context,
@@ -41,12 +41,12 @@ class AppearanceScreen extends StatelessWidget {
               Text(
                 'Theme Mode',
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: ScreenScale.sp(16),
                   fontWeight: FontWeight.bold,
                   color: cs.onSurface,
                 ),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: ScreenScale.h(12)),
               Obx(
                 () => Row(
                   children: [
@@ -57,7 +57,7 @@ class AppearanceScreen extends StatelessWidget {
                       onTap: () =>
                           themeController.setThemeMode(ThemeMode.system),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: ScreenScale.w(10)),
                     _ThemeModeChip(
                       icon: Icons.light_mode_outlined,
                       label: 'Light',
@@ -65,7 +65,7 @@ class AppearanceScreen extends StatelessWidget {
                       onTap: () =>
                           themeController.setThemeMode(ThemeMode.light),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: ScreenScale.w(10)),
                     _ThemeModeChip(
                       icon: Icons.dark_mode_outlined,
                       label: 'Dark',
@@ -76,7 +76,7 @@ class AppearanceScreen extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 32.h),
+              SizedBox(height: ScreenScale.h(32)),
 
               // ── Light Theme Presets Section ─────────────────────────────────
               Row(
@@ -84,17 +84,17 @@ class AppearanceScreen extends StatelessWidget {
                   Text(
                     'Light Theme Color',
                     style: TextStyle(
-                      fontSize: 16.sp,
+                      fontSize: ScreenScale.sp(16),
                       fontWeight: FontWeight.bold,
                       color: cs.onSurface,
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: ScreenScale.w(6)),
                   Flexible(
                     child: Text(
                       '(Light mode only)',
                       style: TextStyle(
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                         color: cs.onSurface.withValues(alpha: 0.4),
                       ),
                       maxLines: 1,
@@ -103,7 +103,7 @@ class AppearanceScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: ScreenScale.h(14)),
               Obx(
                 () => Column(
                   children: [
@@ -122,7 +122,7 @@ class AppearanceScreen extends StatelessWidget {
                         LightThemePreset.sageGreen,
                       ),
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: ScreenScale.h(10)),
                     _PresetCard(
                       preset: LightThemePreset.warmCream,
                       emoji: '🍞',
@@ -138,7 +138,7 @@ class AppearanceScreen extends StatelessWidget {
                         LightThemePreset.warmCream,
                       ),
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: ScreenScale.h(10)),
                     _PresetCard(
                       preset: LightThemePreset.skyBlue,
                       emoji: '🩵',
@@ -154,7 +154,7 @@ class AppearanceScreen extends StatelessWidget {
                         LightThemePreset.skyBlue,
                       ),
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: ScreenScale.h(10)),
                     _PresetCard(
                       preset: LightThemePreset.roseBlush,
                       emoji: '🌸',
@@ -170,7 +170,7 @@ class AppearanceScreen extends StatelessWidget {
                         LightThemePreset.roseBlush,
                       ),
                     ),
-                    SizedBox(height: 10.h),
+                    SizedBox(height: ScreenScale.h(10)),
                     _PresetCard(
                       preset: LightThemePreset.lavender,
                       emoji: '💜',
@@ -189,7 +189,7 @@ class AppearanceScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: ScreenScale.h(24)),
             ],
           ),
         ),
@@ -240,14 +240,14 @@ class _ThemeModeChip extends StatelessWidget {
                 color: selected
                     ? Colors.white
                     : cs.onSurface.withValues(alpha: 0.6),
-                size: 22.r,
+                size: ScreenScale.r(22),
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: ScreenScale.h(4)),
               AutoSizeText(
                 label,
                 style: TextStyle(
                   color: selected ? Colors.white : cs.onSurface,
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
                 minFontSize: 8,
@@ -308,8 +308,8 @@ class _PresetCard extends StatelessWidget {
           children: [
             // ── Mini preview ─────────────────────────────────────────────────
             Container(
-              width: 72.w.clamp(58.0, 82.0).toDouble(),
-              height: 52.h.clamp(42.0, 58.0).toDouble(),
+              width: ScreenScale.w(72).clamp(58.0, 82.0).toDouble(),
+              height: ScreenScale.h(52).clamp(42.0, 58.0).toDouble(),
               decoration: BoxDecoration(
                 color: scaffold,
                 borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -321,26 +321,26 @@ class _PresetCard extends StatelessWidget {
                   // Simulated card strip
                   Container(
                     margin: AppSpacing.symmetric(horizontal: 6),
-                    height: 10.h,
+                    height: ScreenScale.h(10),
                     decoration: BoxDecoration(
                       color: card,
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: ScreenScale.h(4)),
                   Container(
                     margin: AppSpacing.symmetric(horizontal: 10),
-                    height: 7.h,
+                    height: ScreenScale.h(7),
                     decoration: BoxDecoration(
                       color: card,
                       borderRadius: BorderRadius.circular(AppRadius.small),
                     ),
                   ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: ScreenScale.h(6)),
                   // Simulated green button
                   Container(
                     margin: AppSpacing.symmetric(horizontal: 14),
-                    height: 7.h,
+                    height: ScreenScale.h(7),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryGreen,
                       borderRadius: BorderRadius.circular(AppRadius.small),
@@ -349,7 +349,7 @@ class _PresetCard extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: ScreenScale.w(16)),
             // ── Info ─────────────────────────────────────────────────────────
             Expanded(
               child: Column(
@@ -358,7 +358,7 @@ class _PresetCard extends StatelessWidget {
                   AutoSizeText(
                     '$emoji  $name',
                     style: TextStyle(
-                      fontSize: 15.sp,
+                      fontSize: ScreenScale.sp(15),
                       fontWeight: FontWeight.bold,
                       color: cs.onSurface,
                     ),
@@ -366,33 +366,33 @@ class _PresetCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 3.h),
+                  SizedBox(height: ScreenScale.h(3)),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: ScreenScale.sp(12),
                       color: cs.onSurface.withValues(alpha: 0.5),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: ScreenScale.h(8)),
                   // Swatches
                   Row(
                     children: [
                       _Swatch(color: scaffold),
-                      SizedBox(width: 5.w),
+                      SizedBox(width: ScreenScale.w(5)),
                       _Swatch(color: card),
-                      SizedBox(width: 5.w),
+                      SizedBox(width: ScreenScale.w(5)),
                       _Swatch(color: text),
-                      SizedBox(width: 5.w),
+                      SizedBox(width: ScreenScale.w(5)),
                       _Swatch(color: AppTheme.primaryGreen),
                     ],
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 8.w),
+            SizedBox(width: ScreenScale.w(8)),
             // ── Checkmark ────────────────────────────────────────────────────
             AnimatedOpacity(
               opacity: selected ? 1.0 : 0.0,
@@ -417,8 +417,8 @@ class _Swatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 16.r,
-      height: 16.r,
+      width: ScreenScale.r(16),
+      height: ScreenScale.r(16),
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/controller/banner_controller.dart';
 import 'package:freshpickkat_flutter/controller/network_controller.dart';
@@ -22,6 +21,7 @@ import 'package:freshpickkat_flutter/widgets/shimmer_loading.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class _LazyMiddleBanner extends StatefulWidget {
   const _LazyMiddleBanner();
@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage>
     super.build(context);
     final productController = ProductProviderController.instance;
     final height = MediaQuery.sizeOf(context).height;
-    final headerSpacer = AppResponsive.isLandscape(context) ? 126.h : 170.h;
+    final headerSpacer = AppResponsive.isLandscape(context) ? ScreenScale.h(126) : ScreenScale.h(170);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -231,7 +231,7 @@ class _HomePageState extends State<HomePage>
           RefreshIndicator(
             onRefresh: _onRefresh,
             edgeOffset: headerSpacer,
-            displacement: 40.h,
+            displacement: ScreenScale.h(40),
             child: Obx(() {
               final hasData = productController.hasData;
 
@@ -363,7 +363,7 @@ class _HomePageState extends State<HomePage>
                       if (productController.isLoading.value)
                         SliverToBoxAdapter(
                           child: SizedBox(
-                            height: 400.h,
+                            height: ScreenScale.h(400),
                             child: ProductGridShimmer(
                               itemCount: 6,
                               padding: AppSpacing.symmetric(horizontal: 12),
@@ -387,7 +387,7 @@ class _HomePageState extends State<HomePage>
                                         ).colorScheme.onSurface.withValues(
                                           alpha: 0.4,
                                         ),
-                                    fontSize: 14.sp,
+                                    fontSize: ScreenScale.sp(14),
                                   ),
                                 ),
                               ),
@@ -413,8 +413,8 @@ class _HomePageState extends State<HomePage>
               return FreshPickKartHeader(
                 expandedHeight: headerSpacer,
                 collapsedHeight: AppResponsive.isLandscape(context)
-                    ? kToolbarHeight + 42.h
-                    : kToolbarHeight + 60.h,
+                    ? kToolbarHeight + ScreenScale.h(42)
+                    : kToolbarHeight + ScreenScale.h(60),
                 scrollOffset: _scrollController.hasClients
                     ? _scrollController.positions.first.pixels
                     : 0,

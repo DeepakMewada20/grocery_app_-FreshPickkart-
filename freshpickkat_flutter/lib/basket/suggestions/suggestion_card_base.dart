@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart' as client;
 import 'package:freshpickkat_flutter/controller/theme_controller.dart';
 import 'package:freshpickkat_flutter/utils/responsive.dart';
@@ -7,6 +6,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class SuggestionCardBase extends StatefulWidget {
   final client.BasketSuggestion suggestion;
@@ -82,7 +82,7 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
                     .clamp(
                       280.0,
                       AppResponsive.isWideWeb(context)
-                          ? 320.0
+                          ? 420.0
                           : AppResponsive.isTablet(context)
                           ? 360.0
                           : 340.0,
@@ -98,7 +98,7 @@ class _SuggestionCardBaseState extends State<SuggestionCardBase>
                   color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
                   blurRadius: 14,
                   spreadRadius: 0,
-                  offset: Offset(0, 4.h),
+                  offset: Offset(0, ScreenScale.h(4)),
                 ),
               ],
             ),

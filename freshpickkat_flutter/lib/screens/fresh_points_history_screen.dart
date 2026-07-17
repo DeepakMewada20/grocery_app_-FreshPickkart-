@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:freshpickkat_client/freshpickkat_client.dart';
 import 'package:freshpickkat_flutter/controller/auth_controller.dart';
 import 'package:freshpickkat_flutter/utils/serverpod_client.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_text.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class FreshPointsHistoryScreen extends StatefulWidget {
   const FreshPointsHistoryScreen({super.key});
@@ -74,7 +74,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                 padding: AppSpacing.all(16),
                 children: [
                   _buildSummaryCard(cs),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: ScreenScale.h(16)),
                   ...List.generate(_transactions.length, (i) {
                     final txn = _transactions[i];
                     return _buildTransactionRow(context, cs, txn);
@@ -118,7 +118,7 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
-                  child: Icon(Icons.monetization_on_outlined, color: Colors.white, size: 22.w),
+                  child: Icon(Icons.monetization_on_outlined, color: Colors.white, size: ScreenScale.w(22)),
                 ),
                 const Spacer(),
                 Container(
@@ -128,29 +128,29 @@ class _FreshPointsHistoryScreenState extends State<FreshPointsHistoryScreen> {
 borderRadius: BorderRadius.circular(AppRadius.extraLarge),
                   ),
                   child: Text('BALANCE',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10.sp, letterSpacing: 1.5)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: ScreenScale.sp(10), letterSpacing: 1.5)),
                 ),
               ],
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             Text(
               '$_balance',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 28.sp,
+                fontSize: ScreenScale.sp(28),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: ScreenScale.h(4)),
             Text(
               'Available Points',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 13.sp,
+                fontSize: ScreenScale.sp(13),
                 letterSpacing: 0.5,
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: ScreenScale.h(16)),
             Container(
               padding: AppSpacing.symmetric(vertical: 8),
               decoration: BoxDecoration(
@@ -163,7 +163,7 @@ borderRadius: BorderRadius.circular(AppRadius.large),
                   _buildStat('Earned', _totalEarned),
                   Container(
                     width: 1,
-                    height: 24.h,
+                    height: ScreenScale.h(24),
                     color: Colors.white.withValues(alpha: 0.2),
                   ),
                   _buildStat('Redeemed', _totalRedeemed),
@@ -260,7 +260,7 @@ borderRadius: BorderRadius.circular(AppRadius.large),
                 padding: AppSpacing.only(top: 2),
                 child: Icon(icon, color: color, size: AppIcons.large),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: ScreenScale.w(12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,7 +273,7 @@ borderRadius: BorderRadius.circular(AppRadius.large),
                               : _labelForType(txn.transactionType),
                       style: TextStyle(
                         color: cs.onSurface,
-                        fontSize: 14.sp,
+                        fontSize: ScreenScale.sp(14),
                       ),
                       maxLines: isExpanded ? null : 2,
                       overflow: isExpanded ? null : TextOverflow.ellipsis,
@@ -285,22 +285,22 @@ borderRadius: BorderRadius.circular(AppRadius.large),
                           _labelForType(txn.transactionType),
                           style: TextStyle(
                             color: cs.onSurfaceVariant,
-                            fontSize: 11.sp,
+                            fontSize: ScreenScale.sp(11),
                           ),
                         ),
                       ),
-                    SizedBox(height: isAdmin && txn.description != null ? 0 : 2.h),
+                    SizedBox(height: isAdmin && txn.description != null ? 0 : ScreenScale.h(2)),
                     Text(
                       _formatDate(txn.createdAt),
                       style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontSize: 12.sp,
+                        fontSize: ScreenScale.sp(12),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(width: 16.w),
+              SizedBox(width: ScreenScale.w(16)),
               if (hasLongText)
                 Padding(
                   padding: AppSpacing.only(top: 2),
@@ -310,14 +310,14 @@ borderRadius: BorderRadius.circular(AppRadius.large),
                     color: cs.onSurfaceVariant,
                   ),
                 ),
-              SizedBox(width: 8.w),
+              SizedBox(width: ScreenScale.w(8)),
               Padding(
                 padding: AppSpacing.only(top: 2),
                 child: Text(
                   '${isPositive ? '+' : '-'}${txn.points}',
                   style: TextStyle(
                     color: color,
-                    fontSize: 16.sp,
+                    fontSize: ScreenScale.sp(16),
                     fontWeight: FontWeight.bold,
                   ),
                 ),

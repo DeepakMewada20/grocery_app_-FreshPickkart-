@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'screen_scale.dart';
 
 class AppSpacing {
   AppSpacing._();
 
-  static double get xxs => 4.w;
-  static double get xs => 6.w;
-  static double get sm => 8.w;
-  static double get md => 12.w;
-  static double get lg => 16.w;
-  static double get xl => 20.w;
-  static double get xxl => 24.w;
-  static double get xxxl => 32.w;
+  static double get xxs => ScreenScale.w(4);
+  static double get xs => ScreenScale.w(6);
+  static double get sm => ScreenScale.w(8);
+  static double get md => ScreenScale.w(12);
+  static double get lg => ScreenScale.w(16);
+  static double get xl => ScreenScale.w(20);
+  static double get xxl => ScreenScale.w(24);
+  static double get xxxl => ScreenScale.w(32);
 
-  static EdgeInsets all(double value) => EdgeInsets.all(value);
+  static EdgeInsets all(double value) => EdgeInsets.all(ScreenScale.w(value));
 
   static EdgeInsets symmetric({
     double horizontal = 0,
     double vertical = 0,
   }) {
     return EdgeInsets.symmetric(
-      horizontal: horizontal.w,
-      vertical: vertical.h,
+      horizontal: ScreenScale.w(horizontal),
+      vertical: ScreenScale.h(vertical),
     );
   }
 
@@ -32,66 +32,70 @@ class AppSpacing {
     double bottom = 0,
   }) {
     return EdgeInsets.only(
-      left: left.w,
-      top: top.h,
-      right: right.w,
-      bottom: bottom.h,
+      left: ScreenScale.w(left),
+      top: ScreenScale.h(top),
+      right: ScreenScale.w(right),
+      bottom: ScreenScale.h(bottom),
     );
   }
 
   static EdgeInsets horizontal(double value) =>
-      EdgeInsets.symmetric(horizontal: value.w);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(value));
 
   static EdgeInsets vertical(double value) =>
-      EdgeInsets.symmetric(vertical: value.h);
+      EdgeInsets.symmetric(vertical: ScreenScale.h(value));
 
-  static SizedBox width(double value) => SizedBox(width: value.w);
-  static SizedBox height(double value) => SizedBox(height: value.h);
+  static SizedBox width(double value) =>
+      SizedBox(width: ScreenScale.w(value));
+  static SizedBox height(double value) =>
+      SizedBox(height: ScreenScale.h(value));
 
   static EdgeInsets get pagePadding => EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 12.h,
+        horizontal: ScreenScale.w(16),
+        vertical: ScreenScale.h(12),
       );
 
-  static EdgeInsets get cardPadding => EdgeInsets.all(12.w);
+  static EdgeInsets get cardPadding => EdgeInsets.all(ScreenScale.w(12));
 
-  static EdgeInsets get listSpacing => EdgeInsets.symmetric(vertical: 8.h);
+  static EdgeInsets get listSpacing =>
+      EdgeInsets.symmetric(vertical: ScreenScale.h(8));
 
-  static EdgeInsets get sectionSpacing => EdgeInsets.symmetric(vertical: 16.h);
+  static EdgeInsets get sectionSpacing =>
+      EdgeInsets.symmetric(vertical: ScreenScale.h(16));
 
-  static EdgeInsets get gridGap => EdgeInsets.all(12.w);
+  static EdgeInsets get gridGap => EdgeInsets.all(ScreenScale.w(12));
 
-  static EdgeInsets get itemGap => EdgeInsets.all(8.w);
+  static EdgeInsets get itemGap => EdgeInsets.all(ScreenScale.w(8));
 
   static EdgeInsets get buttonPadding =>
-      EdgeInsets.symmetric(horizontal: 24.w, vertical: 14.h);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(24), vertical: ScreenScale.h(14));
 
   static EdgeInsets get inputPadding =>
-      EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(16), vertical: ScreenScale.h(12));
 
   static EdgeInsets get badgePadding =>
-      EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(6), vertical: ScreenScale.h(2));
 
   static EdgeInsets get chipPadding =>
-      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(10), vertical: ScreenScale.h(4));
 
   static EdgeInsets get sectionPadding =>
-      EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h);
+      EdgeInsets.symmetric(horizontal: ScreenScale.w(16), vertical: ScreenScale.h(20));
 
-  static SizedBox get sectionSpacer => SizedBox(height: 16.h);
-  static SizedBox get itemSpacer => SizedBox(height: 8.h);
-  static SizedBox get smallSpacer => SizedBox(height: 4.h);
-  static SizedBox get largeSpacer => SizedBox(height: 24.h);
-  static SizedBox get horizontalItemSpacer => SizedBox(width: 8.w);
-  static SizedBox get horizontalSmallSpacer => SizedBox(width: 4.w);
+  static SizedBox get sectionSpacer => SizedBox(height: ScreenScale.h(16));
+  static SizedBox get itemSpacer => SizedBox(height: ScreenScale.h(8));
+  static SizedBox get smallSpacer => SizedBox(height: ScreenScale.h(4));
+  static SizedBox get largeSpacer => SizedBox(height: ScreenScale.h(24));
+  static SizedBox get horizontalItemSpacer => SizedBox(width: ScreenScale.w(8));
+  static SizedBox get horizontalSmallSpacer => SizedBox(width: ScreenScale.w(4));
 
   static EdgeInsets responsivePagePadding(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final horizontal = width >= 1000
-        ? 28.w
+        ? ScreenScale.w(28)
         : width >= 600
-            ? 22.w
-            : 16.w;
-    return EdgeInsets.symmetric(horizontal: horizontal, vertical: 12.h);
+            ? ScreenScale.w(22)
+            : ScreenScale.w(16);
+    return EdgeInsets.symmetric(horizontal: horizontal, vertical: ScreenScale.h(12));
   }
 }

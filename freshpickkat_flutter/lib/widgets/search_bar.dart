@@ -4,7 +4,7 @@ import 'package:freshpickkat_flutter/utils/app_route_observer.dart';
 import 'package:freshpickkat_flutter/widgets/product_search_delegate.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 class SearchBarWidget extends StatefulWidget {
   const SearchBarWidget({super.key});
@@ -132,7 +132,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
         );
       },
       child: Container(
-        height: 45.h.clamp(40.0, 50.0),
+        height: ScreenScale.h(45).clamp(40.0, 50.0),
         width: double.infinity,
         padding: AppSpacing.symmetric(horizontal: 10),
         decoration: BoxDecoration(
@@ -144,9 +144,9 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
             Icon(
               Icons.search,
               color: isDark ? Colors.white : Colors.black54,
-              size: 22.r,
+              size: ScreenScale.r(22),
             ),
-            SizedBox(width: 10.w),
+            SizedBox(width: ScreenScale.w(10)),
             Expanded(
               child: ClipRect(
                 child: AnimatedSwitcher(
@@ -180,7 +180,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget>
                       hints[_currentHintIndex],
                       style: TextStyle(
                         color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 15.sp,
+                        fontSize: ScreenScale.sp(15),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

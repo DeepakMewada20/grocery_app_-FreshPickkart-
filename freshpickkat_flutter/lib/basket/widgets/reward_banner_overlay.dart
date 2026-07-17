@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/basket/reward_celebration_service.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 /// A self-contained overlay banner that slides down from the top of the screen
 /// whenever a [RewardEvent] is emitted by [RewardCelebrationService].
@@ -178,7 +178,7 @@ class _RewardBanner extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
+        padding: EdgeInsets.fromLTRB(ScreenScale.w(12), ScreenScale.h(8), ScreenScale.w(12), 0),
         child: Material(
           color: Colors.transparent,
           child: Container(
@@ -211,7 +211,7 @@ class _RewardBanner extends StatelessWidget {
                 children: [
                   // Animated icon container
                   _AnimatedIconBadge(icon: _icon),
-                  SizedBox(width: 14.w),
+                  SizedBox(width: ScreenScale.w(14)),
 
                   // Title + subtitle
                   Expanded(
@@ -223,19 +223,19 @@ class _RewardBanner extends StatelessWidget {
                           event.title,
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 14.sp,
+                            fontSize: ScreenScale.sp(14),
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: ScreenScale.h(2)),
                         Text(
                           event.subtitle,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 12.sp,
+                            fontSize: ScreenScale.sp(12),
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 2,
@@ -308,8 +308,8 @@ class _AnimatedIconBadgeState extends State<_AnimatedIconBadge>
     return ScaleTransition(
       scale: _scale,
       child: Container(
-        width: 42.r,
-        height: 42.r,
+        width: ScreenScale.r(42),
+        height: ScreenScale.r(42),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(AppRadius.large),
@@ -321,7 +321,7 @@ class _AnimatedIconBadgeState extends State<_AnimatedIconBadge>
         child: Icon(
           widget.icon,
           color: Colors.white,
-          size: 22.r,
+          size: ScreenScale.r(22),
         ),
       ),
     );

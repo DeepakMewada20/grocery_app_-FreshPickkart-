@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:freshpickkat_flutter/basket/cart_controller.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_spacing.dart';
 import 'package:freshpickkat_flutter/core/design_system/app_radius.dart';
@@ -7,6 +6,7 @@ import 'package:freshpickkat_flutter/core/design_system/app_icons.dart';
 import 'package:freshpickkat_flutter/utils/app_theme.dart';
 import 'package:freshpickkat_flutter/utils/price_extensions.dart';
 import 'package:get/get.dart';
+import 'package:freshpickkat_flutter/core/design_system/screen_scale.dart';
 
 /// Persistent savings breakdown card shown inside the cart.
 ///
@@ -167,7 +167,7 @@ class _SavingsCardState extends State<SavingsCard>
       }
 
       return Container(
-        margin: EdgeInsets.fromLTRB(16.r, 0, 16.r, 16.r),
+        margin: EdgeInsets.fromLTRB(ScreenScale.r(16), 0, ScreenScale.r(16), ScreenScale.r(16)),
         decoration: BoxDecoration(
           color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.extraLarge),
@@ -196,12 +196,12 @@ class _SavingsCardState extends State<SavingsCard>
                       size: AppIcons.button,
                     ),
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: ScreenScale.w(10)),
                   Text(
                     '💰 Your Savings',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 16.sp,
+                      fontSize: ScreenScale.sp(16),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -222,7 +222,7 @@ class _SavingsCardState extends State<SavingsCard>
 
             // Total savings — animated pulse
             Container(
-              margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
+              margin: EdgeInsets.fromLTRB(ScreenScale.w(12), 0, ScreenScale.w(12), ScreenScale.h(12)),
               padding: AppSpacing.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -250,7 +250,7 @@ class _SavingsCardState extends State<SavingsCard>
                     'Total Savings',
                     style: TextStyle(
                       color: cs.onSurface,
-                      fontSize: 14.sp,
+                      fontSize: ScreenScale.sp(14),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -260,7 +260,7 @@ class _SavingsCardState extends State<SavingsCard>
                       '₹${totalSavings.formatPrice}',
                       style: TextStyle(
                         color: accentColor,
-                        fontSize: 18.sp,
+                        fontSize: ScreenScale.sp(18),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -276,7 +276,7 @@ class _SavingsCardState extends State<SavingsCard>
                 '🎉 Great savings! Every rupee counts.',
                 style: TextStyle(
                   color: accentColor.withValues(alpha: 0.75),
-                  fontSize: 11.sp,
+                  fontSize: ScreenScale.sp(11),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -313,15 +313,15 @@ class _SavingsRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.check_circle_rounded, color: accentColor, size: AppIcons.small),
-          SizedBox(width: 8.w),
-          Icon(icon, color: cs.onSurface.withValues(alpha: 0.5), size: 14.r),
-          SizedBox(width: 6.w),
+          SizedBox(width: ScreenScale.w(8)),
+          Icon(icon, color: cs.onSurface.withValues(alpha: 0.5), size: ScreenScale.r(14)),
+          SizedBox(width: ScreenScale.w(6)),
           Expanded(
             child: Text(
               label,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.75),
-                fontSize: 13.sp,
+                fontSize: ScreenScale.sp(13),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -330,7 +330,7 @@ class _SavingsRow extends StatelessWidget {
             '₹${amount.formatPrice}',
             style: TextStyle(
               color: accentColor,
-              fontSize: 13.sp,
+              fontSize: ScreenScale.sp(13),
               fontWeight: FontWeight.w700,
             ),
           ),
