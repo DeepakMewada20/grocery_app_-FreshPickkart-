@@ -36,6 +36,7 @@ class DataInitializationService extends GetxService {
 
   Future<void> _initAuth() async {
     try {
+      await AuthController.instance.waitForAuthReady();
       if (AuthController.instance.isLoggedIn) {
         await AuthController.instance.refreshAppUser();
       }

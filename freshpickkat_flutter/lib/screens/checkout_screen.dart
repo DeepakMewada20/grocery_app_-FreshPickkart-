@@ -1224,10 +1224,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String customerPhone,
     required String customerEmail,
     required String orderId,
-  }) {
+  }) async {
     // Web: Checkout.js handles all payment methods, skip UPI app selection
     if (kIsWeb) {
-      unawaited(_submitPayment(
+      await _submitPayment(
         keyId: keyId,
         amountPaise: amountPaise,
         currency: currency,
@@ -1235,8 +1235,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerPhone: customerPhone,
         customerEmail: customerEmail,
         orderId: orderId,
-      ));
-      return Future.value(true);
+      );
+      return false;
     }
 
     if (isTestMode) {

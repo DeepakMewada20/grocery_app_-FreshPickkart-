@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:freshpickkat_client/freshpickkat_client.dart';
@@ -26,6 +28,7 @@ class AuthController extends GetxController {
   String? _verificationId;
   int? _resendToken;
   bool _isRefreshing = false;
+  final Completer<void> _authReadyCompleter = Completer<void>();
 
   static const _pendingPhoneKey = 'pending_verification_phone';
   static const _pendingTimestampKey = 'pending_verification_timestamp';
@@ -112,24 +115,49 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _user.value = _auth.currentUser;
 
-    if (_user.value != null) {
-      _loadCachedUser();
-    }
+    // authStateChanges handles initial auth restoration on all platforms.
+    // On web, Firebase Auth reads IndexedDB asynchronously; this stream
+    // fires once the persisted session is resolved.
+    _auth.authStateChanges().listen((fb.User? user) {
+      _user.value = user;
 
+      if (user != null) {
+        _loadCachedUser();
+        if (appUserRx.value == null ||
+            appUserRx.value?.firebaseUid != user.uid) {
+          refreshAppUser();
+        }
+      } else {
+        appUserRx.value = null;
+        _cacheService.clearUser();
+      }
+
+      if (!_authReadyCompleter.isCompleted) {
+        _authReadyCompleter.complete();
+      }
+    });
+
+    // Timeout fallback: if auth never emits (edge case), unblock after 5s.
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!_authReadyCompleter.isCompleted) {
+        _authReadyCompleter.complete();
+      }
+    });
+
+    // userChanges catches profile metadata updates (e.g. phone number change).
     _auth.userChanges().listen((fb.User? user) {
-      if (user == null) {
+      if (_user.value != null && user == null) {
         _user.value = null;
         appUserRx.value = null;
         _cacheService.clearUser();
-      } else if (user.uid != _user.value?.uid) {
-        _user.value = user;
-        _loadCachedUser();
-        refreshAppUser();
       }
     });
   }
+
+  /// Returns a future that completes when Firebase Auth has resolved
+  /// the initial session state (handles async IndexedDB on web).
+  Future<void> waitForAuthReady() => _authReadyCompleter.future;
 
   void _loadCachedUser() {
     final cachedUser = _cacheService.loadUser();
